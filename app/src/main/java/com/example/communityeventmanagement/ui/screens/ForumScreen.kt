@@ -20,19 +20,29 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.communityeventmanagement.data.DummyData
+import com.example.communityeventmanagement.data.AppState
 import com.example.communityeventmanagement.data.ForumMessage
+import com.example.communityeventmanagement.data.UserProfile
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ForumScreen(onNavigateBack: () -> Unit) {
+fun ForumScreen(
+    communityId: Int,
+    currentUser: UserProfile?,
+    onNavigateBack: () -> Unit
+) {
+    val community = AppState.communities.find { it.id == communityId }
     val messages = remember {
-        mutableStateListOf<ForumMessage>().also { it.addAll(DummyData.forumDiscussions) }
+        mutableStateListOf<ForumMessage>().also {
+            it.addAll(community?.forumMessages ?: emptyList())
+        }
     }
     var inputText by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
 
-    // Auto-scroll to bottom when new message added
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
             listState.animateScrollToItem(messages.size - 1)
@@ -45,9 +55,10 @@ fun ForumScreen(onNavigateBack: () -> Unit) {
                 title = {
                     Column {
                         Text(
-                            "Forum Diskusi",
+                            community?.name ?: "Forum Diskusi",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.ExtraBold
+                            fontWeight = FontWeight.ExtraBold,
+                            maxLines = 1
                         )
                         Text(
                             "${messages.size} pesan · Live",
@@ -69,7 +80,6 @@ fun ForumScreen(onNavigateBack: () -> Unit) {
                     containerColor = MaterialTheme.colorScheme.background
                 ),
                 actions = {
-                    // Online indicator
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(end = 16.dp)
@@ -82,7 +92,7 @@ fun ForumScreen(onNavigateBack: () -> Unit) {
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            "12 online",
+                            "Online",
                             style = MaterialTheme.typography.labelSmall,
                             color = Color(0xFF4CAF50),
                             fontWeight = FontWeight.SemiBold
@@ -97,14 +107,27 @@ fun ForumScreen(onNavigateBack: () -> Unit) {
                 onValueChange = { inputText = it },
                 onSend = {
                     if (inputText.isNotBlank()) {
-                        messages.add(
-                            ForumMessage(
-                                sender = "Kamu",
-                                message = inputText.trim(),
-                                time = "Baru saja",
-                                avatarInitials = "KM"
-                            )
+                        val senderName = currentUser?.name ?: "Kamu"
+                        val initials = senderName.split(" ")
+                            .take(2)
+                            .joinToString("") { it.take(1) }
+                            .uppercase()
+                        val timeStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+                        val newMsg = ForumMessage(
+                            sender = senderName,
+                            message = inputText.trim(),
+                            time = timeStr,
+                            avatarInitials = initials
                         )
+                        messages.add(newMsg)
+                        // Simpan juga ke AppState agar persistent dalam sesi
+                        val idx = AppState.communities.indexOfFirst { it.id == communityId }
+                        if (idx != -1) {
+                            val updated = AppState.communities[idx].copy(
+                                forumMessages = AppState.communities[idx].forumMessages + newMsg
+                            )
+                            AppState.communities[idx] = updated
+                        }
                         inputText = ""
                     }
                 }
@@ -120,13 +143,11 @@ fun ForumScreen(onNavigateBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(vertical = 12.dp)
         ) {
-            // Date separator
             item {
                 DateSeparator(label = "Hari ini")
             }
-
             items(messages) { msg ->
-                val isMe = msg.sender == "Kamu"
+                val isMe = msg.sender == (currentUser?.name ?: "Kamu")
                 val isAdmin = msg.sender == "Admin"
                 ChatBubble(
                     message = msg,
@@ -146,7 +167,10 @@ fun DateSeparator(label: String) {
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        )
         Surface(
             shape = RoundedCornerShape(20.dp),
             color = MaterialTheme.colorScheme.surfaceVariant,
@@ -159,7 +183,10 @@ fun DateSeparator(label: String) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        )
     }
 }
 
@@ -175,7 +202,6 @@ fun ChatBubble(
         verticalAlignment = Alignment.Bottom
     ) {
         if (!isMe) {
-            // Avatar
             Box(
                 modifier = Modifier
                     .size(36.dp)
@@ -202,8 +228,7 @@ fun ChatBubble(
                     text = message.avatarInitials,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color = if (isAdmin) Color.White
-                    else MaterialTheme.colorScheme.primary,
+                    color = if (isAdmin) Color.White else MaterialTheme.colorScheme.primary,
                     fontSize = 11.sp
                 )
             }

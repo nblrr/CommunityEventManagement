@@ -24,10 +24,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.communityeventmanagement.data.UserProfile
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (UserProfile) -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
@@ -39,7 +40,6 @@ fun LoginScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Decorative gradient top strip
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -61,7 +61,6 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // App logo area
             Box(
                 modifier = Modifier
                     .size(72.dp)
@@ -94,7 +93,6 @@ fun LoginScreen(
                 modifier = Modifier.padding(top = 6.dp, bottom = 32.dp)
             )
 
-            // Email field
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -111,7 +109,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Password field
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -139,9 +136,21 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // Login button
             Button(
-                onClick = onLoginSuccess,
+                onClick = {
+                    // Dummy login — buat UserProfile dari input
+                    val displayName = if (email.isNotBlank())
+                        email.substringBefore("@").replaceFirstChar { it.uppercase() }
+                    else "Pengguna"
+                    val initials = displayName.take(2).uppercase()
+                    onLoginSuccess(
+                        UserProfile(
+                            id = "user_${System.currentTimeMillis()}",
+                            name = displayName,
+                            email = email.ifBlank { "user@email.com" }
+                        )
+                    )
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -179,7 +188,7 @@ fun LoginScreen(
 
 @Composable
 fun RegisterScreen(
-    onRegisterSuccess: () -> Unit,
+    onRegisterSuccess: (UserProfile) -> Unit,
     onNavigateToLogin: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
@@ -304,7 +313,16 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(28.dp))
 
             Button(
-                onClick = onRegisterSuccess,
+                onClick = {
+                    val displayName = name.ifBlank { "Pengguna Baru" }
+                    onRegisterSuccess(
+                        UserProfile(
+                            id = "user_${System.currentTimeMillis()}",
+                            name = displayName,
+                            email = email.ifBlank { "user@email.com" }
+                        )
+                    )
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),

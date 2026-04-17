@@ -83,7 +83,7 @@ fun CreateEventScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // ── Community Info ────────────────────────────────────────────────
+            // Community Info
             if (community != null) {
                 Card(
                     shape = RoundedCornerShape(14.dp),
@@ -116,7 +116,7 @@ fun CreateEventScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // ── Emoji Picker ──────────────────────────────────────────────────
+            // Emoji Picker
             Text(
                 text = "Pilih Ikon Event",
                 style = MaterialTheme.typography.titleSmall,
@@ -171,7 +171,7 @@ fun CreateEventScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ── Form Fields ───────────────────────────────────────────────────
+            // Form Fields
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
@@ -242,7 +242,7 @@ fun CreateEventScreen(
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.45f)
             )
 
-            // ── Preview ───────────────────────────────────────────────────────
+            // Preview
             if (title.isNotBlank()) {
                 Spacer(modifier = Modifier.height(20.dp))
                 Text(

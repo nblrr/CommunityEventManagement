@@ -1,7 +1,6 @@
 package com.example.communityeventmanagement.data
 
-// ─── Models ───────────────────────────────────────────────────────────────────
-
+// Models
 data class UserProfile(
     val id: String,
     val name: String,
@@ -49,18 +48,14 @@ data class ForumMessage(
     val avatarInitials: String
 )
 
-// ─── App State (singleton sederhana pengganti ViewModel/Database) ─────────────
-
 object AppState {
     var currentUser: UserProfile? = null
     val joinedCommunityIds = mutableSetOf<Int>()
     val communities = mutableListOf<Community>().also { it.addAll(DummyData.communities) }
 }
 
-// ─── Dummy Data ───────────────────────────────────────────────────────────────
-
+// Dummy Data
 object DummyData {
-
     val communities = mutableListOf(
         Community(
             id = 1,

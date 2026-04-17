@@ -82,7 +82,7 @@ fun CreateCommunityScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // ── Emoji Picker ──────────────────────────────────────────────────
+            // Emoji Picker
             Text(
                 text = "Pilih Ikon Komunitas",
                 style = MaterialTheme.typography.titleSmall,
@@ -138,7 +138,7 @@ fun CreateCommunityScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ── Community Name ────────────────────────────────────────────────
+            // Community Name
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -155,7 +155,7 @@ fun CreateCommunityScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // ── Description ───────────────────────────────────────────────────
+            // Description
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
@@ -173,7 +173,7 @@ fun CreateCommunityScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ── Category ──────────────────────────────────────────────────────
+            // Category
             Text(
                 text = "Pilih Kategori",
                 style = MaterialTheme.typography.titleSmall,
@@ -213,7 +213,7 @@ fun CreateCommunityScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // ── Preview Card ──────────────────────────────────────────────────
+            // Preview Card
             if (name.isNotBlank()) {
                 Text(
                     text = "Preview",
@@ -275,7 +275,7 @@ fun CreateCommunityScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // ── Submit Button ─────────────────────────────────────────────────
+            // Submit Button
             Button(
                 onClick = {
                     val newId = (AppState.communities.maxOfOrNull { it.id } ?: 0) + 1
@@ -316,7 +316,7 @@ fun CreateCommunityScreen(
         }
     }
 
-    // ── Success Dialog ────────────────────────────────────────────────────────
+    // Success Dialog
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = {},

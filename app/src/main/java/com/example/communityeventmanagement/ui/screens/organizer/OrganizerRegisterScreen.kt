@@ -75,7 +75,7 @@ fun OrganizerRegisterScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // ── Header Banner ─────────────────────────────────────────────────
+            // Header Banner
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -113,7 +113,7 @@ fun OrganizerRegisterScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // ── Benefits ──────────────────────────────────────────────────────
+            // Benefits
             Text(
                 text = "Keuntungan Organizer",
                 style = MaterialTheme.typography.titleMedium,
@@ -129,7 +129,7 @@ fun OrganizerRegisterScreen(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ── Form ──────────────────────────────────────────────────────────
+            // Form
             Text(
                 text = "Lengkapi Data Organizer",
                 style = MaterialTheme.typography.titleMedium,
@@ -234,7 +234,7 @@ fun OrganizerRegisterScreen(
         }
     }
 
-    // ── Success Dialog ────────────────────────────────────────────────────────
+    // Success Dialog
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = {},

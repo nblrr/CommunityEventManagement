@@ -77,7 +77,7 @@ fun CommunityDetailScreen(
                 .padding(paddingValues),
             contentPadding = PaddingValues(bottom = 32.dp)
         ) {
-            // ── Hero Banner ───────────────────────────────────────────────────
+            // Hero Banner
             item {
                 Box(
                     modifier = Modifier
@@ -130,7 +130,7 @@ fun CommunityDetailScreen(
                 }
             }
 
-            // ── Organizer Info ────────────────────────────────────────────────
+            // Organizer Info
             item {
                 Card(
                     modifier = Modifier
@@ -189,7 +189,7 @@ fun CommunityDetailScreen(
                 }
             }
 
-            // ── Action Buttons ────────────────────────────────────────────────
+            // Action Buttons
             item {
                 Row(
                     modifier = Modifier
@@ -284,7 +284,7 @@ fun CommunityDetailScreen(
                 }
             }
 
-            // ── Events Section Header ─────────────────────────────────────────
+            // Events Section Header
             item {
                 Row(
                     modifier = Modifier
@@ -313,7 +313,7 @@ fun CommunityDetailScreen(
                 }
             }
 
-            // ── Event List ────────────────────────────────────────────────────
+            // Event List
             if (community.events.isEmpty()) {
                 item {
                     Box(

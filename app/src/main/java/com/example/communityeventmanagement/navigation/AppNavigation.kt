@@ -20,19 +20,16 @@ import com.example.communityeventmanagement.ui.screens.profile.ProfileScreen
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-
-    // State login & user disimpan di sini sebagai single source of truth
     var currentUser by remember { mutableStateOf(AppState.currentUser) }
 
-    // Helper untuk update user dan sync ke AppState
+    // Helperupdate user dan sync AppState
     fun updateUser(user: UserProfile?) {
         AppState.currentUser = user
         currentUser = user
     }
 
     NavHost(navController = navController, startDestination = "home") {
-
-        // ── Home ──────────────────────────────────────────────────────────────
+        // Home
         composable("home") {
             HomeScreen(
                 currentUser = currentUser,
@@ -42,7 +39,7 @@ fun AppNavigation() {
             )
         }
 
-        // ── Auth ──────────────────────────────────────────────────────────────
+        // Auth
         composable("login") {
             LoginScreen(
                 onLoginSuccess = { user ->
@@ -67,7 +64,7 @@ fun AppNavigation() {
             )
         }
 
-        // ── Profile ───────────────────────────────────────────────────────────
+        // Profile
         composable("profile") {
             ProfileScreen(
                 currentUser = currentUser,
@@ -81,7 +78,7 @@ fun AppNavigation() {
             )
         }
 
-        // ── Organizer Register ────────────────────────────────────────────────
+        // Organizer Register
         composable("organizer_register") {
             OrganizerRegisterScreen(
                 currentUser = currentUser,
@@ -93,7 +90,7 @@ fun AppNavigation() {
             )
         }
 
-        // ── Community List ────────────────────────────────────────────────────
+        // Community List
         composable("community_list") {
             CommunityListScreen(
                 currentUser = currentUser,
@@ -105,7 +102,7 @@ fun AppNavigation() {
             )
         }
 
-        // ── Community Detail ──────────────────────────────────────────────────
+        // Community Detail
         composable("community_detail/{communityId}") { backStackEntry ->
             val communityId = backStackEntry.arguments?.getString("communityId")?.toIntOrNull() ?: 0
             CommunityDetailScreen(
@@ -118,7 +115,7 @@ fun AppNavigation() {
             )
         }
 
-        // ── Create Community ──────────────────────────────────────────────────
+        // Create Community
         composable("create_community") {
             CreateCommunityScreen(
                 currentUser = currentUser,
@@ -131,7 +128,7 @@ fun AppNavigation() {
             )
         }
 
-        // ── Create Event ──────────────────────────────────────────────────────
+        // Create Event
         composable("create_event/{communityId}") { backStackEntry ->
             val communityId = backStackEntry.arguments?.getString("communityId")?.toIntOrNull() ?: 0
             CreateEventScreen(
@@ -144,7 +141,7 @@ fun AppNavigation() {
             )
         }
 
-        // ── Forum ─────────────────────────────────────────────────────────────
+        // Forum
         composable("forum/{communityId}") { backStackEntry ->
             val communityId = backStackEntry.arguments?.getString("communityId")?.toIntOrNull() ?: 0
             ForumScreen(

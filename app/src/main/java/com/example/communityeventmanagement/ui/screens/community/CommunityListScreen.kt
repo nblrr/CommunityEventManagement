@@ -141,7 +141,6 @@ fun CommunityCard(
         )
     ) {
         Column(modifier = Modifier.padding(18.dp)) {
-            // Top row: emoji + category badge + joined badge
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,

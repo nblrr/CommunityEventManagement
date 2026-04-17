@@ -97,7 +97,7 @@ fun HomeScreen(
                 .padding(paddingValues),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            // ── Hero Banner ───────────────────────────────────────────────────
+            // Hero Banner
             item {
                 HeroBanner(
                     currentUser = currentUser,
@@ -106,7 +106,7 @@ fun HomeScreen(
                 )
             }
 
-            // ── Quick Actions ─────────────────────────────────────────────────
+            // Quick Actions
             item {
                 QuickActionsSection(
                     isLoggedIn = isLoggedIn,
@@ -117,7 +117,7 @@ fun HomeScreen(
                 )
             }
 
-            // ── Section Header Komunitas ──────────────────────────────────────
+            // Section Header Komunitas
             item {
                 Row(
                     modifier = Modifier
@@ -141,7 +141,7 @@ fun HomeScreen(
                 }
             }
 
-            // ── Community Preview Cards ───────────────────────────────────────
+            // Community Preview Cards
             items(AppState.communities.take(3)) { community ->
                 val isJoined = community.id in AppState.joinedCommunityIds
                 Card(

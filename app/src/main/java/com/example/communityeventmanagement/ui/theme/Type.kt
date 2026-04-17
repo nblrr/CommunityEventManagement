@@ -2,15 +2,9 @@ package com.example.communityeventmanagement.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-
-// Add to build.gradle: implementation("androidx.compose.ui:ui-text-google-fonts")
-// and in AndroidManifest.xml add the Google Fonts provider
-// For now using system fonts as fallback — swap Font() references with actual font resources
-// when adding com.example.communityeventmanagement.R.font.* files
 
 val Typography = Typography(
     displayLarge = TextStyle(

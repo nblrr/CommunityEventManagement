@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.communityeventmanagement.data.UserProfile
 
+
 @Composable
 fun LoginScreen(
     onLoginSuccess: (UserProfile) -> Unit,
@@ -34,6 +35,8 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+
+    val isFormValid = email.isNotBlank() && password.isNotBlank()
 
     Box(
         modifier = Modifier
@@ -61,6 +64,7 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Logo
             Box(
                 modifier = Modifier
                     .size(72.dp)
@@ -79,6 +83,7 @@ fun LoginScreen(
             }
 
             Spacer(modifier = Modifier.height(20.dp))
+
             Text(
                 text = "Selamat Datang!",
                 style = MaterialTheme.typography.headlineLarge,
@@ -93,34 +98,45 @@ fun LoginScreen(
                 modifier = Modifier.padding(top = 6.dp, bottom = 32.dp)
             )
 
+            // Email Field
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Alamat Email") },
                 leadingIcon = {
-                    Icon(Icons.Default.Email, contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary)
+                    Icon(
+                        Icons.Default.Email,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 },
                 shape = RoundedCornerShape(14.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                // Warna border merah jika sudah diketik tapi kosong
+                isError = email.isEmpty() && password.isNotEmpty()
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Password Field
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Password") },
                 leadingIcon = {
-                    Icon(Icons.Default.Lock, contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary)
+                    Icon(
+                        Icons.Default.Lock,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 },
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
-                            if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            if (passwordVisible) Icons.Default.VisibilityOff
+                            else Icons.Default.Visibility,
                             contentDescription = if (passwordVisible) "Sembunyikan" else "Tampilkan",
                             tint = MaterialTheme.colorScheme.outline
                         )
@@ -134,29 +150,42 @@ fun LoginScreen(
                 singleLine = true
             )
 
+            // Hint teks validasi
+            if (!isFormValid && (email.isNotEmpty() || password.isNotEmpty())) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "⚠️ Email dan password wajib diisi untuk masuk",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
             Spacer(modifier = Modifier.height(28.dp))
 
+            // Tombol Login
             Button(
                 onClick = {
-                    // Dummy login — buat UserProfile dari input
-                    val displayName = if (email.isNotBlank())
-                        email.substringBefore("@").replaceFirstChar { it.uppercase() }
-                    else "Pengguna"
-                    val initials = displayName.take(2).uppercase()
+                    val displayName = email.substringBefore("@")
+                        .replaceFirstChar { it.uppercase() }
+                        .ifBlank { "Pengguna" }
+
                     onLoginSuccess(
                         UserProfile(
                             id = "user_${System.currentTimeMillis()}",
                             name = displayName,
-                            email = email.ifBlank { "user@email.com" }
+                            email = email
                         )
                     )
                 },
+                enabled = isFormValid,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    disabledContainerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                 )
             ) {
                 Text(
@@ -168,6 +197,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Link ke Register
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     "Belum punya akun?",
@@ -195,6 +225,8 @@ fun RegisterScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+
+    val isFormValid = name.isNotBlank() && email.isNotBlank() && password.isNotBlank()
 
     Box(
         modifier = Modifier
@@ -240,6 +272,7 @@ fun RegisterScreen(
             }
 
             Spacer(modifier = Modifier.height(20.dp))
+
             Text(
                 text = "Buat Akun",
                 style = MaterialTheme.typography.headlineLarge,
@@ -254,13 +287,17 @@ fun RegisterScreen(
                 modifier = Modifier.padding(top = 6.dp, bottom = 28.dp)
             )
 
+            // Nama Field
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Nama Lengkap") },
                 leadingIcon = {
-                    Icon(Icons.Default.Person, contentDescription = null,
-                        tint = MaterialTheme.colorScheme.secondary)
+                    Icon(
+                        Icons.Default.Person,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
                 },
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth(),
@@ -269,13 +306,17 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Email Field
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Alamat Email") },
                 leadingIcon = {
-                    Icon(Icons.Default.Email, contentDescription = null,
-                        tint = MaterialTheme.colorScheme.secondary)
+                    Icon(
+                        Icons.Default.Email,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
                 },
                 shape = RoundedCornerShape(14.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -285,18 +326,23 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Password Field
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Password") },
                 leadingIcon = {
-                    Icon(Icons.Default.Lock, contentDescription = null,
-                        tint = MaterialTheme.colorScheme.secondary)
+                    Icon(
+                        Icons.Default.Lock,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
                 },
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
-                            if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            if (passwordVisible) Icons.Default.VisibilityOff
+                            else Icons.Default.Visibility,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.outline
                         )
@@ -310,25 +356,38 @@ fun RegisterScreen(
                 singleLine = true
             )
 
+            // Hint teks validasi
+            if (!isFormValid && (name.isNotEmpty() || email.isNotEmpty() || password.isNotEmpty())) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "⚠️ Semua field wajib diisi untuk mendaftar",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
             Spacer(modifier = Modifier.height(28.dp))
 
+            // Tombol Register
             Button(
                 onClick = {
-                    val displayName = name.ifBlank { "Pengguna Baru" }
                     onRegisterSuccess(
                         UserProfile(
                             id = "user_${System.currentTimeMillis()}",
-                            name = displayName,
-                            email = email.ifBlank { "user@email.com" }
+                            name = name.trim(),
+                            email = email.trim()
                         )
                     )
                 },
+                enabled = isFormValid,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    disabledContainerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                 )
             ) {
                 Text(
@@ -340,6 +399,7 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Link ke Login
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     "Sudah punya akun?",

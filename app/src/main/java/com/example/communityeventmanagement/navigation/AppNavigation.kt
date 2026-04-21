@@ -1,9 +1,12 @@
 package com.example.communityeventmanagement.navigation
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Modifier
 import com.example.communityeventmanagement.data.AppState
 import com.example.communityeventmanagement.data.UserProfile
 import com.example.communityeventmanagement.ui.screens.auth.LoginScreen
@@ -17,138 +20,216 @@ import com.example.communityeventmanagement.ui.screens.home.HomeScreen
 import com.example.communityeventmanagement.ui.screens.organizer.OrganizerRegisterScreen
 import com.example.communityeventmanagement.ui.screens.profile.ProfileScreen
 
+
 @Composable
 fun AppNavigation() {
-    val navController = rememberNavController()
-    var currentUser by remember { mutableStateOf(AppState.currentUser) }
+    val backStack: SnapshotStateList<Route> = remember {
+        mutableStateListOf(Route.Home)
+    }
 
-    // Helperupdate user dan sync AppState
+    var currentUser by remember { mutableStateOf<UserProfile?>(AppState.currentUser) }
+
     fun updateUser(user: UserProfile?) {
         AppState.currentUser = user
         currentUser = user
     }
 
-    NavHost(navController = navController, startDestination = "home") {
-        // Home
-        composable("home") {
-            HomeScreen(
-                currentUser = currentUser,
-                onNavigateToLogin = { navController.navigate("login") },
-                onNavigateToProfile = { navController.navigate("profile") },
-                onNavigateToCommunityList = { navController.navigate("community_list") }
-            )
-        }
+    CompositionLocalProvider(LocalBackStack provides backStack) {
+        NavDisplay(
+            backStack = backStack,
+            currentUser = currentUser,
+            onUpdateUser = ::updateUser
+        )
+    }
+}
 
-        // Auth
-        composable("login") {
-            LoginScreen(
-                onLoginSuccess = { user ->
-                    updateUser(user)
-                    navController.popBackStack("home", inclusive = false)
-                },
-                onNavigateToRegister = { navController.navigate("register") }
-            )
-        }
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+private fun NavDisplay(
+    backStack: SnapshotStateList<Route>,
+    currentUser: UserProfile?,
+    onUpdateUser: (UserProfile?) -> Unit
+) {
+    val currentRoute = backStack.lastOrNull() ?: Route.Home
 
-        composable("register") {
-            RegisterScreen(
-                onRegisterSuccess = { user ->
-                    updateUser(user)
-                    navController.popBackStack("home", inclusive = false)
-                },
-                onNavigateToLogin = {
-                    navController.navigate("login") {
-                        popUpTo("login") { inclusive = true }
+    AnimatedContent(
+        targetState = currentRoute,
+        transitionSpec = {
+            // Layar baru slide masuk dari kanan, layar lama slide keluar ke kiri
+            (slideInHorizontally(
+                initialOffsetX = { fullWidth -> fullWidth },
+                animationSpec = tween(300)
+            ) + fadeIn(animationSpec = tween(300))) togetherWith
+                    (slideOutHorizontally(
+                        targetOffsetX = { fullWidth -> -fullWidth / 3 },
+                        animationSpec = tween(300)
+                    ) + fadeOut(animationSpec = tween(150)))
+        },
+        label = "NavTransition"
+    ) { route ->
+
+        when (route) {
+            // HOME
+            Route.Home -> {
+                HomeScreen(
+                    currentUser = currentUser,
+                    onNavigateToLogin = {
+                        backStack.add(Route.Login)
+                    },
+                    onNavigateToProfile = {
+                        // Conditional Navigation
+                        if (currentUser != null) {
+                            backStack.add(Route.Profile)
+                        } else {
+                            backStack.add(Route.Login)
+                        }
+                    },
+                    onNavigateToCommunityList = {
+                        backStack.add(Route.CommunityList)
                     }
-                }
-            )
-        }
+                )
+            }
 
-        // Profile
-        composable("profile") {
-            ProfileScreen(
-                currentUser = currentUser,
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToOrganizerRegister = { navController.navigate("organizer_register") },
-                onLogout = {
-                    updateUser(null)
-                    AppState.joinedCommunityIds.clear()
-                    navController.popBackStack("home", inclusive = false)
-                }
-            )
-        }
-
-        // Organizer Register
-        composable("organizer_register") {
-            OrganizerRegisterScreen(
-                currentUser = currentUser,
-                onRegisterSuccess = { updatedUser ->
-                    updateUser(updatedUser)
-                    navController.popBackStack("profile", inclusive = false)
-                },
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
-
-        // Community List
-        composable("community_list") {
-            CommunityListScreen(
-                currentUser = currentUser,
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToCommunityDetail = { communityId ->
-                    navController.navigate("community_detail/$communityId")
-                },
-                onNavigateToCreateCommunity = { navController.navigate("create_community") }
-            )
-        }
-
-        // Community Detail
-        composable("community_detail/{communityId}") { backStackEntry ->
-            val communityId = backStackEntry.arguments?.getString("communityId")?.toIntOrNull() ?: 0
-            CommunityDetailScreen(
-                communityId = communityId,
-                currentUser = currentUser,
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToForum = { navController.navigate("forum/$communityId") },
-                onNavigateToCreateEvent = { navController.navigate("create_event/$communityId") },
-                onNavigateToLogin = { navController.navigate("login") }
-            )
-        }
-
-        // Create Community
-        composable("create_community") {
-            CreateCommunityScreen(
-                currentUser = currentUser,
-                onCreateSuccess = { communityId ->
-                    navController.navigate("community_detail/$communityId") {
-                        popUpTo("community_list") { inclusive = false }
+            // AUTH: LOGIN
+            Route.Login -> {
+                LoginScreen(
+                    onLoginSuccess = { user ->
+                        onUpdateUser(user)
+                        while (backStack.size > 1) backStack.removeLastOrNull()
+                    },
+                    onNavigateToRegister = {
+                        backStack.removeLastOrNull()
+                        backStack.add(Route.Register)
                     }
-                },
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
+                )
+            }
 
-        // Create Event
-        composable("create_event/{communityId}") { backStackEntry ->
-            val communityId = backStackEntry.arguments?.getString("communityId")?.toIntOrNull() ?: 0
-            CreateEventScreen(
-                communityId = communityId,
-                currentUser = currentUser,
-                onCreateSuccess = {
-                    navController.popBackStack()
-                },
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
+            // AUTH: REGISTER
+            Route.Register -> {
+                RegisterScreen(
+                    onRegisterSuccess = { user ->
+                        onUpdateUser(user)
+                        while (backStack.size > 1) backStack.removeLastOrNull()
+                    },
+                    onNavigateToLogin = {
+                        backStack.removeLastOrNull()
+                        backStack.add(Route.Login)
+                    }
+                )
+            }
 
-        // Forum
-        composable("forum/{communityId}") { backStackEntry ->
-            val communityId = backStackEntry.arguments?.getString("communityId")?.toIntOrNull() ?: 0
-            ForumScreen(
-                communityId = communityId,
-                currentUser = currentUser,
-                onNavigateBack = { navController.popBackStack() }
-            )
+            // PROFILE
+            Route.Profile -> {
+                ProfileScreen(
+                    currentUser = currentUser,
+                    onNavigateBack = {
+                        backStack.removeLastOrNull()
+                    },
+                    onNavigateToOrganizerRegister = {
+                        backStack.add(Route.OrganizerRegister)
+                    },
+                    onLogout = {
+                        onUpdateUser(null)
+                        AppState.joinedCommunityIds.clear()
+                        // Setelah logout, kembali ke Home
+                        while (backStack.size > 1) backStack.removeLastOrNull()
+                    }
+                )
+            }
+
+            // ORGANIZER REGISTER
+            Route.OrganizerRegister -> {
+                OrganizerRegisterScreen(
+                    currentUser = currentUser,
+                    onRegisterSuccess = { updatedUser ->
+                        onUpdateUser(updatedUser)
+                        // Kembali ke Profile setelah berhasil daftar organizer
+                        backStack.removeLastOrNull()
+                    },
+                    onNavigateBack = {
+                        backStack.removeLastOrNull()
+                    }
+                )
+            }
+
+            // COMMUNITY LIST
+            Route.CommunityList -> {
+                CommunityListScreen(
+                    currentUser = currentUser,
+                    onNavigateBack = {
+                        backStack.removeLastOrNull()
+                    },
+                    onNavigateToCommunityDetail = { communityId ->
+                        backStack.add(Route.CommunityDetail(communityId))
+                    },
+                    onNavigateToCreateCommunity = {
+                        if (currentUser?.isOrganizer == true) {
+                            backStack.add(Route.CreateCommunity)
+                        } else {
+                            backStack.add(Route.Login)
+                        }
+                    }
+                )
+            }
+
+            // COMMUNITY DETAIL
+            is Route.CommunityDetail -> {
+                CommunityDetailScreen(
+                    communityId = route.communityId,
+                    currentUser = currentUser,
+                    onNavigateBack = {
+                        backStack.removeLastOrNull()
+                    },
+                    onNavigateToForum = {
+                        backStack.add(Route.Forum(route.communityId))
+                    },
+                    onNavigateToCreateEvent = {
+                        backStack.add(Route.CreateEvent(route.communityId))
+                    },
+                    onNavigateToLogin = {
+                        backStack.add(Route.Login)
+                    }
+                )
+            }
+
+            // CREATE COMMUNITY
+            Route.CreateCommunity -> {
+                CreateCommunityScreen(
+                    currentUser = currentUser,
+                    onCreateSuccess = { newCommunityId ->
+                        backStack.removeLastOrNull()
+                        backStack.add(Route.CommunityDetail(newCommunityId))
+                    },
+                    onNavigateBack = {
+                        backStack.removeLastOrNull()
+                    }
+                )
+            }
+
+            // CREATE EVENT
+            is Route.CreateEvent -> {
+                CreateEventScreen(
+                    communityId = route.communityId,
+                    currentUser = currentUser,
+                    onCreateSuccess = {
+                        backStack.removeLastOrNull()   // Back Navigation ke Community Detail
+                    },
+                    onNavigateBack = {
+                        backStack.removeLastOrNull()
+                    }
+                )
+            }
+
+            // FORUM
+            is Route.Forum -> {
+                ForumScreen(
+                    communityId = route.communityId,
+                    currentUser = currentUser,
+                    onNavigateBack = {
+                        backStack.removeLastOrNull()
+                    }
+                )
+            }
         }
     }
 }

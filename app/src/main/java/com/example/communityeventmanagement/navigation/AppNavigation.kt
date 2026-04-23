@@ -2,11 +2,8 @@ package com.example.communityeventmanagement.navigation
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.ui.Modifier
 import com.example.communityeventmanagement.data.AppState
 import com.example.communityeventmanagement.data.UserProfile
 import com.example.communityeventmanagement.ui.screens.auth.LoginScreen
@@ -100,6 +97,9 @@ private fun NavDisplay(
                     onNavigateToRegister = {
                         backStack.removeLastOrNull()
                         backStack.add(Route.Register)
+                    },
+                    onNavigateBack = {
+                        backStack.removeLastOrNull()
                     }
                 )
             }
@@ -114,6 +114,9 @@ private fun NavDisplay(
                     onNavigateToLogin = {
                         backStack.removeLastOrNull()
                         backStack.add(Route.Login)
+                    },
+                    onNavigateBack = {
+                        backStack.removeLastOrNull()
                     }
                 )
             }

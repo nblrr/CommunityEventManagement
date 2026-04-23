@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -30,7 +31,8 @@ import com.example.communityeventmanagement.data.UserProfile
 @Composable
 fun LoginScreen(
     onLoginSuccess: (UserProfile) -> Unit,
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
+    onNavigateBack: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -56,6 +58,20 @@ fun LoginScreen(
                     )
                 )
         )
+
+        // Tombol Kembali
+        IconButton(
+            onClick = onNavigateBack,
+            modifier = Modifier
+                .padding(top = 40.dp, start = 12.dp)
+                .statusBarsPadding()
+        ) {
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Kembali",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
 
         Column(
             modifier = Modifier
@@ -219,7 +235,8 @@ fun LoginScreen(
 @Composable
 fun RegisterScreen(
     onRegisterSuccess: (UserProfile) -> Unit,
-    onNavigateToLogin: () -> Unit
+    onNavigateToLogin: () -> Unit,
+    onNavigateBack: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -246,6 +263,20 @@ fun RegisterScreen(
                     )
                 )
         )
+
+        // Tombol Kembali
+        IconButton(
+            onClick = onNavigateBack,
+            modifier = Modifier
+                .padding(top = 40.dp, start = 12.dp)
+                .statusBarsPadding()
+        ) {
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Kembali",
+                tint = MaterialTheme.colorScheme.secondary
+            )
+        }
 
         Column(
             modifier = Modifier

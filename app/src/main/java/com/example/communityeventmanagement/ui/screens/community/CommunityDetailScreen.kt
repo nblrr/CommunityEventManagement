@@ -6,8 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,13 +15,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.communityeventmanagement.data.AppState
-import com.example.communityeventmanagement.data.Community
-import com.example.communityeventmanagement.data.Event
-import com.example.communityeventmanagement.data.UserProfile
+import com.example.communityeventmanagement.data.model.*
+import com.example.communityeventmanagement.data.repository.AppState
+import com.example.communityeventmanagement.ui.components.CommunityEventCard
+import com.example.communityeventmanagement.util.CoverImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,39 +31,37 @@ fun CommunityDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToForum: () -> Unit,
     onNavigateToCreateEvent: () -> Unit,
+    onNavigateToEventDetail: (Int) -> Unit,
     onNavigateToLogin: () -> Unit
 ) {
-    val community = AppState.communities.find { it.id == communityId } ?: return
-    var isJoined by remember { mutableStateOf(communityId in AppState.joinedCommunityIds) }
-    val isOwner = currentUser?.isOrganizer == true &&
-            currentUser.organizerProfile?.communityName == community.name
+    val community = remember(communityId) { AppState.communities.find { it.id == communityId } }
+    
+    if (community == null) {
+        return
+    }
+    
+    // Logic for member count and organizer profile
+    val memberCount = community.memberCount
+    val organizerProfile = AppState.allUsers.find { it.id == community.organizerId || it.id == community.organizerId.replace("org_", "user_") }
+    val organizerDisplayName = organizerProfile?.name ?: community.organizerName
+    val isTrusted = organizerProfile?.isTrusted ?: false
+
+    val isJoined = communityId in AppState.joinedCommunityIds
+    val isOwner = community.organizerId == currentUser?.id || currentUser?.role == "Admin"
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(community.name, fontWeight = FontWeight.ExtraBold, maxLines = 1)
-                },
+                title = { Text(community.name, fontWeight = FontWeight.ExtraBold, maxLines = 1) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Kembali",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali", tint = MaterialTheme.colorScheme.primary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
                 actions = {
                     if (isOwner) {
                         IconButton(onClick = onNavigateToCreateEvent) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = "Tambah Event",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
+                            Icon(Icons.Default.Add, contentDescription = "Tambah Event", tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                 }
@@ -72,280 +69,107 @@ fun CommunityDetailScreen(
         }
     ) { paddingValues ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
+            modifier = Modifier.fillMaxSize().padding(paddingValues),
             contentPadding = PaddingValues(bottom = 32.dp)
         ) {
-            // Hero Banner
             item {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 8.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.secondary
-                                )
-                            )
-                        )
-                        .padding(24.dp)
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp).clip(RoundedCornerShape(24.dp)).height(240.dp)
                 ) {
-                    Column {
-                        Text(community.emoji, fontSize = 40.sp)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = community.name,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = community.description,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White.copy(alpha = 0.8f)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
+                    CoverImage(
+                        imageUri = community.coverImageUri,
+                        modifier = Modifier.fillMaxSize(),
+                        placeholder = {
+                            Box(modifier = Modifier.fillMaxSize().background(Brush.linearGradient(colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary))))
+                        }
+                    )
+                    
+                    Box(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)))))
 
-                        // Stats row
+                    Column(modifier = Modifier.align(Alignment.BottomStart).padding(24.dp)) {
+                        Icon(Icons.Default.Groups, contentDescription = null, modifier = Modifier.size(48.dp), tint = Color.White)
+                        Spacer(Modifier.height(8.dp))
+                        Text(text = community.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, color = Color.White)
+                        Spacer(Modifier.height(4.dp))
+                        Text(text = community.description, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.8f))
+                        Spacer(Modifier.height(16.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            CommunityStatChip(
-                                label = "${community.memberCount + if (isJoined) 1 else 0} anggota",
-                                emoji = "👥"
-                            )
-                            CommunityStatChip(
-                                label = "${community.events.size} event",
-                                emoji = "📅"
-                            )
-                            CommunityStatChip(
-                                label = community.category,
-                                emoji = "🏷️"
-                            )
+                            CommunityStatChip("$memberCount anggota", Icons.Default.Groups)
+                            CommunityStatChip("${community.events.size} event", Icons.Default.Event)
+                            CommunityStatChip(community.category, Icons.AutoMirrored.Filled.Label)
                         }
                     }
                 }
             }
 
-            // Organizer Info
             item {
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 4.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 4.dp),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    )
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                 ) {
-                    Row(
-                        modifier = Modifier.padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.primaryContainer),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Default.Star,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(20.dp)
-                            )
+                    Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                         }
                         Column {
-                            Text(
-                                text = "Dikelola oleh",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f)
-                            )
-                            Text(
-                                text = community.organizerName,
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                        Spacer(modifier = Modifier.weight(1f))
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer
-                        ) {
-                            Text(
-                                "Organizer",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
-                            )
+                            Text(text = "Dikelola oleh", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f))
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(text = organizerDisplayName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                                if (isTrusted) {
+                                    Icon(Icons.Default.Verified, contentDescription = "Trusted", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                                }
+                            }
                         }
                     }
                 }
             }
 
-            // Action Buttons
             item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    // Tombol Join/Leave
+                Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     if (!isOwner) {
                         Button(
                             onClick = {
-                                if (currentUser == null) {
-                                    onNavigateToLogin()
-                                } else {
-                                    if (isJoined) {
-                                        AppState.joinedCommunityIds.remove(communityId)
-                                        isJoined = false
-                                    } else {
-                                        AppState.joinedCommunityIds.add(communityId)
-                                        isJoined = true
-                                    }
+                                if (currentUser == null) onNavigateToLogin()
+                                else {
+                                    AppState.toggleCommunityJoin(communityId)
                                 }
                             },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(48.dp),
+                            modifier = Modifier.weight(1f).height(48.dp),
                             shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isJoined)
-                                    MaterialTheme.colorScheme.errorContainer
-                                else
-                                    MaterialTheme.colorScheme.primary
-                            )
+                            colors = ButtonDefaults.buttonColors(containerColor = if (isJoined) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primary)
                         ) {
-                            Icon(
-                                if (isJoined) Icons.Default.PersonRemove else Icons.Default.PersonAdd,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                                tint = if (isJoined) MaterialTheme.colorScheme.error else Color.White
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = if (isJoined) "Keluar Komunitas" else
-                                    if (currentUser == null) "Login untuk Gabung" else "Gabung Komunitas",
-                                fontWeight = FontWeight.Bold,
-                                color = if (isJoined) MaterialTheme.colorScheme.error else Color.White
-                            )
+                            Icon(if (isJoined) Icons.Default.PersonRemove else Icons.Default.PersonAdd, contentDescription = null, modifier = Modifier.size(18.dp), tint = if (isJoined) MaterialTheme.colorScheme.error else Color.White)
+                            Spacer(Modifier.width(6.dp))
+                            Text(text = if (isJoined) "Keluar Komunitas" else if (currentUser == null) "Login untuk Gabung" else "Gabung Komunitas", fontWeight = FontWeight.Bold, color = if (isJoined) MaterialTheme.colorScheme.error else Color.White)
                         }
                     }
-
-                    // Tombol Forum — hanya jika sudah join atau owner
                     if (isJoined || isOwner) {
-                        OutlinedButton(
-                            onClick = onNavigateToForum,
-                            modifier = Modifier
-                                .weight(if (isOwner) 1f else 0.6f)
-                                .height(48.dp),
-                            shape = RoundedCornerShape(14.dp)
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.Chat,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
+                        OutlinedButton(onClick = onNavigateToForum, modifier = Modifier.weight(if (isOwner) 1f else 0.6f).height(48.dp), shape = RoundedCornerShape(14.dp)) {
+                            Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
                             Text("Forum", fontWeight = FontWeight.Bold)
                         }
                     }
-
-                    // Tombol Tambah Event — hanya owner
-                    if (isOwner) {
-                        Button(
-                            onClick = onNavigateToCreateEvent,
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(48.dp),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.secondary
-                            )
-                        ) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                                tint = Color.White
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Buat Event", fontWeight = FontWeight.Bold, color = Color.White)
-                        }
-                    }
                 }
             }
 
-            // Events Section Header
             item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Event Komunitas",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                    Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer
-                    ) {
-                        Text(
-                            text = "${community.events.size} event",
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
+                Text(text = "Event Komunitas", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
             }
 
-            // Event List
             if (community.events.isEmpty()) {
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("📭", fontSize = 40.sp)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Belum ada event",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f)
-                            )
-                            if (isOwner) {
-                                Text(
-                                    text = "Buat event pertama untuk komunitasmu!",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
-                                )
-                            }
-                        }
+                    Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                        Text("Belum ada event.", color = MaterialTheme.colorScheme.outline)
                     }
                 }
             } else {
                 items(community.events) { event ->
                     CommunityEventCard(
                         event = event,
-                        isJoined = isJoined || isOwner,
+                        isJoined = AppState.registeredEventIds.contains(event.id),
+                        onClick = { onNavigateToEventDetail(event.id) },
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
                     )
                 }
@@ -355,133 +179,11 @@ fun CommunityDetailScreen(
 }
 
 @Composable
-private fun CommunityStatChip(label: String, emoji: String) {
-    Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = Color.White.copy(alpha = 0.2f)
-    ) {
-        Text(
-            text = "$emoji $label",
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.White,
-            fontWeight = FontWeight.SemiBold
-        )
-    }
-}
-
-@Composable
-fun CommunityEventCard(
-    event: Event,
-    isJoined: Boolean,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Emoji box
-            Box(
-                modifier = Modifier
-                    .size(52.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(event.emoji, fontSize = 26.sp)
-            }
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = event.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.ExtraBold
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Icon(
-                        Icons.Default.DateRange,
-                        contentDescription = null,
-                        modifier = Modifier.size(12.dp),
-                        tint = MaterialTheme.colorScheme.outline
-                    )
-                    Text(
-                        text = event.date,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                }
-                Spacer(modifier = Modifier.height(2.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Icon(
-                        Icons.Default.LocationOn,
-                        contentDescription = null,
-                        modifier = Modifier.size(12.dp),
-                        tint = MaterialTheme.colorScheme.outline
-                    )
-                    Text(
-                        text = event.location,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.outline,
-                        maxLines = 1
-                    )
-                }
-                Spacer(modifier = Modifier.height(6.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = null,
-                        modifier = Modifier.size(12.dp),
-                        tint = MaterialTheme.colorScheme.secondary
-                    )
-                    Text(
-                        text = "${event.attendeeCount} peserta",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.secondary,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-
-            // Status chip
-            Surface(
-                shape = RoundedCornerShape(10.dp),
-                color = if (isJoined)
-                    MaterialTheme.colorScheme.primaryContainer
-                else
-                    MaterialTheme.colorScheme.surfaceVariant
-            ) {
-                Text(
-                    text = if (isJoined) "Terdaftar" else "Lihat",
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (isJoined)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+private fun CommunityStatChip(label: String, icon: ImageVector) {
+    Surface(shape = RoundedCornerShape(20.dp), color = Color.White.copy(alpha = 0.2f)) {
+        Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(12.dp), tint = Color.White)
+            Text(text = label, style = MaterialTheme.typography.labelSmall, color = Color.White, fontWeight = FontWeight.SemiBold)
         }
     }
 }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import com.example.communityeventmanagement.data.repository.AppState
 import com.example.communityeventmanagement.navigation.AppNavigation
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 
@@ -15,6 +16,7 @@ import com.example.communityeventmanagement.ui.theme.CommunityEventManagementThe
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppState.initialize(this)
         enableEdgeToEdge()
         setContent {
             CommunityEventManagementTheme {

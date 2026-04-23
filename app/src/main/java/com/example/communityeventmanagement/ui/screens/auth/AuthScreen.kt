@@ -6,11 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,7 +21,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.communityeventmanagement.data.UserProfile
+import com.example.communityeventmanagement.data.model.UserProfile
+import com.example.communityeventmanagement.data.repository.AppState
 
 
 @Composable
@@ -37,6 +34,7 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val isFormValid = email.isNotBlank() && password.isNotBlank()
 
@@ -59,7 +57,6 @@ fun LoginScreen(
                 )
         )
 
-        // Tombol Kembali
         IconButton(
             onClick = onNavigateBack,
             modifier = Modifier
@@ -80,7 +77,6 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Logo
             Box(
                 modifier = Modifier
                     .size(72.dp)
@@ -95,7 +91,12 @@ fun LoginScreen(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Text("⚡", fontSize = 36.sp)
+                Icon(
+                    Icons.Default.Groups,
+                    contentDescription = null,
+                    modifier = Modifier.size(40.dp),
+                    tint = Color.White
+                )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -114,10 +115,12 @@ fun LoginScreen(
                 modifier = Modifier.padding(top = 6.dp, bottom = 32.dp)
             )
 
-            // Email Field
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = { 
+                    email = it
+                    errorMessage = null 
+                },
                 label = { Text("Alamat Email") },
                 leadingIcon = {
                     Icon(
@@ -130,16 +133,17 @@ fun LoginScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                // Warna border merah jika sudah diketik tapi kosong
-                isError = email.isEmpty() && password.isNotEmpty()
+                isError = errorMessage != null || (email.isEmpty() && password.isNotEmpty())
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Password Field
             OutlinedTextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = { 
+                    password = it
+                    errorMessage = null
+                },
                 label = { Text("Password") },
                 leadingIcon = {
                     Icon(
@@ -163,14 +167,14 @@ fun LoginScreen(
                 shape = RoundedCornerShape(14.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                isError = errorMessage != null
             )
 
-            // Hint teks validasi
-            if (!isFormValid && (email.isNotEmpty() || password.isNotEmpty())) {
+            if (errorMessage != null) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "⚠️ Email dan password wajib diisi untuk masuk",
+                    text = errorMessage!!,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.fillMaxWidth()
@@ -179,20 +183,19 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // Tombol Login
             Button(
                 onClick = {
-                    val displayName = email.substringBefore("@")
-                        .replaceFirstChar { it.uppercase() }
-                        .ifBlank { "Pengguna" }
-
-                    onLoginSuccess(
-                        UserProfile(
-                            id = "user_${System.currentTimeMillis()}",
-                            name = displayName,
-                            email = email
-                        )
-                    )
+                    val user = AppState.allUsers.find { it.email == email && it.password == password }
+                    if (user != null) {
+                        if (user.isBlocked) {
+                            errorMessage = "Akun Anda telah diblokir oleh admin."
+                        } else {
+                            AppState.login(user)
+                            onLoginSuccess(user)
+                        }
+                    } else {
+                        errorMessage = "Email atau password salah"
+                    }
                 },
                 enabled = isFormValid,
                 modifier = Modifier
@@ -213,7 +216,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Link ke Register
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     "Belum punya akun?",
@@ -227,6 +229,17 @@ fun LoginScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            TextButton(
+                onClick = onNavigateBack,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.Home, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Kembali ke Beranda")
             }
         }
     }
@@ -242,6 +255,7 @@ fun RegisterScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val isFormValid = name.isNotBlank() && email.isNotBlank() && password.isNotBlank()
 
@@ -264,7 +278,6 @@ fun RegisterScreen(
                 )
         )
 
-        // Tombol Kembali
         IconButton(
             onClick = onNavigateBack,
             modifier = Modifier
@@ -299,7 +312,12 @@ fun RegisterScreen(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Text("🚀", fontSize = 36.sp)
+                Icon(
+                    Icons.Default.Star,
+                    contentDescription = null,
+                    modifier = Modifier.size(40.dp),
+                    tint = Color.White
+                )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -318,7 +336,6 @@ fun RegisterScreen(
                 modifier = Modifier.padding(top = 6.dp, bottom = 28.dp)
             )
 
-            // Nama Field
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -337,10 +354,12 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Email Field
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = { 
+                    email = it
+                    errorMessage = null
+                },
                 label = { Text("Alamat Email") },
                 leadingIcon = {
                     Icon(
@@ -352,12 +371,12 @@ fun RegisterScreen(
                 shape = RoundedCornerShape(14.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                isError = errorMessage != null
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Password Field
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -387,11 +406,10 @@ fun RegisterScreen(
                 singleLine = true
             )
 
-            // Hint teks validasi
-            if (!isFormValid && (name.isNotEmpty() || email.isNotEmpty() || password.isNotEmpty())) {
+            if (errorMessage != null) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "⚠️ Semua field wajib diisi untuk mendaftar",
+                    text = errorMessage!!,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.fillMaxWidth()
@@ -400,16 +418,23 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // Tombol Register
             Button(
                 onClick = {
-                    onRegisterSuccess(
-                        UserProfile(
+                    if (AppState.allUsers.any { it.email == email }) {
+                        errorMessage = "Email sudah terdaftar"
+                    } else {
+                        val newUser = UserProfile(
                             id = "user_${System.currentTimeMillis()}",
                             name = name.trim(),
-                            email = email.trim()
+                            email = email.trim(),
+                            password = password,
+                            role = "User"
                         )
-                    )
+                        AppState.allUsers.add(newUser)
+                        AppState.saveUserData()
+                        AppState.login(newUser)
+                        onRegisterSuccess(newUser)
+                    }
                 },
                 enabled = isFormValid,
                 modifier = Modifier
@@ -430,7 +455,6 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Link ke Login
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     "Sudah punya akun?",
@@ -444,6 +468,17 @@ fun RegisterScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextButton(
+                onClick = onNavigateBack,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.Home, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Kembali ke Beranda")
             }
         }
     }

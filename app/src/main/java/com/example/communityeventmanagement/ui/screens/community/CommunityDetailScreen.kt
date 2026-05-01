@@ -1,15 +1,46 @@
 package com.example.communityeventmanagement.ui.screens.community
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.*
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.Label
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.PersonRemove
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,9 +49,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.communityeventmanagement.data.model.*
+import com.example.communityeventmanagement.data.model.UserProfile
 import com.example.communityeventmanagement.data.repository.AppState
 import com.example.communityeventmanagement.ui.components.CommunityEventCard
+import com.example.communityeventmanagement.ui.components.EmptyState
 import com.example.communityeventmanagement.util.CoverImage
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,15 +66,12 @@ fun CommunityDetailScreen(
     onNavigateToEventDetail: (Int) -> Unit,
     onNavigateToLogin: () -> Unit
 ) {
-    val community = remember(communityId) { AppState.communities.find { it.id == communityId } }
+    val community = AppState.communities.find { it.id == communityId }
     
-    if (community == null) {
-        return
-    }
+    if (community == null) return
     
-    // Logic for member count and organizer profile
     val memberCount = community.memberCount
-    val organizerProfile = AppState.allUsers.find { it.id == community.organizerId || it.id == community.organizerId.replace("org_", "user_") }
+    val organizerProfile = AppState.allUsers.find { (it.id == community.organizerId) || (it.id == community.organizerId.replace("org_", "user_")) }
     val organizerDisplayName = organizerProfile?.name ?: community.organizerName
     val isTrusted = organizerProfile?.isTrusted ?: false
 
@@ -73,9 +102,7 @@ fun CommunityDetailScreen(
             contentPadding = PaddingValues(bottom = 32.dp)
         ) {
             item {
-                Box(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp).clip(RoundedCornerShape(24.dp)).height(240.dp)
-                ) {
+                Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp).clip(RoundedCornerShape(24.dp)).height(240.dp)) {
                     CoverImage(
                         imageUri = community.coverImageUri,
                         modifier = Modifier.fillMaxSize(),
@@ -83,7 +110,6 @@ fun CommunityDetailScreen(
                             Box(modifier = Modifier.fillMaxSize().background(Brush.linearGradient(colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary))))
                         }
                     )
-                    
                     Box(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)))))
 
                     Column(modifier = Modifier.align(Alignment.BottomStart).padding(24.dp)) {
@@ -131,9 +157,7 @@ fun CommunityDetailScreen(
                         Button(
                             onClick = {
                                 if (currentUser == null) onNavigateToLogin()
-                                else {
-                                    AppState.toggleCommunityJoin(communityId)
-                                }
+                                else AppState.toggleCommunityJoin(communityId)
                             },
                             modifier = Modifier.weight(1f).height(48.dp),
                             shape = RoundedCornerShape(14.dp),
@@ -160,15 +184,19 @@ fun CommunityDetailScreen(
 
             if (community.events.isEmpty()) {
                 item {
-                    Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                        Text("Belum ada event.", color = MaterialTheme.colorScheme.outline)
-                    }
+                    EmptyState(
+                        title = "Belum ada event",
+                        modifier = Modifier.padding(20.dp),
+                        subtitle = if (isOwner) "Ayo buat event pertamamu!" else "Nantikan event seru dari komunitas ini.",
+                        actionLabel = if (isOwner) "Buat Event" else null,
+                        onAction = onNavigateToCreateEvent
+                    )
                 }
             } else {
                 items(community.events) { event ->
                     CommunityEventCard(
                         event = event,
-                        isJoined = AppState.registeredEventIds.contains(event.id),
+                        isRegistered = AppState.registeredEventIds.contains(event.id),
                         onClick = { onNavigateToEventDetail(event.id) },
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
                     )

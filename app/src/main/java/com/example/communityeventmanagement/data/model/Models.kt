@@ -15,7 +15,7 @@ data class UserProfile(
 
 data class OrganizerProfile(
     val communityName: String,
-    val picName: String,
+    val personInCharge: String,
     val description: String,
     val phone: String
 )

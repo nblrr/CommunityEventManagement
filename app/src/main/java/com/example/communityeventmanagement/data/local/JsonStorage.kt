@@ -1,7 +1,10 @@
 package com.example.communityeventmanagement.data.local
 
 import android.content.Context
-import com.example.communityeventmanagement.data.model.*
+import com.example.communityeventmanagement.data.model.Community
+import com.example.communityeventmanagement.data.model.ForumMessage
+import com.example.communityeventmanagement.data.model.TrustedApplication
+import com.example.communityeventmanagement.data.model.UserProfile
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.File
@@ -13,6 +16,7 @@ class JsonStorage(context: Context?, manualFilesDir: File? = null) {
     private val usersFile = File(filesDir, "users.json")
     private val communitiesFile = File(filesDir, "communities.json")
     private val sessionFile = File(filesDir, "session.json")
+    private val trustedAppsFile = File(filesDir, "trusted_applications.json")
 
     private fun loadFromAssets(fileName: String): String? {
         return try {
@@ -39,12 +43,18 @@ class JsonStorage(context: Context?, manualFilesDir: File? = null) {
     fun loadUsers(): List<UserProfile> {
         if (!usersFile.exists()) {
             val assetData = loadFromAssets("users.json")
-            if (assetData != null) return gson.fromJson(assetData, object : TypeToken<List<UserProfile>>() {}.type)
+            if (assetData != null) {
+                return try {
+                    gson.fromJson(assetData, object : TypeToken<List<UserProfile>>() {}.type) ?: emptyList()
+                } catch (_: Exception) { emptyList() }
+            }
             return emptyList()
         }
-        val type = object : TypeToken<List<UserProfile>>() {}.type
         return try {
-            gson.fromJson(usersFile.readText(), type) ?: emptyList()
+            gson.fromJson<List<UserProfile>>(
+                usersFile.readText(),
+                object : TypeToken<List<UserProfile>>() {}.type
+            ) ?: emptyList()
         } catch (_: Exception) {
             emptyList()
         }
@@ -57,12 +67,18 @@ class JsonStorage(context: Context?, manualFilesDir: File? = null) {
     fun loadCommunities(): List<Community> {
         if (!communitiesFile.exists()) {
             val assetData = loadFromAssets("communities.json")
-            if (assetData != null) return gson.fromJson(assetData, object : TypeToken<List<Community>>() {}.type)
+            if (assetData != null) {
+                return try {
+                    gson.fromJson(assetData, object : TypeToken<List<Community>>() {}.type) ?: emptyList()
+                } catch (_: Exception) { emptyList() }
+            }
             return emptyList()
         }
-        val type = object : TypeToken<List<Community>>() {}.type
         return try {
-            gson.fromJson(communitiesFile.readText(), type) ?: emptyList()
+            gson.fromJson<List<Community>>(
+                communitiesFile.readText(),
+                object : TypeToken<List<Community>>() {}.type
+            ) ?: emptyList()
         } catch (_: Exception) {
             emptyList()
         }
@@ -76,9 +92,27 @@ class JsonStorage(context: Context?, manualFilesDir: File? = null) {
     fun loadForumMessages(communityId: Int): List<ForumMessage> {
         val file = File(filesDir, "forum_$communityId.json")
         if (!file.exists()) return emptyList()
-        val type = object : TypeToken<List<ForumMessage>>() {}.type
         return try {
-            gson.fromJson(file.readText(), type) ?: emptyList()
+            gson.fromJson<List<ForumMessage>>(
+                file.readText(),
+                object : TypeToken<List<ForumMessage>>() {}.type
+            ) ?: emptyList()
+        } catch (_: Exception) {
+            emptyList()
+        }
+    }
+
+    fun saveTrustedApplications(apps: List<TrustedApplication>) {
+        trustedAppsFile.writeText(gson.toJson(apps))
+    }
+
+    fun loadTrustedApplications(): List<TrustedApplication> {
+        if (!trustedAppsFile.exists()) return emptyList()
+        return try {
+            gson.fromJson<List<TrustedApplication>>(
+                trustedAppsFile.readText(),
+                object : TypeToken<List<TrustedApplication>>() {}.type
+            ) ?: emptyList()
         } catch (_: Exception) {
             emptyList()
         }

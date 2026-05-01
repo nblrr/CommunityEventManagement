@@ -5,24 +5,25 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.communityeventmanagement.data.model.*
 import com.example.communityeventmanagement.data.repository.AppState
 import com.example.communityeventmanagement.ui.components.CommunityCard
+import com.example.communityeventmanagement.ui.components.EmptyState
 
+// Screen Daftar Komunitas
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommunityListScreen(
     currentUser: UserProfile?,
-    onNavigateBack: () -> Unit,
     onNavigateToCommunityDetail: (Int) -> Unit,
     onNavigateToCreateCommunity: () -> Unit
 ) {
@@ -32,12 +33,8 @@ fun CommunityListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Semua Komunitas", fontWeight = FontWeight.ExtraBold) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali", tint = MaterialTheme.colorScheme.primary)
-                    }
-                }
+                title = { Text("Eksplor Komunitas", fontWeight = FontWeight.Black, letterSpacing = (-0.5).sp) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
         floatingActionButton = {
@@ -45,39 +42,45 @@ fun CommunityListScreen(
                 ExtendedFloatingActionButton(
                     onClick = onNavigateToCreateCommunity,
                     icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                    text = { Text("Buat Komunitas", fontWeight = FontWeight.Bold) },
+                    text = { Text("Buat Komunitas", fontWeight = FontWeight.Black) },
                     containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = Color.White
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    shape = RoundedCornerShape(20.dp)
                 )
             }
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(paddingValues),
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 88.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "${communities.size} Komunitas Tersedia", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold)
-                    if (joinedIds.isNotEmpty()) {
-                        Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.primaryContainer) {
-                            Text(text = "Diikuti: ${joinedIds.size}", modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+        if (communities.isEmpty()) {
+            EmptyState(
+                title = "Belum ada komunitas",
+                modifier = Modifier.padding(paddingValues).fillMaxSize(),
+                icon = Icons.Default.Groups,
+                subtitle = "Jadilah yang pertama membuat komunitas baru!",
+                actionLabel = if (currentUser?.role == "Organizer") "Buat Komunitas" else null,
+                onAction = onNavigateToCreateCommunity
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 120.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Column {
+                            Text(text = "Temukan Minatmu", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+                            Text(text = "${communities.size} Komunitas tersedia", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                        }
+                        if (joinedIds.isNotEmpty()) {
+                            Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)) {
+                                Text(text = "${joinedIds.size} Diikuti", modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Black)
+                            }
                         }
                     }
                 }
-            }
-
-            items(communities, key = { it.id }) { community ->
-                CommunityCard(
-                    community = community,
-                    isJoined = community.id in joinedIds,
-                    onClick = { onNavigateToCommunityDetail(community.id) }
-                )
+                items(communities, key = { it.id }) { community ->
+                    CommunityCard(community = community, isJoined = community.id in joinedIds, onClick = { onNavigateToCommunityDetail(community.id) })
+                }
             }
         }
     }

@@ -2,12 +2,11 @@ package com.example.communityeventmanagement.ui.screens.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -20,365 +19,227 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.communityeventmanagement.data.AppState
-import com.example.communityeventmanagement.data.UserProfile
+import com.example.communityeventmanagement.data.model.*
+import com.example.communityeventmanagement.data.repository.AppState
+import com.example.communityeventmanagement.ui.components.CommunityCard
+import com.example.communityeventmanagement.util.CoverImage
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     currentUser: UserProfile?,
-    onNavigateBack: () -> Unit,
     onNavigateToOrganizerRegister: () -> Unit,
+    onNavigateToCommunityDetail: (Int) -> Unit,
     onLogout: () -> Unit
 ) {
     var showLogoutDialog by remember { mutableStateOf(false) }
-    val joinedCount = AppState.joinedCommunityIds.size
+    var showTrustedAppSheet by remember { mutableStateOf(false) }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    val allCommunities = AppState.communities
+    val joinedCommunities = allCommunities.filter { it.id in AppState.joinedCommunityIds }
+    val createdCommunities = allCommunities.filter { it.organizerId == currentUser?.id }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        "Profil Saya",
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Kembali",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                title = { Text("Profil", fontWeight = FontWeight.Black) },
+                actions = {
+                    IconButton(onClick = { showLogoutDialog = true }) {
+                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout", tint = MaterialTheme.colorScheme.error)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(paddingValues),
+            contentPadding = PaddingValues(bottom = 120.dp)
         ) {
-            // ── Avatar & Name Section ─────────────────────────────────────────
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 8.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.secondary
-                            )
-                        )
-                    )
-                    .padding(28.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    // Avatar circle
-                    Box(
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.25f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = currentUser?.name?.take(2)?.uppercase() ?: "??",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Color.White
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = currentUser?.name ?: "Pengguna",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White
-                    )
-                    Text(
-                        text = currentUser?.email ?: "-",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.75f)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Badge role
-                    Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = Color.White.copy(alpha = 0.2f)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            // Header Profil
+            item {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(contentAlignment = Alignment.BottomEnd) {
+                        Box(
+                            modifier = Modifier.size(100.dp).clip(CircleShape).background(Brush.linearGradient(colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary))).padding(4.dp)
                         ) {
-                            Text(
-                                text = if (currentUser?.isOrganizer == true) "⭐" else "👤",
-                                fontSize = 14.sp
+                            Box(
+                                modifier = Modifier.fillMaxSize().clip(CircleShape).background(MaterialTheme.colorScheme.surface),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CoverImage(
+                                    imageUri = currentUser?.avatarUri,
+                                    modifier = Modifier.fillMaxSize(),
+                                    placeholder = {
+                                        Text(
+                                            text = currentUser?.name?.take(1)?.uppercase() ?: "?",
+                                            style = MaterialTheme.typography.headlineLarge,
+                                            fontWeight = FontWeight.Black,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                        
+                        Surface(
+                            shape = CircleShape, color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp), shadowElevation = 4.dp
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.padding(8.dp), tint = MaterialTheme.colorScheme.onPrimary)
+                        }
+                    }
+                    
+                    Spacer(Modifier.height(16.dp))
+                    Text(text = currentUser?.name ?: "Pengguna", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black)
+                    Text(text = currentUser?.email ?: "-", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    
+                    Spacer(Modifier.height(16.dp))
+                    
+                    // Badge Role
+                    Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), 
+                            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                if (currentUser?.isTrusted == true) Icons.Default.Verified 
+                                else if (currentUser?.role == "Admin") Icons.Default.AdminPanelSettings
+                                else Icons.Default.Person,
+                                contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                text = if (currentUser?.isOrganizer == true) "Organizer" else "Member",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
+                                text = if (currentUser?.isTrusted == true) "Trusted Organizer" else (currentUser?.role ?: "Member"),
+                                style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Black
                             )
                         }
                     }
                 }
             }
 
-            // ── Stats Row ─────────────────────────────────────────────────────
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                StatCard(
-                    label = "Komunitas",
-                    value = joinedCount.toString(),
-                    emoji = "🏘️",
-                    modifier = Modifier.weight(1f)
-                )
-                StatCard(
-                    label = "Role",
-                    value = if (currentUser?.isOrganizer == true) "Organizer" else "Member",
-                    emoji = if (currentUser?.isOrganizer == true) "⭐" else "👤",
-                    modifier = Modifier.weight(1f)
-                )
+            // Statistik
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    StatBox(label = "Diikuti", value = "${joinedCommunities.size}", icon = Icons.Default.Groups, modifier = Modifier.weight(1f))
+                    StatBox(label = "Dibuat", value = "${createdCommunities.size}", icon = Icons.Default.AddCircle, modifier = Modifier.weight(1f))
+                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            // Menu Pengaturan
+            item {
+                Column(modifier = Modifier.padding(top = 24.dp)) {
+                    Text("Pengaturan Akun", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp))
+                    
+                    if (currentUser?.role == "User") {
+                        ProfileMenuItem(icon = Icons.Default.Star, title = "Daftar Jadi Organizer", subtitle = "Kelola komunitas sendiri", color = MaterialTheme.colorScheme.primary, onClick = onNavigateToOrganizerRegister)
+                    }
 
-            // ── Organizer Profile Info (jika sudah organizer) ─────────────────
-            if (currentUser?.isOrganizer == true && currentUser.organizerProfile != null) {
-                val op = currentUser.organizerProfile
-                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-                    Text(
-                        text = "Info Organizer",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        modifier = Modifier.padding(bottom = 10.dp)
-                    )
-                    Card(
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            OrganizerInfoRow(label = "Nama Komunitas", value = op.communityName, icon = Icons.Default.Groups)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            OrganizerInfoRow(label = "Penanggung Jawab", value = op.picName, icon = Icons.Default.Person)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            OrganizerInfoRow(label = "No. Telepon", value = op.phone, icon = Icons.Default.Phone)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            OrganizerInfoRow(label = "Deskripsi", value = op.description, icon = Icons.Default.Info)
-                        }
+                    if (currentUser?.role == "Organizer" && !currentUser.isTrusted && currentUser.trustedAppStatus != "PENDING") {
+                        ProfileMenuItem(icon = Icons.Default.VerifiedUser, title = "Ajukan Trusted Organizer", subtitle = "Dapatkan lencana verifikasi", color = Color(0xFF3B82F6), onClick = { showTrustedAppSheet = true })
+                    } else if (currentUser?.trustedAppStatus == "PENDING") {
+                        ProfileMenuItem(icon = Icons.Default.HourglassBottom, title = "Verifikasi Diproses", subtitle = "Sedang ditinjau admin", color = Color.Gray, onClick = {})
+                    }
+
+                    ProfileMenuItem(icon = Icons.Default.Settings, title = "Preferensi", subtitle = "Notifikasi & Tema", color = MaterialTheme.colorScheme.outline, onClick = {})
+                }
+            }
+
+            // Komunitas Saya
+            if (joinedCommunities.isNotEmpty()) {
+                item {
+                    Text("Komunitas Saya", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp))
+                }
+                items(joinedCommunities) { community ->
+                    Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)) {
+                        CommunityCard(community = community, isJoined = true, onClick = { onNavigateToCommunityDetail(community.id) })
                     }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
             }
-
-            // ── Menu Items ────────────────────────────────────────────────────
-            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-                Text(
-                    text = "Pengaturan",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.padding(bottom = 10.dp)
-                )
-
-                // Tombol jadi organizer (hanya tampil jika belum organizer)
-                if (currentUser?.isOrganizer != true) {
-                    ProfileMenuCard(
-                        icon = Icons.Default.Star,
-                        title = "Daftar Jadi Organizer",
-                        subtitle = "Buat dan kelola komunitas & event kamu",
-                        iconColor = MaterialTheme.colorScheme.tertiary,
-                        onClick = onNavigateToOrganizerRegister
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                }
-
-                ProfileMenuCard(
-                    icon = Icons.AutoMirrored.Filled.Logout,
-                    title = "Keluar",
-                    subtitle = "Logout dari akun ini",
-                    iconColor = MaterialTheme.colorScheme.error,
-                    onClick = { showLogoutDialog = true }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 
-    // ── Logout Dialog ─────────────────────────────────────────────────────────
+    // Form Pengajuan (Bottom Sheet)
+    if (showTrustedAppSheet) {
+        var reason by remember { mutableStateOf("") }
+        var experience by remember { mutableStateOf("") }
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+        ModalBottomSheet(
+            onDismissRequest = { showTrustedAppSheet = false },
+            sheetState = sheetState
+        ) {
+            Column(modifier = Modifier.fillMaxWidth().padding(24.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                Text("Ajukan Trusted Organizer", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black)
+                OutlinedTextField(value = reason, onValueChange = { reason = it }, label = { Text("Alasan ingin jadi trusted?") }, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth(), minLines = 3)
+                OutlinedTextField(value = experience, onValueChange = { experience = it }, label = { Text("Pengalaman kelola komunitas") }, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth(), minLines = 3)
+                Button(
+                    onClick = {
+                        AppState.submitTrustedApplication(reason, experience)
+                        showTrustedAppSheet = false
+                        scope.launch { snackbarHostState.showSnackbar("Pengajuan dikirim!") }
+                    },
+                    enabled = reason.isNotBlank() && experience.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(16.dp)
+                ) { Text("Kirim Pengajuan", fontWeight = FontWeight.Black) }
+            }
+        }
+    }
+
+    // Keluar (Dialog)
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Keluar?", fontWeight = FontWeight.ExtraBold) },
-            text = { Text("Kamu akan logout dari akun ini. Yakin?") },
+            title = { Text("Keluar Akun?", fontWeight = FontWeight.Black) },
+            text = { Text("Yakin ingin keluar sesi?") },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        showLogoutDialog = false
-                        onLogout()
-                    }
-                ) {
-                    Text(
-                        "Keluar",
-                        color = MaterialTheme.colorScheme.error,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                Button(onClick = { AppState.logout(); onLogout() }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) { Text("Keluar") }
             },
-            dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Batal")
-                }
-            }
+            dismissButton = { TextButton(onClick = { showLogoutDialog = false }) { Text("Batal") } },
+            shape = RoundedCornerShape(24.dp)
         )
     }
 }
 
+// Box Statistik
 @Composable
-private fun StatCard(
-    label: String,
-    value: String,
-    emoji: String,
-    modifier: Modifier = Modifier
-) {
+private fun StatBox(label: String, value: String, icon: ImageVector, modifier: Modifier = Modifier) {
     Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        )
+        modifier = modifier, shape = RoundedCornerShape(24.dp), 
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(emoji, fontSize = 24.sp)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.ExtraBold
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f)
-            )
+        Column(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+            Text(text = value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+            Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
         }
     }
 }
 
+// Menu Profil
 @Composable
-private fun OrganizerInfoRow(
-    label: String,
-    value: String,
-    icon: ImageVector
-) {
-    Row(
-        verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Icon(
-            icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier
-                .size(18.dp)
-                .padding(top = 2.dp)
-        )
-        Column {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f)
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-    }
-}
-
-@Composable
-private fun ProfileMenuCard(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    iconColor: Color,
-    onClick: () -> Unit
-) {
-    Card(
-        onClick = onClick,
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(iconColor.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    icon,
-                    contentDescription = null,
-                    tint = iconColor,
-                    modifier = Modifier.size(22.dp)
-                )
+private fun ProfileMenuItem(icon: ImageVector, title: String, subtitle: String, color: Color, onClick: () -> Unit) {
+    Surface(onClick = onClick, modifier = Modifier.fillMaxWidth(), color = Color.Transparent) {
+        Row(modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Box(modifier = Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).background(color.copy(alpha = 0.1f)), contentAlignment = Alignment.Center) {
+                Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(24.dp))
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f)
-                )
+                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
             }
-            Icon(
-                Icons.Default.ChevronRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.outline,
-                modifier = Modifier.size(20.dp)
-            )
+            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.outlineVariant)
         }
     }
 }

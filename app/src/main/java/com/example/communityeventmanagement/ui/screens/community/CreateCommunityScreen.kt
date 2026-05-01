@@ -1,8 +1,8 @@
 package com.example.communityeventmanagement.ui.screens.community
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -14,26 +14,22 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.communityeventmanagement.data.AppState
-import com.example.communityeventmanagement.data.Community
-import com.example.communityeventmanagement.data.UserProfile
+import com.example.communityeventmanagement.data.model.*
+import com.example.communityeventmanagement.data.repository.AppState
+import com.example.communityeventmanagement.ui.components.CommunityCard
+import com.example.communityeventmanagement.ui.components.InlineLoading
+import com.example.communityeventmanagement.util.ImagePickerBox
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private val categoryOptions = listOf(
-    "Technology", "Design", "Business", "Education",
-    "Health", "Art", "Music", "Sports", "Social"
-)
-
-private val emojiOptions = listOf(
-    "💻", "🎨", "🚀", "📚", "💪", "🎵", "⚽", "🌿", "🎯",
-    "🔬", "🌍", "🤝", "🎓", "💡", "🏆"
+    "Teknologi", "Desain", "Bisnis", "Edukasi",
+    "Kesehatan", "Seni", "Musik", "Olahraga", "Sosial",
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,30 +41,33 @@ fun CreateCommunityScreen(
 ) {
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("Technology") }
-    var selectedEmoji by remember { mutableStateOf("💻") }
+    var selectedCategory by remember { mutableStateOf(categoryOptions.first()) }
+    var coverImageUri by remember { mutableStateOf<String?>(null) }
     var showSuccessDialog by remember { mutableStateOf(false) }
-    var newCommunityId by remember { mutableStateOf(0) }
+    var newCommunityId by remember { mutableIntStateOf(0) }
+    var isSubmitting by remember { mutableStateOf(false) }
 
-    val isFormValid = name.isNotBlank() && description.isNotBlank()
+    val scope = rememberCoroutineScope()
+    
+    val nameLimit = 40
+    val descLimit = 500
+    
+    val isNameValid = name.isNotBlank() && (name.length <= nameLimit)
+    val isDescriptionValid = description.isNotBlank() && (description.length <= descLimit)
+    val isFormValid = isNameValid && isDescriptionValid
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text("Buat Komunitas", fontWeight = FontWeight.ExtraBold)
-                },
+                title = { Text("Buat Komunitas", fontWeight = FontWeight.ExtraBold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Kembali",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -80,259 +79,188 @@ fun CreateCommunityScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Emoji Picker
-            Text(
-                text = "Pilih Ikon Komunitas",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 10.dp)
-            )
-
-            // Preview
-            Box(
+            SectionHeader(title = "Gambar Cover", subtitle = "Pilih gambar yang mewakili komunitasmu")
+            
+            ImagePickerBox(
+                imageUri = coverImageUri,
+                onImageSelected = { coverImageUri = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 12.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(72.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(selectedEmoji, fontSize = 36.sp)
-                }
-            }
+                    .padding(vertical = 12.dp),
+                label = "Ketuk untuk tambah cover"
+            )
 
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(vertical = 4.dp)
-            ) {
-                items(emojiOptions) { emoji ->
-                    val isSelected = emoji == selectedEmoji
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                if (isSelected) MaterialTheme.colorScheme.primaryContainer
-                                else MaterialTheme.colorScheme.surfaceVariant
-                            )
-                            .border(
-                                width = if (isSelected) 2.dp else 0.dp,
-                                color = if (isSelected) MaterialTheme.colorScheme.primary
-                                else Color.Transparent,
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            .clickable { selectedEmoji = emoji },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(emoji, fontSize = 24.sp)
-                    }
-                }
-            }
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(20.dp))
+            SectionHeader(title = "Informasi Dasar", subtitle = "Berikan nama dan deskripsi yang menarik")
 
-            // Community Name
             OutlinedTextField(
                 value = name,
-                onValueChange = { name = it },
-                label = { Text("Nama Komunitas *") },
+                onValueChange = { if (it.length <= nameLimit) name = it },
+                label = { Text("Nama Komunitas") },
                 placeholder = { Text("Contoh: Android Developer Jogja") },
-                leadingIcon = {
-                    Icon(Icons.Default.Groups, contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary)
-                },
-                shape = RoundedCornerShape(14.dp),
+                leadingIcon = { Icon(Icons.Default.Groups, contentDescription = null) },
+                shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                isError = name.length > nameLimit,
+                supportingText = {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        if (name.length > nameLimit) Text("Nama terlalu panjang") else Text("Wajib diisi")
+                        Text("${name.length}/$nameLimit")
+                    }
+                }
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // Description
             OutlinedTextField(
                 value = description,
-                onValueChange = { description = it },
-                label = { Text("Deskripsi *") },
-                placeholder = { Text("Ceritakan tentang komunitas ini...") },
-                leadingIcon = {
-                    Icon(Icons.Default.Info, contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary)
-                },
-                shape = RoundedCornerShape(14.dp),
+                onValueChange = { if (it.length <= descLimit) description = it },
+                label = { Text("Deskripsi") },
+                placeholder = { Text("Ceritakan visi, misi, dan kegiatan komunitas ini...") },
+                leadingIcon = { Icon(Icons.Default.Description, contentDescription = null) },
+                shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth(),
-                minLines = 3,
-                maxLines = 5
+                minLines = 4,
+                maxLines = 8,
+                isError = description.length > descLimit,
+                supportingText = {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        if (description.length > descLimit) Text("Deskripsi terlalu panjang") else Text("Wajib diisi")
+                        Text("${description.length}/$descLimit")
+                    }
+                }
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // Category
-            Text(
-                text = "Pilih Kategori",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 10.dp)
-            )
+            SectionHeader(title = "Kategori", subtitle = "Pilih kategori yang paling sesuai")
 
             LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(vertical = 4.dp)
+                contentPadding = PaddingValues(end = 20.dp)
             ) {
                 items(categoryOptions) { category ->
                     val isSelected = category == selectedCategory
                     FilterChip(
                         selected = isSelected,
                         onClick = { selectedCategory = category },
-                        label = {
-                            Text(
-                                category,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                            )
-                        },
+                        label = { Text(category) },
+                        shape = RoundedCornerShape(12.dp),
+                        leadingIcon = if (isSelected) {
+                            { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                        } else null,
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primary,
-                            selectedLabelColor = Color.White
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "* Field wajib diisi",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.45f)
-            )
+            Spacer(modifier = Modifier.height(24.dp))
 
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // Preview Card
-            if (name.isNotBlank()) {
-                Text(
-                    text = "Preview",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 10.dp)
-                )
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(52.dp)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(MaterialTheme.colorScheme.primaryContainer),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(selectedEmoji, fontSize = 26.sp)
-                        }
-                        Column {
-                            Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = MaterialTheme.colorScheme.primaryContainer
-                            ) {
-                                Text(
-                                    selectedCategory,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = name,
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.ExtraBold
-                            )
-                            if (description.isNotBlank()) {
-                                Text(
-                                    text = description,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
-                                    maxLines = 2
-                                )
-                            }
-                        }
+            AnimatedVisibility(
+                visible = name.isNotBlank(),
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                Column {
+                    SectionHeader(title = "Pratinjau", subtitle = "Tampilan komunitasmu di daftar")
+                    Box(modifier = Modifier.padding(vertical = 12.dp)) {
+                        CommunityCard(
+                            community = Community(
+                                id = 0,
+                                name = name,
+                                description = description,
+                                category = selectedCategory,
+                                coverImageUri = coverImageUri,
+                                organizerId = currentUser?.id ?: "",
+                                organizerName = currentUser?.name ?: "Organizer",
+                                memberIds = emptyList()
+                            ),
+                            isJoined = false
+                        ) {}
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
-                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Submit Button
             Button(
                 onClick = {
-                    val newId = (AppState.communities.maxOfOrNull { it.id } ?: 0) + 1
-                    val newCommunity = Community(
-                        id = newId,
-                        name = name.trim(),
-                        description = description.trim(),
-                        category = selectedCategory,
-                        emoji = selectedEmoji,
-                        organizerId = currentUser?.id ?: "",
-                        organizerName = currentUser?.name ?: "Organizer",
-                        memberCount = 0,
-                        events = emptyList(),
-                        forumMessages = mutableListOf()
-                    )
-                    AppState.communities.add(newCommunity)
-                    // Owner otomatis join komunitas sendiri
-                    AppState.joinedCommunityIds.add(newId)
-                    newCommunityId = newId
-                    showSuccessDialog = true
+                    scope.launch {
+                        isSubmitting = true
+                        delay(1000)
+                        
+                        val newId = (AppState.communities.maxOfOrNull { it.id } ?: 0) + 1
+                        val newCommunity = Community(
+                            id = newId,
+                            name = name.trim(),
+                            description = description.trim(),
+                            category = selectedCategory,
+                            coverImageUri = coverImageUri,
+                            organizerId = currentUser?.id ?: "",
+                            organizerName = currentUser?.name ?: "Organizer",
+                            memberIds = listOf(currentUser?.id ?: ""),
+                            events = emptyList(),
+                            forumMessages = emptyList()
+                        )
+                        
+                        AppState.communities.add(newCommunity)
+                        AppState.joinedCommunityIds.add(newId)
+                        AppState.saveCommunityData()
+                        
+                        newCommunityId = newId
+                        isSubmitting = false
+                        showSuccessDialog = true
+                    }
                 },
-                enabled = isFormValid,
+                enabled = isFormValid && !isSubmitting,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    disabledContainerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                )
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(20.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Buat Komunitas", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+                if (isSubmitting) {
+                    InlineLoading(modifier = Modifier.size(24.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text("Memproses...", fontWeight = FontWeight.Bold)
+                } else {
+                    Icon(Icons.Default.AddCircleOutline, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Publikasikan Komunitas", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+                }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(40.dp))
         }
     }
 
-    // Success Dialog
     if (showSuccessDialog) {
         AlertDialog(
-            onDismissRequest = {},
-            icon = { Text("🎉", fontSize = 36.sp) },
-            title = {
+            onDismissRequest = { },
+            icon = { Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(48.dp)) },
+            title = { 
                 Text(
-                    "Komunitas Berhasil Dibuat!",
+                    "Komunitas Berhasil Dibuat!", 
                     fontWeight = FontWeight.ExtraBold,
-                    textAlign = TextAlign.Center
-                )
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) 
             },
-            text = {
+            text = { 
                 Text(
-                    "\"$name\" sudah aktif. Mulai undang anggota dan buat event pertama!",
-                    textAlign = TextAlign.Center
-                )
+                    "Komunitas \"$name\" kini sudah aktif dan bisa ditemukan oleh anggota lainnya.",
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) 
             },
             confirmButton = {
                 Button(
@@ -340,11 +268,36 @@ fun CreateCommunityScreen(
                         showSuccessDialog = false
                         onCreateSuccess(newCommunityId)
                     },
+                    modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Lihat Komunitas", fontWeight = FontWeight.Bold)
+                    Text("Buka Komunitas Saya")
                 }
-            }
+            },
+            shape = RoundedCornerShape(24.dp),
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
+        )
+    }
+}
+
+@Composable
+private fun SectionHeader(
+    title: String,
+    subtitle: String,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier.padding(bottom = 8.dp)) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

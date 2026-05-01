@@ -1,0 +1,23 @@
+# Task Management
+
+- [x] Research and Verify Analysis
+- [x] Plan Comprehensive Refactor
+- [x] Execute Data Layer Refactoring
+	- [x] Create UserRepository.kt
+	- [x] Create CommunityRepository.kt
+	- [x] Create EventRepository.kt
+	- [x] Refactor AppDataRepository.kt as Facade
+- [x] Execute Navigation & Core UI Improvements
+	- [x] Merge Routes.kt and Compositions.kt into Navigation.kt
+	- [x] Improve MainActivity.kt with Coroutine Init and Loading State
+- [x] Execute UI Improvements & Fixes
+	- [x] Update AdminPanelScreen.kt (AlertDialog, remove updateTrigger)
+	- [x] Update HomeScreen.kt (ModalBottomSheet, HomeViewModel)
+	- [x] Update ProfileScreen.kt (Stats chips, ModalBottomSheet)
+	- [x] Update AuthScreen.kt (InputValidation integration)
+	- [x] Update CommunityDetailScreen.kt (Reactivity fix)
+- [x] Code Quality & Standards
+	- [x] Remove redundant comments
+	- [x] Ensure camelCase naming (e.g., personInCharge)
+- [x] Final Verification & Build
+- [x] Create Walkthrough

@@ -10,14 +10,14 @@ data class UserProfile(
     val isBlocked: Boolean = false,
     val isTrusted: Boolean = false,
     val trustedAppStatus: String = "NONE", // NONE, PENDING, APPROVED, REJECTED
-    val organizerProfile: OrganizerProfile? = null
+    val organizerProfile: OrganizerProfile? = null,
 )
 
 data class OrganizerProfile(
     val communityName: String,
     val personInCharge: String,
     val description: String,
-    val phone: String
+    val phone: String,
 )
 
 data class Community(
@@ -30,7 +30,7 @@ data class Community(
     val organizerName: String,
     val memberIds: List<String> = emptyList(),
     val events: List<Event> = emptyList(),
-    val forumMessages: List<ForumMessage> = emptyList()
+    val forumMessages: List<ForumMessage> = emptyList(),
 ) {
     val memberCount: Int get() = memberIds.size
 }
@@ -48,7 +48,7 @@ data class Event(
     val communityId: Int = 0,
     val registeredUserIds: List<String> = emptyList(),
     val galleryImages: List<String>? = emptyList(),
-    val ratings: List<Rating>? = emptyList()
+    val ratings: List<Rating>? = emptyList(),
 ) {
     val attendeeCount: Int get() = registeredUserIds.size
 }
@@ -58,14 +58,14 @@ data class Rating(
     val userName: String,
     val score: Int, // 1-5
     val comment: String,
-    val date: String
+    val date: String,
 )
 
 data class ForumMessage(
     val sender: String,
     val message: String,
     val time: String,
-    val avatarInitials: String
+    val avatarInitials: String,
 )
 
 data class TrustedApplication(
@@ -74,5 +74,5 @@ data class TrustedApplication(
     val communityName: String,
     val reason: String,
     val experience: String,
-    val status: String = "PENDING" // PENDING, APPROVED, REJECTED
+    val status: String = "PENDING", // PENDING, APPROVED, REJECTED
 )

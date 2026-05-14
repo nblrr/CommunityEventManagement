@@ -31,9 +31,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.communityeventmanagement.R
 
 // Shimmer effect loading
 @Composable
@@ -120,7 +122,7 @@ fun EmptyState(
 @Composable
 fun FullScreenLoading(
     modifier: Modifier = Modifier,
-    message: String = "Memuat..."
+    message: String = stringResource(R.string.loading_msg)
 ) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {

@@ -37,13 +37,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.communityeventmanagement.R
 import com.example.communityeventmanagement.data.model.Community
 import com.example.communityeventmanagement.data.model.Event
-import com.example.communityeventmanagement.data.repository.AppState
 import com.example.communityeventmanagement.util.CoverImage
 import com.example.communityeventmanagement.util.DateFormatter
 
@@ -52,13 +53,10 @@ import com.example.communityeventmanagement.util.DateFormatter
 fun CommunityDashboardCard(
     community: Community,
     modifier: Modifier = Modifier,
+    isTrusted: Boolean = false,
     onClick: () -> Unit
 ) {
     val memberCount = community.events.flatMap { it.registeredUserIds }.distinct().size
-    val organizerProfile = AppState.allUsers.find { 
-        (it.id == community.organizerId) || (it.id == community.organizerId.replace("org_", "user_"))
-    }
-    val isTrusted = organizerProfile?.isTrusted ?: false
 
     Card(
         onClick = onClick,
@@ -114,7 +112,7 @@ fun CommunityDashboardCard(
                     ) {
                         Icon(
                             Icons.Default.Verified, 
-                            contentDescription = "Trusted", 
+                            contentDescription = stringResource(R.string.cd_trusted), 
                             tint = MaterialTheme.colorScheme.onPrimary, 
                             modifier = Modifier.padding(4.dp).size(14.dp)
                         )
@@ -158,7 +156,7 @@ fun CommunityDashboardCard(
                 )
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    text = "$memberCount Anggota",
+                    text = stringResource(R.string.member_count_format, memberCount),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
@@ -174,13 +172,9 @@ fun CommunityDashboardCard(
 fun CommunityCard(
     community: Community,
     isJoined: Boolean,
+    isTrusted: Boolean = false,
     onClick: () -> Unit
 ) {
-    val organizerProfile = AppState.allUsers.find {
-        (it.id == community.organizerId) || (it.id == community.organizerId.replace("org_", "user_"))
-    }
-    val isTrusted = organizerProfile?.isTrusted ?: false
-
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
@@ -229,11 +223,12 @@ fun CommunityCard(
                 }
                 
                 if (isJoined) {
+                    // Badge
                     Badge(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         contentColor = MaterialTheme.colorScheme.secondary
                     ) {
-                        Text("DIKUTI", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black)
+                        Text(stringResource(R.string.status_followed), modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black)
                     }
                 }
             }
@@ -263,10 +258,10 @@ fun CommunityCard(
                 
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (isTrusted) {
-                        Icon(Icons.Default.Verified, contentDescription = "Trusted", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                        Icon(Icons.Default.Verified, contentDescription = stringResource(R.string.cd_trusted), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
                     }
                     Text(
-                        text = organizerProfile?.name ?: community.organizerName, 
+                        text = community.organizerName, 
                         style = MaterialTheme.typography.labelSmall, 
                         color = MaterialTheme.colorScheme.outline,
                         fontWeight = FontWeight.Medium
@@ -294,7 +289,7 @@ fun CommunityEventCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isUpcoming = AppState.isUpcoming(event.date)
+    val isUpcoming = DateFormatter.isUpcoming(event.date)
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -344,7 +339,7 @@ fun CommunityEventCard(
                     color = if (isRegistered) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
                 ) {
                     Text(
-                        text = if (isRegistered) "Terdaftar" else "Daftar",
+                        text = if (isRegistered) stringResource(R.string.status_registered) else stringResource(R.string.btn_register),
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = if (isRegistered) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
@@ -357,7 +352,7 @@ fun CommunityEventCard(
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
                 ) {
                     Text(
-                        text = "Selesai",
+                        text = stringResource(R.string.status_finished),
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.outline,

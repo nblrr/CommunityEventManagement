@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.example.communityeventmanagement.data.local.JsonStorage
+import com.example.communityeventmanagement.data.model.Community
 import com.example.communityeventmanagement.data.model.TrustedApplication
 import com.example.communityeventmanagement.data.model.UserProfile
 
@@ -16,15 +17,7 @@ class UserRepository(private val storage: JsonStorage?) {
     // Load data user
     fun loadUsers() {
         storage?.let {
-            val loadedUsers = it.loadUsers().map { user ->
-                UserProfile(
-                    id = user.id, name = user.name, email = user.email, password = user.password,
-                    avatarUri = user.avatarUri, role = user.role.ifBlank { "User" },
-                    isBlocked = user.isBlocked, isTrusted = user.isTrusted,
-                    trustedAppStatus = user.trustedAppStatus.ifBlank { "NONE" },
-                    organizerProfile = user.organizerProfile
-                )
-            }
+            val loadedUsers = it.loadUsers()
             allUsers.clear(); allUsers.addAll(loadedUsers)
         }
     }
@@ -50,6 +43,67 @@ class UserRepository(private val storage: JsonStorage?) {
         }
     }
 
-    fun login(user: UserProfile) { currentUser = user; saveSession(user.id) }
-    fun logout() { currentUser = null; saveSession(null) }
+    fun login(user: UserProfile) { 
+        currentUser = user
+        saveSession(user.id)
+    }
+
+    fun logout() { 
+        currentUser = null
+        saveSession(null)
+    }
+
+    fun updateAvatar(newUri: String?) {
+        val user = currentUser ?: return
+        val index = allUsers.indexOfFirst { it.id == user.id }
+        if (index != -1) {
+            val updatedUser = allUsers[index].copy(avatarUri = newUri)
+            allUsers[index] = updatedUser
+            currentUser = updatedUser
+            saveUserData()
+        }
+    }
+
+    fun loginWithCredentials(email: String, password: String): LoginResult {
+        val user = allUsers.find { it.email.equals(email.trim(), ignoreCase = true) && it.password == password }
+            ?: return LoginResult.Error("Email atau password salah.")
+        if (user.isBlocked) return LoginResult.Error("Akun ini telah diblokir oleh admin.")
+        login(user)
+        return LoginResult.Success(user)
+    }
+
+    fun submitTrustedApplication(communities: List<Community>, reason: String, experience: String) {
+        val user = currentUser ?: return
+        if (trustedApplications.any { it.userId == user.id }) return
+        val communityName = communities.find { it.organizerId == user.id }?.name ?: "Unknown"
+        val application = TrustedApplication(user.id, user.name, communityName, reason, experience)
+        trustedApplications.add(application)
+        saveTrustedApplications()
+        val userIndex = allUsers.indexOfFirst { it.id == user.id }
+        if (userIndex != -1) {
+            allUsers[userIndex] = allUsers[userIndex].copy(trustedAppStatus = "PENDING")
+            currentUser = allUsers[userIndex]
+            saveUserData()
+        }
+    }
+
+    fun handleTrustedApplication(userId: String, approve: Boolean) {
+        val appIndex = trustedApplications.indexOfFirst { it.userId == userId }
+        if (appIndex != -1) {
+            trustedApplications.removeAt(appIndex)
+            saveTrustedApplications()
+            val userIndex = allUsers.indexOfFirst { it.id == userId }
+            if (userIndex != -1) {
+                val status = if (approve) "APPROVED" else "REJECTED"
+                allUsers[userIndex] = allUsers[userIndex].copy(trustedAppStatus = status, isTrusted = approve)
+                if (currentUser?.id == userId) currentUser = allUsers[userIndex]
+                saveUserData()
+            }
+        }
+    }
+}
+
+sealed class LoginResult {
+    data class Success(val user: UserProfile) : LoginResult()
+    data class Error(val message: String) : LoginResult()
 }

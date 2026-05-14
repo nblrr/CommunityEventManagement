@@ -4,6 +4,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -33,10 +35,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.example.communityeventmanagement.R
 import com.example.communityeventmanagement.data.model.UserProfile
 
 @Composable
@@ -67,13 +74,13 @@ fun AppBottomBar(
                 selected = currentRoute == "home",
                 onClick = onNavigateToHome,
                 icon = if (currentRoute == "home") Icons.Default.Home else Icons.Outlined.Home,
-                label = "Beranda"
+                label = stringResource(R.string.nav_home)
             )
             NavItem(
                 selected = currentRoute == "communities",
                 onClick = onNavigateToCommunities,
                 icon = if (currentRoute == "communities") Icons.Default.Groups else Icons.Outlined.Groups,
-                label = "Komunitas"
+                label = stringResource(R.string.title_communities)
             )
             
             val isProfile = currentRoute == "profile"
@@ -105,14 +112,23 @@ fun AppBottomBar(
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                currentUser.name.take(1).uppercase(),
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Black,
-                                color = if (isProfile) MaterialTheme.colorScheme.onPrimary 
-                                        else MaterialTheme.colorScheme.primary,
-                                fontSize = if (isProfile) 14.sp else 12.sp
-                            )
+                            if (!currentUser.avatarUri.isNullOrEmpty()) {
+                                AsyncImage(
+                                    model = currentUser.avatarUri,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                Text(
+                                    currentUser.name.take(1).uppercase(),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Black,
+                                    color = if (isProfile) MaterialTheme.colorScheme.onPrimary 
+                                            else MaterialTheme.colorScheme.primary,
+                                    fontSize = if (isProfile) 14.sp else 12.sp
+                                )
+                            }
                         }
                     } else {
                         Icon(
@@ -124,7 +140,7 @@ fun AppBottomBar(
                     }
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = if (currentUser != null) "Profil" else "Masuk",
+                        text = if (currentUser != null) stringResource(R.string.nav_profile) else stringResource(R.string.login),
                         style = MaterialTheme.typography.labelSmall,
                         color = if (isProfile) MaterialTheme.colorScheme.primary 
                                 else MaterialTheme.colorScheme.onSurfaceVariant,

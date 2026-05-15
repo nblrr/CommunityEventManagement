@@ -46,6 +46,29 @@ import coil.compose.AsyncImage
 import com.example.communityeventmanagement.R
 import com.example.communityeventmanagement.data.model.UserProfile
 
+import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
+import com.example.communityeventmanagement.ui.theme.ThemePreviews
+
+@ThemePreviews
+@Composable
+fun AppBottomBarPreview() {
+    CommunityEventManagementTheme {
+        Box(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)) {
+            AppBottomBar(
+                currentUser = UserProfile(
+                    id = "1",
+                    name = "John Doe",
+                    email = "john@example.com"
+                ),
+                currentRoute = "home",
+                onNavigateToHome = {},
+                onNavigateToCommunities = {},
+                onNavigateToProfile = {}
+            )
+        }
+    }
+}
+
 @Composable
 fun AppBottomBar(
     currentUser: UserProfile?,

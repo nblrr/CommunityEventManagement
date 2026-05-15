@@ -56,15 +56,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.communityeventmanagement.R
+import com.example.communityeventmanagement.data.model.Community
+import com.example.communityeventmanagement.data.model.Event
 import com.example.communityeventmanagement.data.model.UserProfile
 import com.example.communityeventmanagement.ui.AppViewModelProvider
 import com.example.communityeventmanagement.ui.components.CommunityDashboardCard
 import com.example.communityeventmanagement.ui.components.CommunityEventCard
 import com.example.communityeventmanagement.ui.components.EmptyState
+import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
+import com.example.communityeventmanagement.ui.theme.ThemePreviews
 import com.example.communityeventmanagement.util.CoverImage
 import java.util.Calendar
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     currentUser: UserProfile?,
@@ -73,6 +76,46 @@ fun HomeScreen(
     onNavigateToCommunityDetail: (Int) -> Unit,
     onNavigateToEventDetail: (Int, Int) -> Unit,
     viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory),
+) {
+    HomeContent(
+        currentUser = currentUser,
+        searchQuery = viewModel.searchQuery,
+        selectedCategory = viewModel.selectedCategory,
+        selectedDateFilter = viewModel.selectedDateFilter,
+        categories = viewModel.categories,
+        recommendedEvents = viewModel.recommendedEvents,
+        recommendedCommunities = viewModel.recommendedCommunities,
+        filteredEvents = viewModel.filteredEvents,
+        isEventRegistered = { viewModel.isEventRegistered(it) },
+        onSearchQueryChange = { viewModel.searchQuery = it },
+        onCategorySelect = { viewModel.selectedCategory = it },
+        onDateFilterSelect = { viewModel.selectedDateFilter = it },
+        onNavigateToCommunityList = onNavigateToCommunityList,
+        onNavigateToAdminPanel = onNavigateToAdminPanel,
+        onNavigateToCommunityDetail = onNavigateToCommunityDetail,
+        onNavigateToEventDetail = onNavigateToEventDetail
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeContent(
+    currentUser: UserProfile?,
+    searchQuery: String,
+    selectedCategory: String,
+    selectedDateFilter: String,
+    categories: List<String>,
+    recommendedEvents: List<Event>,
+    recommendedCommunities: List<Community>,
+    filteredEvents: List<Pair<Event, Int>>,
+    isEventRegistered: (Int) -> Boolean,
+    onSearchQueryChange: (String) -> Unit,
+    onCategorySelect: (String) -> Unit,
+    onDateFilterSelect: (String) -> Unit,
+    onNavigateToCommunityList: () -> Unit,
+    onNavigateToAdminPanel: () -> Unit,
+    onNavigateToCommunityDetail: (Int) -> Unit,
+    onNavigateToEventDetail: (Int, Int) -> Unit,
 ) {
     var showFilterSheet by remember { mutableStateOf(value = false) }
     val sheetState = rememberModalBottomSheetState()
@@ -131,14 +174,14 @@ fun HomeScreen(
             item {
                 Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)) {
                     OutlinedTextField(
-                        value = viewModel.searchQuery,
-                        onValueChange = { viewModel.searchQuery = it },
+                        value = searchQuery,
+                        onValueChange = onSearchQueryChange,
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text(stringResource(R.string.search_placeholder), color = MaterialTheme.colorScheme.outline) },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                         trailingIcon = {
-                            if (viewModel.searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { viewModel.searchQuery = "" }) {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { onSearchQueryChange("") }) {
                                     Icon(Icons.Default.Close, contentDescription = stringResource(R.string.cd_clear), modifier = Modifier.size(18.dp))
                                 }
                             } else {
@@ -159,9 +202,9 @@ fun HomeScreen(
                 }
             }
 
-            if (((viewModel.searchQuery.isEmpty()) && (viewModel.selectedCategory == "Semua")) && (viewModel.selectedDateFilter == "Kapan Saja")) {
+            if (((searchQuery.isEmpty()) && (selectedCategory == "Semua")) && (selectedDateFilter == "Kapan Saja")) {
                 // Event featured
-                val featuredEvent = viewModel.recommendedEvents.firstOrNull()
+                val featuredEvent = recommendedEvents.firstOrNull()
                 if (featuredEvent != null) {
                     item {
                         Column(modifier = Modifier.padding(top = 16.dp)) {
@@ -208,8 +251,7 @@ fun HomeScreen(
                 }
 
                 // Komunitas Populer
-                val popComms = viewModel.recommendedCommunities
-                if (popComms.isNotEmpty()) {
+                if (recommendedCommunities.isNotEmpty()) {
                     item {
                         Column(modifier = Modifier.padding(top = 24.dp)) {
                             SectionHeader(
@@ -222,7 +264,7 @@ fun HomeScreen(
                                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                                 modifier = Modifier.padding(vertical = 8.dp)
                             ) {
-                                items(popComms, key = { it.id }) { community ->
+                                items(recommendedCommunities, key = { it.id }) { community ->
                                     CommunityDashboardCard(community) { onNavigateToCommunityDetail(community.id) }
                                 }
                             }
@@ -231,7 +273,7 @@ fun HomeScreen(
                 }
 
                 // Rekomendasi Event
-                val recEvents = viewModel.recommendedEvents.asSequence().drop(1).take(5).toList()
+                val recEvents = recommendedEvents.asSequence().drop(1).take(5).toList()
                 if (recEvents.isNotEmpty()) {
                     item {
                         Column(modifier = Modifier.padding(top = 24.dp)) {
@@ -242,7 +284,7 @@ fun HomeScreen(
                         Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)) {
                             CommunityEventCard(
                                 event = event,
-                                isRegistered = viewModel.isEventRegistered(event.id),
+                                isRegistered = isEventRegistered(event.id),
                                 onClick = { onNavigateToEventDetail(event.id, event.communityId) }
                             )
                         }
@@ -258,7 +300,6 @@ fun HomeScreen(
                 }
             } else {
                 // Hasil Cari
-                val filteredEvents = viewModel.filteredEvents
                 item {
                     Text(
                         text = stringResource(R.string.search_results),
@@ -281,7 +322,7 @@ fun HomeScreen(
                         Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)) {
                             CommunityEventCard(
                                 event = event,
-                                isRegistered = viewModel.isEventRegistered(event.id),
+                                isRegistered = isEventRegistered(event.id),
                                 onClick = { onNavigateToEventDetail(event.id, communityId) }
                             )
                         }
@@ -309,10 +350,10 @@ fun HomeScreen(
                 Text(stringResource(R.string.category), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(12.dp))
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(viewModel.categories) { category ->
+                    items(categories) { category ->
                         FilterChip(
-                            selected = viewModel.selectedCategory == category,
-                            onClick = { viewModel.selectedCategory = category },
+                            selected = selectedCategory == category,
+                            onClick = { onCategorySelect(category) },
                             label = { Text(category) }
                         )
                     }
@@ -325,8 +366,8 @@ fun HomeScreen(
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(dateFilters) { filter ->
                         FilterChip(
-                            selected = viewModel.selectedDateFilter == filter,
-                            onClick = { viewModel.selectedDateFilter = filter },
+                            selected = selectedDateFilter == filter,
+                            onClick = { onDateFilterSelect(filter) },
                             label = { Text(filter) }
                         )
                     }
@@ -347,7 +388,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun SectionHeader(title: String, action: String, onActionClick: () -> Unit) {
+fun SectionHeader(title: String, action: String, onActionClick: () -> Unit = {}) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -359,5 +400,35 @@ fun SectionHeader(title: String, action: String, onActionClick: () -> Unit) {
                 Text(action, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
             }
         }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun HomeScreenPreview() {
+    CommunityEventManagementTheme {
+        HomeContent(
+            currentUser = UserProfile(id = "1", name = "Budi Santoso", email = "budi@example.com"),
+            searchQuery = "",
+            selectedCategory = "Semua",
+            selectedDateFilter = "Kapan Saja",
+            categories = listOf("Semua", "Hobi", "Teknologi", "Pendidikan"),
+            recommendedEvents = listOf(
+                Event(1, "Workshop Jetpack Compose", "Belajar Compose.", "2025-06-20", "10:00", "Gedung A", "Teknologi"),
+                Event(2, "Meetup Flutter", "Sharing Flutter.", "2025-07-01", "13:00", "Online", "Teknologi")
+            ),
+            recommendedCommunities = listOf(
+                Community(1, "Android Dev", "Komunitas Android.", "Teknologi", null, "1", "Admin")
+            ),
+            filteredEvents = emptyList(),
+            isEventRegistered = { false },
+            onSearchQueryChange = {},
+            onCategorySelect = {},
+            onDateFilterSelect = {},
+            onNavigateToCommunityList = {},
+            onNavigateToAdminPanel = {},
+            onNavigateToCommunityDetail = {},
+            onNavigateToEventDetail = { _, _ -> }
+        )
     }
 }

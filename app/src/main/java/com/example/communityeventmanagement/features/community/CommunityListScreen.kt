@@ -31,11 +31,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.communityeventmanagement.R
+import com.example.communityeventmanagement.data.model.Community
 import com.example.communityeventmanagement.data.model.UserProfile
 import com.example.communityeventmanagement.ui.AppViewModelProvider
 import com.example.communityeventmanagement.ui.components.CommunityCard
+import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
+import com.example.communityeventmanagement.ui.theme.ThemePreviews
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommunityListScreen(
     currentUser: UserProfile?,
@@ -43,8 +45,28 @@ fun CommunityListScreen(
     onNavigateToCreateCommunity: () -> Unit,
     viewModel: CommunityListViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
-    var searchQuery by remember { mutableStateOf("") }
     val communities = viewModel.communities
+    val joinedCommunityIds = viewModel.joinedCommunityIds
+
+    CommunityListContent(
+        currentUser = currentUser,
+        communities = communities,
+        joinedCommunityIds = joinedCommunityIds,
+        onNavigateToCommunityDetail = onNavigateToCommunityDetail,
+        onNavigateToCreateCommunity = onNavigateToCreateCommunity
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CommunityListContent(
+    currentUser: UserProfile?,
+    communities: List<Community>,
+    joinedCommunityIds: List<Int>,
+    onNavigateToCommunityDetail: (Int) -> Unit,
+    onNavigateToCreateCommunity: () -> Unit,
+) {
+    var searchQuery by remember { mutableStateOf("") }
     val filteredCommunities = remember(searchQuery, communities) {
         if (searchQuery.isBlank()) communities 
         else communities.filter { it.name.contains(searchQuery, ignoreCase = true) || it.category.contains(searchQuery, ignoreCase = true) }
@@ -83,11 +105,28 @@ fun CommunityListScreen(
                 items(filteredCommunities, key = { it.id }) { community ->
                     CommunityCard(
                         community = community,
-                        isJoined = viewModel.joinedCommunityIds.contains(community.id),
+                        isJoined = joinedCommunityIds.contains(community.id),
                         onClick = { onNavigateToCommunityDetail(community.id) }
                     )
                 }
             }
         }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun CommunityListScreenPreview() {
+    CommunityEventManagementTheme {
+        CommunityListContent(
+            currentUser = UserProfile(id = "1", name = "Admin", email = "admin@ex.com", role = "Admin"),
+            communities = listOf(
+                Community(1, "Tech Talk", "Discussing tech.", "Teknologi", null, "1", "Admin"),
+                Community(2, "Sport Club", "Playing sports.", "Hobi", null, "1", "Admin")
+            ),
+            joinedCommunityIds = listOf(1),
+            onNavigateToCommunityDetail = {},
+            onNavigateToCreateCommunity = {}
+        )
     }
 }

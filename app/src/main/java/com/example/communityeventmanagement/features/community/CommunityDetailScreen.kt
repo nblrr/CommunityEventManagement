@@ -23,12 +23,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.communityeventmanagement.R
+import com.example.communityeventmanagement.data.model.Community
+import com.example.communityeventmanagement.data.model.Event
 import com.example.communityeventmanagement.data.model.UserProfile
 import com.example.communityeventmanagement.ui.AppViewModelProvider
 import com.example.communityeventmanagement.ui.components.CommunityEventCard
+import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
+import com.example.communityeventmanagement.ui.theme.ThemePreviews
 import com.example.communityeventmanagement.util.CoverImage
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommunityDetailScreen(
     communityId: Int,
@@ -44,6 +47,36 @@ fun CommunityDetailScreen(
     val isJoined = viewModel.isJoined(communityId)
     val isOrganizer = currentUser?.id == community.organizerId || currentUser?.role == "Admin"
 
+    CommunityDetailContent(
+        community = community,
+        currentUser = currentUser,
+        isJoined = isJoined,
+        isOrganizer = isOrganizer,
+        isEventRegistered = { viewModel.isEventRegistered(it) },
+        onToggleJoin = { viewModel.toggleJoin(communityId) },
+        onNavigateBack = onNavigateBack,
+        onNavigateToForum = onNavigateToForum,
+        onNavigateToCreateEvent = onNavigateToCreateEvent,
+        onNavigateToEventDetail = onNavigateToEventDetail,
+        onNavigateToLogin = onNavigateToLogin
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CommunityDetailContent(
+    community: Community,
+    currentUser: UserProfile?,
+    isJoined: Boolean,
+    isOrganizer: Boolean,
+    isEventRegistered: (Int) -> Boolean,
+    onToggleJoin: () -> Unit,
+    onNavigateBack: () -> Unit,
+    onNavigateToForum: () -> Unit,
+    onNavigateToCreateEvent: () -> Unit,
+    onNavigateToEventDetail: (Int) -> Unit,
+    onNavigateToLogin: () -> Unit,
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -100,7 +133,7 @@ fun CommunityDetailScreen(
                             Button(onClick = onNavigateToLogin) { Text(stringResource(R.string.btn_join)) }
                         } else if (!isOrganizer) {
                             Button(
-                                onClick = { viewModel.toggleJoin(communityId) },
+                                onClick = onToggleJoin,
                                 colors = if (isJoined) ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurfaceVariant) else ButtonDefaults.buttonColors()
                             ) {
                                 Text(if (isJoined) stringResource(R.string.status_registered) else stringResource(R.string.btn_join))
@@ -134,7 +167,7 @@ fun CommunityDetailScreen(
                 Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
                     CommunityEventCard(
                         event = event,
-                        isRegistered = viewModel.isEventRegistered(event.id),
+                        isRegistered = isEventRegistered(event.id),
                         onClick = { onNavigateToEventDetail(event.id) }
                     )
                 }
@@ -150,5 +183,36 @@ fun CommunityDetailScreen(
                 }
             }
         }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun CommunityDetailScreenPreview() {
+    CommunityEventManagementTheme {
+        CommunityDetailContent(
+            community = Community(
+                id = 1,
+                name = "Pecinta Kucing Indonesia",
+                description = "Komunitas tempat berkumpulnya para pecinta kucing untuk berbagi tips perawatan dan mengadakan gathering rutin.",
+                category = "Hobi",
+                organizerId = "1",
+                organizerName = "Budi Santoso",
+                memberIds = listOf("1", "2", "3"),
+                events = listOf(
+                    Event(1, "Gathering Kucing Sehat", "Acara kumpul bareng.", "2025-06-20", "10:00", "Taman Kota", "Sosial", communityId = 1)
+                )
+            ),
+            currentUser = UserProfile("2", "Andi", "andi@mail.com"),
+            isJoined = false,
+            isOrganizer = false,
+            isEventRegistered = { false },
+            onToggleJoin = {},
+            onNavigateBack = {},
+            onNavigateToForum = {},
+            onNavigateToCreateEvent = {},
+            onNavigateToEventDetail = {},
+            onNavigateToLogin = {}
+        )
     }
 }

@@ -50,9 +50,80 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.communityeventmanagement.R
+import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
+import com.example.communityeventmanagement.ui.theme.ThemePreviews
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+@ThemePreviews
+@Composable
+fun DatePickerFieldPreview() {
+    CommunityEventManagementTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            DatePickerField(
+                label = "Tanggal Event",
+                selectedDateMillis = null,
+                onDateSelected = {},
+                modifier = Modifier.padding(16.dp).fillMaxWidth()
+            )
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun ShimmerItemPreview() {
+    CommunityEventManagementTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                ShimmerItem(modifier = Modifier.fillMaxWidth().height(100.dp))
+                ShimmerItem(modifier = Modifier.size(60.dp), shape = RoundedCornerShape(30.dp))
+            }
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun EmptyStatePreview() {
+    CommunityEventManagementTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            EmptyState(
+                title = "Tidak Ada Data",
+                subtitle = "Maaf, data yang Anda cari tidak dapat ditemukan.",
+                actionLabel = "Coba Lagi",
+                onAction = {}
+            )
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun LoadingPreview() {
+    CommunityEventManagementTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Column(verticalArrangement = Arrangement.spacedBy(32.dp)) {
+                InlineLoading(Modifier.padding(16.dp))
+                FullScreenLoading(modifier = Modifier.height(200.dp))
+            }
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun StatusBadgePreview() {
+    CommunityEventManagementTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                StatusBadge(text = "Aktif", isActive = true)
+                StatusBadge(text = "Nonaktif", isActive = false)
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -1,18 +1,7 @@
 package com.example.communityeventmanagement.features.event
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -23,25 +12,8 @@ import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,11 +26,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.communityeventmanagement.R
+import com.example.communityeventmanagement.data.model.Event
+import com.example.communityeventmanagement.data.model.Rating
 import com.example.communityeventmanagement.data.model.UserProfile
 import com.example.communityeventmanagement.ui.AppViewModelProvider
+import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
+import com.example.communityeventmanagement.ui.theme.ThemePreviews
 import com.example.communityeventmanagement.util.CoverImage
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventDetailScreen(
     eventId: Int,
@@ -77,6 +52,32 @@ fun EventDetailScreen(
     val isOrganizer = viewModel.isOrganizer(currentUser?.id)
     val isUpcoming = viewModel.isUpcoming()
 
+    EventDetailContent(
+        event = event,
+        communityName = viewModel.communityName,
+        isRegistered = isRegistered,
+        isOrganizer = isOrganizer,
+        isUpcoming = isUpcoming,
+        currentUser = currentUser,
+        onToggleRegistration = { viewModel.toggleRegistration(communityId, eventId, currentUser?.id ?: "") },
+        onNavigateBack = onNavigateBack,
+        onNavigateToLogin = onNavigateToLogin
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EventDetailContent(
+    event: Event,
+    communityName: String,
+    isRegistered: Boolean,
+    isOrganizer: Boolean,
+    isUpcoming: Boolean,
+    currentUser: UserProfile?,
+    onToggleRegistration: () -> Unit,
+    onNavigateBack: () -> Unit,
+    onNavigateToLogin: () -> Unit,
+) {
     var showRatingDialog by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -125,7 +126,7 @@ fun EventDetailScreen(
                     TextButton(onClick = {}, contentPadding = PaddingValues(0.dp)) {
                         Icon(Icons.Default.Groups, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text(viewModel.communityName, fontWeight = FontWeight.Bold)
+                        Text(communityName, fontWeight = FontWeight.Bold)
                     }
 
                     HorizontalDivider(
@@ -159,7 +160,7 @@ fun EventDetailScreen(
                 }
                 item {
                     androidx.compose.foundation.lazy.LazyRow(contentPadding = PaddingValues(horizontal = 24.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        items(event.galleryImages) { img ->
+                        items(event.galleryImages!!) { img ->
                             Box(modifier = Modifier.size(120.dp).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.surfaceVariant)) {
                                 CoverImage(imageUri = img, modifier = Modifier.fillMaxSize())
                             }
@@ -178,7 +179,7 @@ fun EventDetailScreen(
                         modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 16.dp)
                     )
                 }
-                items(event.ratings) { rating ->
+                items(event.ratings!!) { rating ->
                     RatingItem(rating = rating)
                 }
             }
@@ -197,7 +198,7 @@ fun EventDetailScreen(
                     Button(
                         onClick = { 
                             if (currentUser == null) onNavigateToLogin()
-                            else viewModel.toggleRegistration(communityId, eventId, currentUser.id)
+                            else onToggleRegistration()
                         },
                         shape = RoundedCornerShape(14.dp),
                         modifier = Modifier.height(52.dp).padding(horizontal = 8.dp),
@@ -226,7 +227,7 @@ private fun InfoRow(icon: ImageVector, title: String, subtitle: String) {
 }
 
 @Composable
-private fun RatingItem(rating: com.example.communityeventmanagement.data.model.Rating) {
+private fun RatingItem(rating: Rating) {
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(modifier = Modifier.size(32.dp).clip(CircleShape).background(MaterialTheme.colorScheme.secondaryContainer), contentAlignment = Alignment.Center) {
@@ -245,5 +246,36 @@ private fun RatingItem(rating: com.example.communityeventmanagement.data.model.R
             }
         }
         Text(rating.comment, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp, start = 44.dp))
+    }
+}
+
+@ThemePreviews
+@Composable
+fun EventDetailScreenPreview() {
+    CommunityEventManagementTheme {
+        EventDetailContent(
+            event = Event(
+                id = 1,
+                title = "Workshop Android Modern",
+                description = "Pelajari cara membangun aplikasi Android menggunakan Jetpack Compose dan Material 3.",
+                date = "2025-06-25",
+                time = "10:00 - 15:00",
+                location = "Gedung Serbaguna Lt. 2",
+                category = "Pendidikan",
+                maxAttendees = 100,
+                registeredUserIds = listOf("1", "2", "3"),
+                ratings = listOf(
+                    Rating("1", "Budi", 5, "Workshop yang sangat bermanfaat!", "2025-06-26")
+                )
+            ),
+            communityName = "Tech Community",
+            isRegistered = false,
+            isOrganizer = false,
+            isUpcoming = true,
+            currentUser = UserProfile("2", "Andi", "andi@mail.com"),
+            onToggleRegistration = {},
+            onNavigateBack = {},
+            onNavigateToLogin = {}
+        )
     }
 }

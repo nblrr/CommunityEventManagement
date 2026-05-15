@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
@@ -24,11 +23,9 @@ import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.HourglassBottom
 import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
@@ -63,7 +60,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -71,13 +67,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.communityeventmanagement.R
+import com.example.communityeventmanagement.data.model.Community
 import com.example.communityeventmanagement.data.model.UserProfile
 import com.example.communityeventmanagement.ui.AppViewModelProvider
 import com.example.communityeventmanagement.ui.components.CommunityCard
+import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
+import com.example.communityeventmanagement.ui.theme.ThemePreviews
 import com.example.communityeventmanagement.util.ImagePickerBox
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     currentUser: UserProfile?,
@@ -86,16 +84,51 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     viewModel: ProfileViewModel = viewModel(factory = AppViewModelProvider.Factory),
 ) {
-    var showLogoutDialog by remember { mutableStateOf(value = false) }
-    var showTrustedAppSheet by remember { mutableStateOf(false) }
-    var showThemeDialog by remember { mutableStateOf(false) }
-
+    val joinedCommunities = viewModel.joinedCommunities
+    val managedCommunities = viewModel.managedCommunities
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val applicationSentMsg = stringResource(R.string.msg_application_sent)
 
-    val joinedCommunities = viewModel.joinedCommunities
-    val createdCommunities = viewModel.managedCommunities
+    ProfileContent(
+        currentUser = currentUser,
+        joinedCommunities = joinedCommunities,
+        managedCommunities = managedCommunities,
+        currentThemeMode = viewModel.currentThemeMode,
+        snackbarHostState = snackbarHostState,
+        onUpdateAvatar = { viewModel.updateAvatar(it) },
+        onSubmitTrustedApplication = { reason, exp ->
+            viewModel.submitTrustedApplication(reason, exp)
+            scope.launch { snackbarHostState.showSnackbar(applicationSentMsg) }
+        },
+        onSaveTheme = { viewModel.saveTheme(it) },
+        onLogoutClick = {
+            viewModel.logout()
+            onLogout()
+        },
+        onNavigateToOrganizerRegister = onNavigateToOrganizerRegister,
+        onNavigateToCommunityDetail = onNavigateToCommunityDetail
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProfileContent(
+    currentUser: UserProfile?,
+    joinedCommunities: List<Community>,
+    managedCommunities: List<Community>,
+    currentThemeMode: String,
+    snackbarHostState: SnackbarHostState,
+    onUpdateAvatar: (String?) -> Unit,
+    onSubmitTrustedApplication: (String, String) -> Unit,
+    onSaveTheme: (String) -> Unit,
+    onLogoutClick: () -> Unit,
+    onNavigateToOrganizerRegister: () -> Unit,
+    onNavigateToCommunityDetail: (Int) -> Unit,
+) {
+    var showLogoutDialog by remember { mutableStateOf(value = false) }
+    var showTrustedAppSheet by remember { mutableStateOf(false) }
+    var showThemeDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -123,9 +156,7 @@ fun ProfileScreen(
                 ) {
                     ImagePickerBox(
                         imageUri = currentUser?.avatarUri,
-                        onImageSelected = { uri ->
-                            viewModel.updateAvatar(uri)
-                        },
+                        onImageSelected = onUpdateAvatar,
                         isProfile = true,
                         userName = currentUser?.name ?: "",
                         height = 100.dp,
@@ -166,7 +197,7 @@ fun ProfileScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     StatBox(label = stringResource(R.string.stat_followed_profile), value = joinedCommunities.size.toString(), icon = Icons.Default.Groups, modifier = Modifier.weight(1f))
-                    StatBox(label = stringResource(R.string.stat_created), value = createdCommunities.size.toString(), icon = Icons.Default.AddCircle, modifier = Modifier.weight(1f))
+                    StatBox(label = stringResource(R.string.stat_created), value = managedCommunities.size.toString(), icon = Icons.Default.AddCircle, modifier = Modifier.weight(1f))
                 }
             }
 
@@ -225,9 +256,8 @@ fun ProfileScreen(
                 OutlinedTextField(value = experience, onValueChange = { experience = it }, label = { Text(stringResource(R.string.label_experience_manage_community)) }, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth(), minLines = 3)
                 Button(
                     onClick = {
-                        viewModel.submitTrustedApplication(reason, experience)
+                        onSubmitTrustedApplication(reason, experience)
                         showTrustedAppSheet = false
-                        scope.launch { snackbarHostState.showSnackbar(applicationSentMsg) }
                     },
                     enabled = reason.isNotBlank() && experience.isNotBlank(),
                     modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(16.dp)
@@ -252,12 +282,12 @@ fun ProfileScreen(
                         }
                         Surface(
                             onClick = { 
-                                viewModel.saveTheme(option)
+                                onSaveTheme(option)
                                 showThemeDialog = false
                             },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
-                            color = if (viewModel.currentThemeMode == option) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+                            color = if (currentThemeMode == option) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
                         ) {
                             Row(
                                 modifier = Modifier.padding(16.dp),
@@ -271,16 +301,16 @@ fun ProfileScreen(
                                         else -> Icons.Default.BrightnessAuto
                                     },
                                     contentDescription = null,
-                                    tint = if (viewModel.currentThemeMode == option) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                    tint = if (currentThemeMode == option) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
                                     text = label, 
                                     style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = if (viewModel.currentThemeMode == option) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (viewModel.currentThemeMode == option) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                    fontWeight = if (currentThemeMode == option) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (currentThemeMode == option) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                                 )
                                 Spacer(Modifier.weight(1f))
-                                if (viewModel.currentThemeMode == option) {
+                                if (currentThemeMode == option) {
                                     Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                                 }
                             }
@@ -303,8 +333,7 @@ fun ProfileScreen(
             confirmButton = {
                 Button(
                     onClick = { 
-                        viewModel.logout()
-                        onLogout() 
+                        onLogoutClick()
                     }, 
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) { Text(stringResource(R.string.btn_logout)) }
@@ -343,5 +372,29 @@ private fun ProfileMenuItem(icon: ImageVector, title: String, subtitle: String, 
             }
             Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.outlineVariant)
         }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun ProfileScreenPreview() {
+    CommunityEventManagementTheme {
+        ProfileContent(
+            currentUser = UserProfile(id = "1", name = "Budi Santoso", email = "budi@example.com", role = "Organizer", isTrusted = true),
+            joinedCommunities = listOf(
+                Community(1, "Android Dev", "Komunitas Android.", "Teknologi", null, "1", "Admin")
+            ),
+            managedCommunities = listOf(
+                Community(1, "Android Dev", "Komunitas Android.", "Teknologi", null, "1", "Admin")
+            ),
+            currentThemeMode = "LIGHT",
+            snackbarHostState = remember { SnackbarHostState() },
+            onUpdateAvatar = {},
+            onSubmitTrustedApplication = { _, _ -> },
+            onSaveTheme = {},
+            onLogoutClick = {},
+            onNavigateToOrganizerRegister = {},
+            onNavigateToCommunityDetail = {}
+        )
     }
 }

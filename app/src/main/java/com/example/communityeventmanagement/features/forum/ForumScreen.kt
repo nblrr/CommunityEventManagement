@@ -23,10 +23,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.communityeventmanagement.R
+import com.example.communityeventmanagement.data.model.ForumMessage
 import com.example.communityeventmanagement.data.model.UserProfile
 import com.example.communityeventmanagement.ui.AppViewModelProvider
+import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
+import com.example.communityeventmanagement.ui.theme.ThemePreviews
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ForumScreen(
     communityId: Int,
@@ -35,6 +37,27 @@ fun ForumScreen(
     viewModel: ForumViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val messages = viewModel.getMessages(communityId)
+    
+    ForumContent(
+        messages = messages,
+        currentUser = currentUser,
+        messageText = viewModel.messageText,
+        onMessageChange = { viewModel.messageText = it },
+        onSendMessage = { viewModel.sendMessage(communityId) },
+        onNavigateBack = onNavigateBack
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ForumContent(
+    messages: List<ForumMessage>,
+    currentUser: UserProfile?,
+    messageText: String,
+    onMessageChange: (String) -> Unit,
+    onSendMessage: () -> Unit,
+    onNavigateBack: () -> Unit,
+) {
     val listState = rememberLazyListState()
 
     LaunchedEffect(messages.size) {
@@ -67,15 +90,15 @@ fun ForumScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedTextField(
-                        value = viewModel.messageText,
-                        onValueChange = { viewModel.messageText = it },
+                        value = messageText,
+                        onValueChange = onMessageChange,
                         modifier = Modifier.weight(1f),
                         placeholder = { Text(stringResource(R.string.hint_message)) },
                         shape = RoundedCornerShape(24.dp),
                         maxLines = 4
                     )
                     FloatingActionButton(
-                        onClick = { viewModel.sendMessage(communityId) },
+                        onClick = onSendMessage,
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = Color.White,
                         shape = CircleShape,
@@ -103,7 +126,7 @@ fun ForumScreen(
 }
 
 @Composable
-fun MessageBubble(msg: com.example.communityeventmanagement.data.model.ForumMessage, isMe: Boolean) {
+fun MessageBubble(msg: ForumMessage, isMe: Boolean) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = if (isMe) Alignment.End else Alignment.Start
@@ -130,5 +153,24 @@ fun MessageBubble(msg: com.example.communityeventmanagement.data.model.ForumMess
                 )
             }
         }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun ForumScreenPreview() {
+    CommunityEventManagementTheme {
+        ForumContent(
+            messages = listOf(
+                ForumMessage("Budi", "Halo semuanya!", "10:00", "B"),
+                ForumMessage("Andi", "Halo Budi!", "10:01", "A"),
+                ForumMessage("User", "Ada info gathering baru?", "10:05", "U")
+            ),
+            currentUser = UserProfile("1", "User", "user@mail.com"),
+            messageText = "",
+            onMessageChange = {},
+            onSendMessage = {},
+            onNavigateBack = {}
+        )
     }
 }

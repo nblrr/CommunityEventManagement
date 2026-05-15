@@ -46,8 +46,90 @@ import androidx.compose.ui.unit.sp
 import com.example.communityeventmanagement.R
 import com.example.communityeventmanagement.data.model.Community
 import com.example.communityeventmanagement.data.model.Event
+import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
+import com.example.communityeventmanagement.ui.theme.ThemePreviews
 import com.example.communityeventmanagement.util.CoverImage
 import com.example.communityeventmanagement.util.DateFormatter
+
+@ThemePreviews
+@Composable
+fun CommunityDashboardCardPreview() {
+    CommunityEventManagementTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            CommunityDashboardCard(
+                community = Community(
+                    id = 1,
+                    name = "Pecinta Kucing",
+                    description = "Komunitas berbagi info tentang kucing.",
+                    category = "Hobi",
+                    organizerId = "1",
+                    organizerName = "Budi"
+                ),
+                isTrusted = true,
+                onClick = {},
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun CommunityCardPreview() {
+    CommunityEventManagementTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            CommunityCard(
+                community = Community(
+                    id = 1,
+                    name = "Tech Community",
+                    description = "Sharing knowledge about technology and programming. Join us for weekly meetups!",
+                    category = "Teknologi",
+                    organizerId = "1",
+                    organizerName = "Admin",
+                    memberIds = listOf("1", "2", "3")
+                ),
+                isJoined = true,
+                isTrusted = true,
+                onClick = {}
+            )
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun CommunityEventCardPreview() {
+    CommunityEventManagementTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                CommunityEventCard(
+                    event = Event(
+                        id = 1,
+                        title = "Workshop Android Modern",
+                        description = "Belajar Jetpack Compose.",
+                        date = "2025-06-20",
+                        location = "Gedung Serbaguna",
+                        category = "Pendidikan"
+                    ),
+                    isRegistered = false,
+                    onClick = {}
+                )
+                CommunityEventCard(
+                    event = Event(
+                        id = 2,
+                        title = "Meetup Kotlin Indonesia",
+                        description = "Sharing sesson.",
+                        date = "2025-07-15",
+                        location = "Online Zoom",
+                        category = "Pendidikan"
+                    ),
+                    isRegistered = true,
+                    onClick = {}
+                )
+            }
+        }
+    }
+}
 
 // Card Dashboard Komunitas (Horizontal)
 @Composable

@@ -56,13 +56,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.communityeventmanagement.R
 import com.example.communityeventmanagement.ui.AppViewModelProvider
+import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
+import com.example.communityeventmanagement.ui.theme.ThemePreviews
 import com.example.communityeventmanagement.util.ImagePickerBox
 import com.example.communityeventmanagement.util.toDateString
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.TimeZone
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateEventScreen(
     communityId: Int,
@@ -71,6 +72,59 @@ fun CreateEventScreen(
     viewModel: CreateEventViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val scope = rememberCoroutineScope()
+    
+    CreateEventContent(
+        title = viewModel.title,
+        category = viewModel.category,
+        selectedDateMillis = viewModel.selectedDateMillis,
+        time = viewModel.time,
+        location = viewModel.location,
+        description = viewModel.description,
+        coverImageUri = viewModel.coverImageUri,
+        categoryOptions = viewModel.categoryOptions,
+        isDateTimeValid = viewModel.isDateTimeValid,
+        isSubmitting = viewModel.isSubmitting,
+        isFormValid = viewModel.isFormValid,
+        showSuccessSheet = viewModel.showSuccessSheet,
+        onTitleChange = { viewModel.title = it },
+        onCategoryChange = { viewModel.category = it },
+        onDateChange = { viewModel.selectedDateMillis = it },
+        onTimeChange = { viewModel.time = it },
+        onLocationChange = { viewModel.location = it },
+        onDescriptionChange = { viewModel.description = it },
+        onImageSelected = { viewModel.coverImageUri = it },
+        onSubmit = { scope.launch { viewModel.submit(communityId) } },
+        onCreateSuccess = onCreateSuccess,
+        onNavigateBack = onNavigateBack
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CreateEventContent(
+    title: String,
+    category: String,
+    selectedDateMillis: Long?,
+    time: String,
+    location: String,
+    description: String,
+    coverImageUri: String?,
+    categoryOptions: List<String>,
+    isDateTimeValid: Boolean,
+    isSubmitting: Boolean,
+    isFormValid: Boolean,
+    showSuccessSheet: Boolean,
+    onTitleChange: (String) -> Unit,
+    onCategoryChange: (String) -> Unit,
+    onDateChange: (Long?) -> Unit,
+    onTimeChange: (String) -> Unit,
+    onLocationChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onImageSelected: (String?) -> Unit,
+    onSubmit: () -> Unit,
+    onCreateSuccess: () -> Unit,
+    onNavigateBack: () -> Unit,
+) {
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState(
         selectableDates = object : SelectableDates {
@@ -86,7 +140,7 @@ fun CreateEventScreen(
         }
     )
 
-    if (viewModel.showSuccessSheet) {
+    if (showSuccessSheet) {
         ModalBottomSheet(onDismissRequest = onCreateSuccess) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(32.dp),
@@ -118,40 +172,35 @@ fun CreateEventScreen(
             modifier = Modifier.fillMaxSize().padding(paddingValues).verticalScroll(rememberScrollState()).padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // Upload Gambar
             ImagePickerBox(
-                imageUri = viewModel.coverImageUri,
-                onImageSelected = { viewModel.coverImageUri = it },
+                imageUri = coverImageUri,
+                onImageSelected = onImageSelected,
                 label = stringResource(R.string.btn_choose_cover)
             )
 
-            // Judul
-            CreateInput(label = stringResource(R.string.label_event_name), value = viewModel.title, onValueChange = { viewModel.title = it }, icon = Icons.AutoMirrored.Filled.EventNote)
+            CreateInput(label = stringResource(R.string.label_event_name), value = title, onValueChange = onTitleChange, icon = Icons.AutoMirrored.Filled.EventNote)
             
-            // Kategori
             Text(stringResource(R.string.label_choose_category), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                viewModel.categoryOptions.take(3).forEach { cat ->
+                categoryOptions.take(3).forEach { cat ->
                     FilterChip(
-                        selected = viewModel.category == cat,
-                        onClick = { viewModel.category = cat },
+                        selected = category == cat,
+                        onClick = { onCategoryChange(cat) },
                         label = { Text(cat) }
                     )
                 }
             }
 
-            // Tanggal & Waktu
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Box(modifier = Modifier.weight(1f).clickable { showDatePicker = true }) {
-                    CreateInput(label = stringResource(R.string.label_date), value = viewModel.selectedDateMillis?.toDateString() ?: "", onValueChange = {}, icon = Icons.Default.CalendarToday, enabled = false)
+                    CreateInput(label = stringResource(R.string.label_date), value = selectedDateMillis?.toDateString() ?: "", onValueChange = {}, icon = Icons.Default.CalendarToday, enabled = false)
                 }
                 Box(modifier = Modifier.weight(1f)) {
-                    // Simple select time placeholder
-                    CreateInput(label = stringResource(R.string.label_time), value = viewModel.time, onValueChange = { viewModel.time = it }, icon = Icons.Default.Schedule)
+                    CreateInput(label = stringResource(R.string.label_time), value = time, onValueChange = onTimeChange, icon = Icons.Default.Schedule)
                 }
             }
 
-            if (!viewModel.isDateTimeValid && viewModel.selectedDateMillis != null) {
+            if (!isDateTimeValid && selectedDateMillis != null) {
                 Text(
                     text = "Tanggal & waktu harus lebih dari saat ini",
                     color = MaterialTheme.colorScheme.error,
@@ -160,18 +209,18 @@ fun CreateEventScreen(
                 )
             }
 
-            CreateInput(label = stringResource(R.string.label_location), value = viewModel.location, onValueChange = { viewModel.location = it }, icon = Icons.Default.LocationOn)
+            CreateInput(label = stringResource(R.string.label_location), value = location, onValueChange = onLocationChange, icon = Icons.Default.LocationOn)
             
-            CreateInput(label = stringResource(R.string.label_event_description), value = viewModel.description, onValueChange = { viewModel.description = it }, icon = Icons.Default.Description, singleLine = false)
+            CreateInput(label = stringResource(R.string.label_event_description), value = description, onValueChange = onDescriptionChange, icon = Icons.Default.Description, singleLine = false)
 
             Spacer(Modifier.height(24.dp))
             Button(
-                onClick = { scope.launch { viewModel.submit(communityId) } },
-                enabled = viewModel.isFormValid && !viewModel.isSubmitting,
+                onClick = onSubmit,
+                enabled = isFormValid && !isSubmitting,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(16.dp)
             ) {
-                if (viewModel.isSubmitting) CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                if (isSubmitting) CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                 else Text(stringResource(R.string.btn_publish_event), fontWeight = FontWeight.Black, fontSize = 16.sp)
             }
         }
@@ -182,7 +231,7 @@ fun CreateEventScreen(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
                 TextButton(onClick = { 
-                    viewModel.selectedDateMillis = datePickerState.selectedDateMillis
+                    onDateChange(datePickerState.selectedDateMillis)
                     showDatePicker = false 
                 }) { Text(stringResource(R.string.btn_choose)) }
             }
@@ -199,4 +248,35 @@ private fun CreateInput(
         leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp)) },
         modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), singleLine = singleLine
     )
+}
+
+@ThemePreviews
+@Composable
+fun CreateEventScreenPreview() {
+    CommunityEventManagementTheme {
+        CreateEventContent(
+            title = "Workshop Jetpack Compose",
+            category = "Pendidikan",
+            selectedDateMillis = null,
+            time = "10:00",
+            location = "Gedung Serbaguna",
+            description = "Belajar membuat UI dengan Compose.",
+            coverImageUri = null,
+            categoryOptions = listOf("Pendidikan", "Sosial", "Hobi"),
+            isDateTimeValid = true,
+            isSubmitting = false,
+            isFormValid = true,
+            showSuccessSheet = false,
+            onTitleChange = {},
+            onCategoryChange = {},
+            onDateChange = {},
+            onTimeChange = {},
+            onLocationChange = {},
+            onDescriptionChange = {},
+            onImageSelected = {},
+            onSubmit = {},
+            onCreateSuccess = {},
+            onNavigateBack = {}
+        )
+    }
 }

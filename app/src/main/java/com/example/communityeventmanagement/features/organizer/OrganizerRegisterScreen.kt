@@ -35,13 +35,46 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.communityeventmanagement.R
 import com.example.communityeventmanagement.data.model.UserProfile
 import com.example.communityeventmanagement.ui.AppViewModelProvider
+import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
+import com.example.communityeventmanagement.ui.theme.ThemePreviews
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrganizerRegisterScreen(
     onRegisterSuccess: (UserProfile) -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: OrganizerRegisterViewModel = viewModel(factory = AppViewModelProvider.Factory),
+) {
+    OrganizerRegisterContent(
+        organizerName = viewModel.organizerName,
+        personInCharge = viewModel.personInCharge,
+        phone = viewModel.phone,
+        description = viewModel.description,
+        errorMessage = viewModel.errorMessage,
+        isFormValid = viewModel.isFormValid,
+        onOrganizerNameChange = { viewModel.organizerName = it },
+        onPersonInChargeChange = { viewModel.personInCharge = it },
+        onPhoneChange = { viewModel.phone = it; viewModel.errorMessage = null },
+        onDescriptionChange = { viewModel.description = it },
+        onRegisterClick = { viewModel.registerAsOrganizer(onRegisterSuccess) },
+        onNavigateBack = onNavigateBack
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun OrganizerRegisterContent(
+    organizerName: String,
+    personInCharge: String,
+    phone: String,
+    description: String,
+    errorMessage: Int?,
+    isFormValid: Boolean,
+    onOrganizerNameChange: (String) -> Unit,
+    onPersonInChargeChange: (String) -> Unit,
+    onPhoneChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onRegisterClick: () -> Unit,
+    onNavigateBack: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -61,33 +94,54 @@ fun OrganizerRegisterScreen(
         ) {
             Text(stringResource(R.string.hint_organizer_register), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             
-            OutlinedTextField(value = viewModel.organizerName, onValueChange = { viewModel.organizerName = it }, label = { Text(stringResource(R.string.label_organizer_name)) }, leadingIcon = { Icon(Icons.Default.Business, contentDescription = null) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp))
-            OutlinedTextField(value = viewModel.personInCharge, onValueChange = { viewModel.personInCharge = it }, label = { Text(stringResource(R.string.label_pic)) }, leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp))
+            OutlinedTextField(value = organizerName, onValueChange = onOrganizerNameChange, label = { Text(stringResource(R.string.label_organizer_name)) }, leadingIcon = { Icon(Icons.Default.Business, contentDescription = null) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp))
+            OutlinedTextField(value = personInCharge, onValueChange = onPersonInChargeChange, label = { Text(stringResource(R.string.label_pic)) }, leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp))
             
             OutlinedTextField(
-                value = viewModel.phone, 
-                onValueChange = { viewModel.phone = it; viewModel.errorMessage = null }, 
+                value = phone, 
+                onValueChange = onPhoneChange, 
                 label = { Text(stringResource(R.string.label_whatsapp)) }, 
                 leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) }, 
                 modifier = Modifier.fillMaxWidth(), 
                 shape = RoundedCornerShape(14.dp),
-                isError = viewModel.errorMessage != null,
+                isError = errorMessage != null,
                 supportingText = {
-                    if (viewModel.errorMessage != null) {
-                        Text(stringResource(viewModel.errorMessage!!), color = MaterialTheme.colorScheme.error)
+                    if (errorMessage != null) {
+                        Text(stringResource(errorMessage), color = MaterialTheme.colorScheme.error)
                     }
                 }
             )
 
-            OutlinedTextField(value = viewModel.description, onValueChange = { viewModel.description = it }, label = { Text(stringResource(R.string.label_short_desc)) }, leadingIcon = { Icon(Icons.Default.Description, contentDescription = null) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp), minLines = 3)
+            OutlinedTextField(value = description, onValueChange = onDescriptionChange, label = { Text(stringResource(R.string.label_short_desc)) }, leadingIcon = { Icon(Icons.Default.Description, contentDescription = null) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp), minLines = 3)
 
             Spacer(Modifier.height(32.dp))
             Button(
-                onClick = { viewModel.registerAsOrganizer(onRegisterSuccess) },
-                enabled = viewModel.isFormValid,
+                onClick = onRegisterClick,
+                enabled = isFormValid,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(16.dp)
             ) { Text(stringResource(R.string.btn_register_now), fontWeight = FontWeight.Black, fontSize = 16.sp) }
         }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun OrganizerRegisterScreenPreview() {
+    CommunityEventManagementTheme {
+        OrganizerRegisterContent(
+            organizerName = "Komunitas Kreatif",
+            personInCharge = "Budi Santoso",
+            phone = "08123456789",
+            description = "Komunitas untuk berbagi ide-ide kreatif.",
+            errorMessage = null,
+            isFormValid = true,
+            onOrganizerNameChange = {},
+            onPersonInChargeChange = {},
+            onPhoneChange = {},
+            onDescriptionChange = {},
+            onRegisterClick = {},
+            onNavigateBack = {}
+        )
     }
 }

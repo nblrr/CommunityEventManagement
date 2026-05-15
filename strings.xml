@@ -1,0 +1,192 @@
+<resources>
+    <!-- General -->
+    <string name="app_name">Communitix</string>
+    <string name="back">Kembali</string>
+    <string name="guest">Guest</string>
+    <string name="see_all">Lihat Semua</string>
+    <string name="loading_msg">Memuat…</string>
+    <string name="btn_choose">Pilih</string>
+    <string name="btn_cancel">Batal</string>
+    <string name="btn_close">Tutup</string>
+    <string name="category">Kategori</string>
+    <string name="time">Waktu</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Beranda</string>
+    <string name="title_communities">Komunitas</string>
+    <string name="nav_profile">Profil</string>
+    <string name="login">Masuk</string>
+
+    <!-- App Titles -->
+    <string name="admin_panel">Admin Panel</string>
+    <string name="title_profile">Profil</string>
+    <string name="title_detail_event">Detail Event</string>
+    <string name="title_create_community">Buat Komunitas</string>
+    <string name="title_create_event">Buat Event Baru</string>
+    <string name="title_forum">Forum Diskusi</string>
+    <string name="title_organizer_register">Daftar Organizer</string>
+    <string name="explore_community">Eksplor Komunitas</string>
+    <string name="find_your_interest">Temukan Minatmu</string>
+
+    <!-- Welcome Messages -->
+    <string name="welcome_morning">Selamat Pagi,</string>
+    <string name="welcome_afternoon">Selamat Siang,</string>
+    <string name="welcome_evening">Selamat Sore,</string>
+    <string name="welcome_night">Selamat Malam,</string>
+    <string name="welcome_back">Selamat Datang!</string>
+
+    <!-- Auth -->
+    <string name="login_hint">Masuk ke akun komunitasmu</string>
+    <string name="register_hint">Gabung bersama komunitas kami</string>
+    <string name="title_create_account">Buat Akun</string>
+    <string name="label_email">Email</string>
+    <string name="label_password">Password</string>
+    <string name="label_full_name">Nama Lengkap</string>
+    <string name="btn_login">Masuk</string>
+    <string name="btn_register">Daftar</string>
+    <string name="btn_register_now">Daftar Sekarang</string>
+    <string name="txt_no_account">Belum punya akun?</string>
+    <string name="txt_already_have_account">Sudah punya akun?</string>
+
+    <!-- Home -->
+    <string name="search_placeholder">Cari event favoritmu…</string>
+    <string name="featured_events">Event Unggulan</string>
+    <string name="popular_communities">Komunitas Popular</string>
+    <string name="choices_for_you">Pilihan Untukmu</string>
+    <string name="label_featured">FEATURED</string>
+    <string name="filter_event">Filter Event</string>
+    <string name="apply_filter">Terapkan Filter</string>
+    <string name="time_any">Kapan Saja</string>
+    <string name="time_today">Hari Ini</string>
+    <string name="time_this_week">Minggu Ini</string>
+    <string name="time_this_month">Bulan Ini</string>
+
+    <!-- Search & Empty States -->
+    <string name="search_results">Hasil Pencarian</string>
+    <string name="no_search_results">Oops! Tidak ada hasil.</string>
+    <string name="no_search_results_subtitle">Coba kata kunci lain atau filter berbeda.</string>
+    <string name="no_events">Belum ada event</string>
+    <string name="no_events_subtitle">Coba cari komunitas untuk melihat event mereka.</string>
+    <string name="no_community">Belum ada komunitas</string>
+    <string name="no_community_subtitle">Jadilah yang pertama membuat komunitas baru!</string>
+    <string name="msg_no_events_yet">Belum ada kegiatan</string>
+    <string name="msg_no_data_found">Tidak ada data ditemukan.</string>
+
+    <!-- Community -->
+    <string name="search_hint_community">Cari komunitas…</string>
+    <string name="section_about_community">Tentang Komunitas</string>
+    <string name="label_community_name">Nama Komunitas</string>
+    <string name="create_community">Buat Komunitas</string>
+    <string name="label_category_hint">Kategori (misal: Olahraga, Musik)</string>
+    <string name="label_description">Deskripsi</string>
+    <string name="label_organizer">Organizer</string>
+    <string name="label_organizer_name">Nama Organizer</string>
+    <string name="label_community_prefix">Komunitas: %1$s</string>
+    <string name="btn_join">Gabung</string>
+    <string name="btn_create_now">Buat Sekarang</string>
+    <string name="btn_choose_cover">Pilih Cover Image</string>
+    <string name="communities_available">%1$d Komunitas tersedia</string>
+    <string name="member_count_format">%1$d Anggota</string>
+    <string name="joined_count">%1$d Diikuti</string>
+
+    <!-- Event -->
+    <string name="label_event_name">Nama Kegiatan</string>
+    <string name="label_choose_category">Pilih Kategori</string>
+    <string name="label_date">Tanggal</string>
+    <string name="label_time">Jam</string>
+    <string name="label_location">Lokasi</string>
+    <string name="label_event_description">Deskripsi Kegiatan</string>
+    <string name="label_free">Gratis</string>
+    <string name="label_view_on_map">Lihat di Peta</string>
+    <string name="section_about_event">Tentang Event</string>
+    <string name="section_gallery">Galeri Foto</string>
+    <string name="section_participant_reviews">Ulasan Peserta</string>
+    <string name="section_upcoming_events">Kegiatan Mendatang</string>
+    <string name="attendee_count_format">%1$d Orang Terdaftar</string>
+    <string name="btn_publish_event">Publikasikan Event</string>
+    <string name="btn_register_event">Daftar Sekarang</string>
+    <string name="btn_cancel_registration">Batal Daftar</string>
+    <string name="btn_rate_review">Beri Rating &amp; Review</string>
+    <string name="msg_event_created_title">Event Berhasil Dibuat!</string>
+    <string name="msg_event_created_body">Kegiatanmu sekarang sudah aktif dan dapat dilihat oleh member komunitas.</string>
+
+    <!-- Profile & Organizer Register -->
+    <string name="label_user_default">Pengguna</string>
+    <string name="label_pic">Penanggung Jawab</string>
+    <string name="label_whatsapp">Nomor WhatsApp</string>
+    <string name="label_short_desc">Deskripsi Singkat</string>
+    <string name="hint_organizer_register">Lengkapi data organizer utama yang akan kamu kelola.</string>
+    <string name="stat_followed_profile">Diikuti</string>
+    <string name="stat_created">Dibuat</string>
+    <string name="section_account_settings">Pengaturan Akun</string>
+    <string name="section_my_communities">Komunitas Saya</string>
+    <string name="menu_become_organizer">Daftar Jadi Organizer</string>
+    <string name="menu_manage_own_community">Kelola komunitas sendiri</string>
+    <string name="menu_apply_trusted">Ajukan Trusted Organizer</string>
+    <string name="menu_get_verification_badge">Dapatkan lencana verifikasi</string>
+    <string name="menu_verification_status">Status Verifikasi</string>
+    <string name="menu_verification_in_progress">Dalam Peninjauan</string>
+    <string name="menu_preferences">Pengaturan &amp; Preferensi</string>
+    <string name="menu_preferences_subtitle">Notifikasi, Tema, &amp; Lainnya</string>
+    <string name="menu_app_theme">Tema Aplikasi</string>
+    <string name="theme_auto">Ikuti Sistem</string>
+    <string name="theme_light">Terang</string>
+    <string name="theme_dark">Gelap</string>
+    <string name="label_reason_apply_trusted">Alasan ingin jadi trusted?</string>
+    <string name="label_experience_manage_community">Pengalaman kelola komunitas</string>
+    <string name="msg_application_sent">Pengajuan dikirim!</string>
+    <string name="btn_send_application">Kirim Pengajuan</string>
+    <string name="dialog_logout_title">Keluar Akun?</string>
+    <string name="dialog_logout_msg">Yakin ingin keluar sesi?</string>
+    <string name="btn_logout">Keluar</string>
+
+    <!-- Admin Panel -->
+    <string name="search_hint_user_organizer">Cari user atau organizer…</string>
+    <string name="tab_user">User</string>
+    <string name="tab_organizer">Organizer</string>
+    <string name="tab_applications">Pengajuan</string>
+    <string name="msg_no_pending_applications">Tidak ada pengajuan baru.</string>
+    <string name="dialog_unblock_user_title">Buka Blokir User?</string>
+    <string name="dialog_block_user_title">Blokir User?</string>
+    <string name="dialog_block_confirm_msg">Apakah Anda yakin ingin %1$s akun %2$s?</string>
+    <string name="action_unblocking">membuka blokir</string>
+    <string name="action_blocking">memblokir</string>
+    <string name="btn_unblock">Buka Blokir</string>
+    <string name="btn_block">Blokir</string>
+    <string name="label_reason">Alasan:</string>
+    <string name="label_experience">Pengalaman:</string>
+    <string name="btn_approve">Terima</string>
+    <string name="btn_reject">Tolak</string>
+
+    <!-- Validation Errors -->
+    <string name="error_name_too_short">Nama minimal 2 karakter.</string>
+    <string name="error_invalid_email">Format email tidak valid.</string>
+    <string name="error_password_too_short">Password minimal 6 karakter.</string>
+    <string name="error_passwords_dont_match">Konfirmasi password tidak cocok.</string>
+    <string name="error_invalid_phone">Nomor WhatsApp tidak valid (8–15 digit).</string>
+    <string name="error_email_already_registered">Email sudah terdaftar.</string>
+    <string name="error_invalid_credentials">Email atau password salah.</string>
+    <string name="error_account_blocked">Akun ini telah diblokir oleh admin.</string>
+
+    <!-- Forum -->
+    <string name="subtitle_forum">Anggota Komunitas</string>
+    <string name="hint_message">Ketik pesan…</string>
+
+    <!-- Status & Roles -->
+    <string name="status_followed">DIKUTI</string>
+    <string name="status_registered">Terdaftar</string>
+    <string name="status_finished">Selesai</string>
+    <string name="status_upcoming">Mendatang</string>
+    <string name="role_trusted_organizer">Trusted Organizer</string>
+    <string name="role_member">Member</string>
+    <string name="label_blocked">TERBLOKIR</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_trusted">Trusted</string>
+    <string name="cd_clear">Clear</string>
+    <string name="cd_filter">Filter</string>
+    <string name="cd_logout">Logout</string>
+    <string name="cd_send">Kirim</string>
+    <string name="cd_create_community">Buat Komunitas</string>
+    <string name="cd_create_event">Buat Event</string>
+</resources>

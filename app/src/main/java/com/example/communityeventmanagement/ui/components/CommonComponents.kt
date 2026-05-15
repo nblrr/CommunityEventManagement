@@ -7,9 +7,11 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,22 +20,166 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.communityeventmanagement.R
+import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
+import com.example.communityeventmanagement.ui.theme.ThemePreviews
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+@ThemePreviews
+@Composable
+fun DatePickerFieldPreview() {
+    CommunityEventManagementTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            DatePickerField(
+                label = "Tanggal Event",
+                selectedDateMillis = null,
+                onDateSelected = {},
+                modifier = Modifier.padding(16.dp).fillMaxWidth()
+            )
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun ShimmerItemPreview() {
+    CommunityEventManagementTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                ShimmerItem(modifier = Modifier.fillMaxWidth().height(100.dp))
+                ShimmerItem(modifier = Modifier.size(60.dp), shape = RoundedCornerShape(30.dp))
+            }
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun EmptyStatePreview() {
+    CommunityEventManagementTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            EmptyState(
+                title = "Tidak Ada Data",
+                subtitle = "Maaf, data yang Anda cari tidak dapat ditemukan.",
+                actionLabel = "Coba Lagi",
+                onAction = {}
+            )
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun LoadingPreview() {
+    CommunityEventManagementTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Column(verticalArrangement = Arrangement.spacedBy(32.dp)) {
+                InlineLoading(Modifier.padding(16.dp))
+                FullScreenLoading(modifier = Modifier.height(200.dp))
+            }
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun StatusBadgePreview() {
+    CommunityEventManagementTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                StatusBadge(text = "Aktif", isActive = true)
+                StatusBadge(text = "Nonaktif", isActive = false)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DatePickerField(
+    label: String,
+    selectedDateMillis: Long?,
+    onDateSelected: (Long?) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showPicker by remember { mutableStateOf(false) }
+
+    val displayText = selectedDateMillis?.let { millis ->
+        SimpleDateFormat("d MMMM yyyy", Locale.forLanguageTag("id-ID")).format(Date(millis))
+    } ?: "Pilih tanggal..."
+
+    OutlinedTextField(
+        value = displayText,
+        onValueChange = {},
+        label = { Text(label) },
+        readOnly = true,
+        trailingIcon = {
+            Icon(Icons.Default.CalendarToday, contentDescription = "Pilih tanggal")
+        },
+        shape = RoundedCornerShape(14.dp),
+        modifier = modifier.then(
+            Modifier.clickable { showPicker = true }
+        ),
+        enabled = false, // disable keyboard, buka dialog via clickable
+        colors = OutlinedTextFieldDefaults.colors(
+            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+            disabledBorderColor = MaterialTheme.colorScheme.outline,
+            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    )
+
+    if (showPicker) {
+        val pickerState = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDateMillis ?: System.currentTimeMillis()
+        )
+        DatePickerDialog(
+            onDismissRequest = { showPicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDateSelected(pickerState.selectedDateMillis)
+                    showPicker = false
+                }) { Text("Pilih") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPicker = false }) { Text("Batal") }
+            }
+        ) {
+            DatePicker(state = pickerState)
+        }
+    }
+}
 
 // Shimmer effect loading
 @Composable
@@ -120,7 +266,7 @@ fun EmptyState(
 @Composable
 fun FullScreenLoading(
     modifier: Modifier = Modifier,
-    message: String = "Memuat..."
+    message: String = stringResource(R.string.loading_msg)
 ) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {

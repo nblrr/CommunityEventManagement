@@ -1,88 +1,15 @@
 package com.example.communityeventmanagement.util
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DatePickerField(
-    label: String,
-    selectedDateMillis: Long?,
-    onDateSelected: (Long?) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var showPicker by remember { mutableStateOf(false) }
-
-    val displayText = selectedDateMillis?.let { millis ->
-        SimpleDateFormat("d MMMM yyyy", Locale.forLanguageTag("id-ID")).format(Date(millis))
-    } ?: "Pilih tanggal..."
-
-    OutlinedTextField(
-        value = displayText,
-        onValueChange = {},
-        label = { Text(label) },
-        readOnly = true,
-        trailingIcon = {
-            Icon(Icons.Default.CalendarToday, contentDescription = "Pilih tanggal")
-        },
-        shape = RoundedCornerShape(14.dp),
-        modifier = modifier.then(
-            Modifier.clickable { showPicker = true }
-        ),
-        enabled = false, // disable keyboard, buka dialog via clickable
-        colors = OutlinedTextFieldDefaults.colors(
-            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-            disabledBorderColor = MaterialTheme.colorScheme.outline,
-            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    )
-
-    if (showPicker) {
-        val pickerState = rememberDatePickerState(
-            initialSelectedDateMillis = selectedDateMillis ?: System.currentTimeMillis()
-        )
-        DatePickerDialog(
-            onDismissRequest = { showPicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    onDateSelected(pickerState.selectedDateMillis)
-                    showPicker = false
-                }) { Text("Pilih") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showPicker = false }) { Text("Batal") }
-            }
-        ) {
-            DatePicker(state = pickerState)
-        }
-    }
-}
-
 object DateFormatter {
+    private const val ID_LOCALE_TAG = "id-ID"
+    private const val DB_DATE_FORMAT = "d M yyyy"
+    private const val DISPLAY_DATE_FORMAT = "d MMMM yyyy"
+
     fun formatEventDate(dateStr: String): String {
         return try {
             val parts = dateStr.trim().split(" ")
@@ -93,12 +20,65 @@ object DateFormatter {
                 val calendar = Calendar.getInstance().apply {
                     set(year, month - 1, day)
                 }
-                SimpleDateFormat("d MMMM yyyy", Locale.forLanguageTag("id-ID")).format(calendar.time)
+                SimpleDateFormat(DISPLAY_DATE_FORMAT, Locale.forLanguageTag(ID_LOCALE_TAG)).format(calendar.time)
             } else {
                 dateStr
             }
         } catch (_: Exception) {
             dateStr
+        }
+    }
+
+    fun isUpcoming(dateStr: String): Boolean {
+        return try {
+            val parts = dateStr.trim().split(" ")
+            if (parts.size == 3) {
+                val day = parts[0].toIntOrNull() ?: 1
+                val month = parts[1].toIntOrNull() ?: 1
+                val year = parts[2].toIntOrNull() ?: 0
+                val eventCal = Calendar.getInstance().apply {
+                    set(year, month - 1, day, 23, 59, 59)
+                }
+                eventCal.after(Calendar.getInstance())
+            } else {
+                val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+                val yearInStr = dateStr.filter { it.isDigit() }.takeLast(4).toIntOrNull()
+                yearInStr != null && yearInStr >= currentYear
+            }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun isToday(dateStr: String): Boolean {
+        val todayStr = SimpleDateFormat(DB_DATE_FORMAT, Locale.getDefault()).format(Date())
+        return dateStr.trim() == todayStr
+    }
+
+    fun isThisWeek(dateStr: String): Boolean {
+        val cal = Calendar.getInstance()
+        val currentWeek = cal[Calendar.WEEK_OF_YEAR]
+        val currentYear = cal[Calendar.YEAR]
+        return try {
+            val parts = dateStr.trim().split(" ")
+            val eventCal = Calendar.getInstance().apply {
+                set(parts[2].toInt(), parts[1].toInt() - 1, parts[0].toInt())
+            }
+            (eventCal[Calendar.WEEK_OF_YEAR] == currentWeek) && (eventCal[Calendar.YEAR] == currentYear)
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun isThisMonth(dateStr: String): Boolean {
+        val cal = Calendar.getInstance()
+        val currentMonth = cal[Calendar.MONTH] + 1
+        val currentYear = cal[Calendar.YEAR]
+        return try {
+            val parts = dateStr.trim().split(" ")
+            (parts[1].toInt() == currentMonth) && (parts[2].toInt() == currentYear)
+        } catch (_: Exception) {
+            false
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.example.communityeventmanagement.ui.screens.admin
+package com.example.communityeventmanagement.features.admin
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -23,84 +23,103 @@ import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Verified
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SecondaryTabRow
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.communityeventmanagement.R
+import com.example.communityeventmanagement.data.model.TrustedApplication
 import com.example.communityeventmanagement.data.model.UserProfile
-import com.example.communityeventmanagement.data.repository.AppState
+import com.example.communityeventmanagement.ui.AppViewModelProvider
+import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
+import com.example.communityeventmanagement.ui.theme.ThemePreviews
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminPanelScreen(
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    viewModel: AdminPanelViewModel = viewModel(factory = AppViewModelProvider.Factory),
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
-    var searchQuery by remember { mutableStateOf("") }
-    var userToToggleBlock by remember { mutableStateOf<UserProfile?>(null) }
-
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    val users = AppState.allUsers.filter { user ->
-        (if (selectedTab == 1) user.role == "Organizer" else true) &&
-                (user.name.contains(searchQuery, ignoreCase = true) || user.email.contains(searchQuery, ignoreCase = true))
-    }.sortedBy { it.role }
+    AdminPanelContent(
+        searchQuery = viewModel.searchQuery,
+        selectedTab = viewModel.selectedTab,
+        users = viewModel.users,
+        pendingApplications = viewModel.pendingApplications,
+        userToToggleBlock = viewModel.userToToggleBlock,
+        snackbarHostState = snackbarHostState,
+        onSearchQueryChange = { viewModel.searchQuery = it },
+        onTabSelect = { viewModel.selectedTab = it },
+        onApproveApplication = { userId ->
+            viewModel.approveApplication(userId) { message ->
+                scope.launch { snackbarHostState.showSnackbar(message) }
+            }
+        },
+        onRejectApplication = { userId ->
+            viewModel.rejectApplication(userId) { message ->
+                scope.launch { snackbarHostState.showSnackbar(message) }
+            }
+        },
+        onBlockToggleClick = { viewModel.userToToggleBlock = it },
+        onConfirmBlockToggle = { user ->
+            viewModel.toggleBlock(user) { message ->
+                scope.launch { snackbarHostState.showSnackbar(message) }
+            }
+            viewModel.userToToggleBlock = null
+        },
+        onDismissBlockDialog = { viewModel.userToToggleBlock = null },
+        onNavigateBack = onNavigateBack
+    )
+}
 
-    val pendingApps = AppState.trustedApplications
-
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AdminPanelContent(
+    searchQuery: String,
+    selectedTab: Int,
+    users: List<UserProfile>,
+    pendingApplications: List<TrustedApplication>,
+    userToToggleBlock: UserProfile?,
+    snackbarHostState: SnackbarHostState,
+    onSearchQueryChange: (String) -> Unit,
+    onTabSelect: (Int) -> Unit,
+    onApproveApplication: (String) -> Unit,
+    onRejectApplication: (String) -> Unit,
+    onBlockToggleClick: (UserProfile) -> Unit,
+    onConfirmBlockToggle: (UserProfile) -> Unit,
+    onDismissBlockDialog: () -> Unit,
+    onNavigateBack: () -> Unit,
+) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Admin Panel", fontWeight = FontWeight.ExtraBold) },
+                title = { Text(stringResource(R.string.admin_panel), fontWeight = FontWeight.ExtraBold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
         }
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp)) {
-            // Cari data
             if (selectedTab != 2) {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                    onValueChange = onSearchQueryChange,
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Cari user atau organizer...") },
+                    placeholder = { Text(stringResource(R.string.search_hint_user_organizer)) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true
@@ -108,46 +127,38 @@ fun AdminPanelScreen(
                 Spacer(Modifier.height(16.dp))
             }
 
-            // Tab Menu
             SecondaryTabRow(selectedTabIndex = selectedTab) {
-                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }) {
-                    Text("User", modifier = Modifier.padding(vertical = 12.dp))
+                Tab(selected = selectedTab == 0, onClick = { onTabSelect(0) }) {
+                    Text(stringResource(R.string.tab_user), modifier = Modifier.padding(vertical = 12.dp))
                 }
-                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }) {
-                    Text("Organizer", modifier = Modifier.padding(vertical = 12.dp))
+                Tab(selected = selectedTab == 1, onClick = { onTabSelect(1) }) {
+                    Text(stringResource(R.string.tab_organizer), modifier = Modifier.padding(vertical = 12.dp))
                 }
-                Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }) {
-                    BadgedBox(badge = { if (pendingApps.isNotEmpty()) Badge { Text(pendingApps.size.toString()) } }) {
-                        Text("Pengajuan", modifier = Modifier.padding(vertical = 12.dp))
+                Tab(selected = selectedTab == 2, onClick = { onTabSelect(2) }) {
+                    BadgedBox(badge = { if (pendingApplications.isNotEmpty()) Badge { Text(pendingApplications.size.toString()) } }) {
+                        Text(stringResource(R.string.tab_applications), modifier = Modifier.padding(vertical = 12.dp))
                     }
                 }
             }
 
             Spacer(Modifier.height(16.dp))
 
-            // Daftar data
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(bottom = 24.dp)
             ) {
                 if (selectedTab == 2) {
-                    items(pendingApps, key = { it.userId }) { application ->
-                        TrustedAppCard(
+                    items(pendingApplications, key = { it.userId }) { application ->
+                        TrustedApplicationCard(
                             application = application,
-                            onApprove = {
-                                AppState.handleTrustedApplication(application.userId, true)
-                                scope.launch { snackbarHostState.showSnackbar("Pengajuan ${application.userName} disetujui.") }
-                            },
-                            onReject = {
-                                AppState.handleTrustedApplication(application.userId, false)
-                                scope.launch { snackbarHostState.showSnackbar("Pengajuan ${application.userName} ditolak.") }
-                            }
+                            onApprove = { onApproveApplication(application.userId) },
+                            onReject = { onRejectApplication(application.userId) },
                         )
                     }
-                    if (pendingApps.isEmpty()) {
+                    if (pendingApplications.isEmpty()) {
                         item {
                             Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                                Text("Tidak ada pengajuan baru.", color = MaterialTheme.colorScheme.outline)
+                                Text(stringResource(R.string.msg_no_pending_applications), color = MaterialTheme.colorScheme.outline)
                             }
                         }
                     }
@@ -155,13 +166,13 @@ fun AdminPanelScreen(
                     items(users, key = { it.id }) { user ->
                         UserManagementCard(
                             user = user,
-                            onBlockToggle = { userToToggleBlock = user }
+                            onBlockToggle = { onBlockToggleClick(user) }
                         )
                     }
                     if (users.isEmpty()) {
                         item {
                             Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                                Text("Tidak ada data ditemukan.", color = MaterialTheme.colorScheme.outline)
+                                Text(stringResource(R.string.msg_no_data_found), color = MaterialTheme.colorScheme.outline)
                             }
                         }
                     }
@@ -170,53 +181,30 @@ fun AdminPanelScreen(
         }
     }
 
-    // Dialog Blokir
     userToToggleBlock?.let { user ->
         AlertDialog(
-            onDismissRequest = { userToToggleBlock = null },
-            title = { Text(if (user.isBlocked) "Buka Blokir User?" else "Blokir User?") },
-            text = { Text("Apakah Anda yakin ingin ${if (user.isBlocked) "membuka blokir" else "memblokir"} akun ${user.name}?") },
+            onDismissRequest = onDismissBlockDialog,
+            title = { Text(if (user.isBlocked) stringResource(R.string.dialog_unblock_user_title) else stringResource(R.string.dialog_block_user_title)) },
+            text = { Text(stringResource(R.string.dialog_block_confirm_msg, if (user.isBlocked) stringResource(R.string.action_unblocking) else stringResource(R.string.action_blocking), user.name)) },
             confirmButton = {
                 TextButton(
-                    onClick = {
-                        val index = AppState.allUsers.indexOfFirst { it.id == user.id }
-                        if (index != -1) {
-                            val wasBlocked = user.isBlocked
-                            val updatedUser = user.copy(isBlocked = !wasBlocked)
-                            AppState.allUsers[index] = updatedUser
-                            
-                            // Also update current user if they are the one being blocked/unblocked
-                            if (AppState.currentUser?.id == user.id) {
-                                AppState.currentUser = updatedUser
-                            }
-
-                            AppState.saveUserData()
-                            scope.launch {
-                                snackbarHostState.showSnackbar(
-                                    if (wasBlocked) "${user.name} berhasil dibuka blokirnya."
-                                    else "${user.name} berhasil diblokir."
-                                )
-                            }
-                        }
-                        userToToggleBlock = null
-                    }
+                    onClick = { onConfirmBlockToggle(user) }
                 ) {
-                    Text(if (user.isBlocked) "Buka Blokir" else "Blokir", color = if (user.isBlocked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
+                    Text(if (user.isBlocked) stringResource(R.string.btn_unblock) else stringResource(R.string.btn_block), color = if (user.isBlocked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { userToToggleBlock = null }) {
-                    Text("Batal")
+                TextButton(onClick = onDismissBlockDialog) {
+                    Text(stringResource(R.string.btn_cancel))
                 }
             }
         )
     }
 }
 
-// Card Pengajuan
 @Composable
-fun TrustedAppCard(
-    application: com.example.communityeventmanagement.data.model.TrustedApplication,
+fun TrustedApplicationCard(
+    application: TrustedApplication,
     onApprove: () -> Unit,
     onReject: () -> Unit
 ) {
@@ -228,30 +216,29 @@ fun TrustedAppCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = application.userName, fontWeight = FontWeight.ExtraBold, style = MaterialTheme.typography.titleMedium)
-            Text(text = "Komunitas: ${application.communityName}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+            Text(text = stringResource(R.string.label_community_prefix, application.communityName), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
-            Text(text = "Alasan:", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+            Text(text = stringResource(R.string.label_reason), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
             Text(text = application.reason, style = MaterialTheme.typography.bodyMedium)
             Spacer(Modifier.height(4.dp))
-            Text(text = "Pengalaman:", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+            Text(text = stringResource(R.string.label_experience), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
             Text(text = application.experience, style = MaterialTheme.typography.bodyMedium)
             Spacer(Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = onApprove, modifier = Modifier.weight(1f), shape = RoundedCornerShape(8.dp)) {
-                    Text("Terima")
+                    Text(stringResource(R.string.btn_approve))
                 }
                 OutlinedButton(
                     onClick = onReject, modifier = Modifier.weight(1f), shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Tolak")
+                    Text(stringResource(R.string.btn_reject))
                 }
             }
         }
     }
 }
 
-// Card Kelola User
 @Composable
 fun UserManagementCard(user: UserProfile, onBlockToggle: () -> Unit) {
     Card(
@@ -284,17 +271,45 @@ fun UserManagementCard(user: UserProfile, onBlockToggle: () -> Unit) {
                     SuggestionChip(onClick = {}, label = { Text(user.role, style = MaterialTheme.typography.labelSmall) })
                     if (user.isBlocked) {
                         Spacer(Modifier.width(8.dp))
-                        Text("TERBLOKIR", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
+                        Text(stringResource(R.string.label_blocked), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
                     }
                 }
             }
             IconButton(onClick = onBlockToggle) {
                 Icon(
                     if (user.isBlocked) Icons.Default.LockOpen else Icons.Default.Block,
-                    contentDescription = if (user.isBlocked) "Buka Blokir" else "Blokir",
+                    contentDescription = if (user.isBlocked) stringResource(R.string.btn_unblock) else stringResource(R.string.btn_block),
                     tint = if (user.isBlocked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                 )
             }
         }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun AdminPanelScreenPreview() {
+    CommunityEventManagementTheme {
+        AdminPanelContent(
+            searchQuery = "",
+            selectedTab = 0,
+            users = listOf(
+                UserProfile("1", "Budi", "budi@mail.com", role = "User"),
+                UserProfile("2", "Andi", "andi@mail.com", role = "Organizer", isTrusted = true)
+            ),
+            pendingApplications = listOf(
+                TrustedApplication("3", "Susi", "Kucing Lovers", "Ingin memverifikasi komunitas.", "3 tahun mengelola forum.")
+            ),
+            userToToggleBlock = null,
+            snackbarHostState = remember { SnackbarHostState() },
+            onSearchQueryChange = {},
+            onTabSelect = {},
+            onApproveApplication = {},
+            onRejectApplication = {},
+            onBlockToggleClick = {},
+            onConfirmBlockToggle = {},
+            onDismissBlockDialog = {},
+            onNavigateBack = {}
+        )
     }
 }

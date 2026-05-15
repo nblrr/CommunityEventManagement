@@ -22,7 +22,7 @@ object InputValidation {
 
     sealed class ValidationResult {
         data object Valid : ValidationResult()
-        data class Invalid(val message: String) : ValidationResult()
+        data class Invalid(val messageRes: Int) : ValidationResult()
     }
 
     fun validateRegisterForm(
@@ -31,10 +31,10 @@ object InputValidation {
         password: String,
         confirmPassword: String
     ): ValidationResult {
-        if (!isNameValid(name)) return ValidationResult.Invalid("Nama minimal 2 karakter.")
-        if (!isEmailValid(email)) return ValidationResult.Invalid("Format email tidak valid.")
-        if (!isPasswordValid(password)) return ValidationResult.Invalid("Password minimal 6 karakter.")
-        if (password != confirmPassword) return ValidationResult.Invalid("Konfirmasi password tidak cocok.")
+        if (!isNameValid(name)) return ValidationResult.Invalid(com.example.communityeventmanagement.R.string.error_name_too_short)
+        if (!isEmailValid(email)) return ValidationResult.Invalid(com.example.communityeventmanagement.R.string.error_invalid_email)
+        if (!isPasswordValid(password)) return ValidationResult.Invalid(com.example.communityeventmanagement.R.string.error_password_too_short)
+        if (password != confirmPassword) return ValidationResult.Invalid(com.example.communityeventmanagement.R.string.error_passwords_dont_match)
         return ValidationResult.Valid
     }
 }

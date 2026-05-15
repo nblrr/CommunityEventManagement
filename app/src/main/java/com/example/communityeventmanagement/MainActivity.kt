@@ -7,36 +7,37 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.*
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.lifecycleScope
-import com.example.communityeventmanagement.data.repository.AppState
 import com.example.communityeventmanagement.navigation.AppNavigation
-import com.example.communityeventmanagement.ui.components.FullScreenLoading
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        var isLoading by mutableStateOf(true)
-        
-        lifecycleScope.launch {
-            AppState.initialize(this@MainActivity)
-            isLoading = false
-        }
-
         enableEdgeToEdge()
+        val container = (application as CommunityApplication).container
+        
         setContent {
-            CommunityEventManagementTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    if (isLoading) {
-                        FullScreenLoading(message = "Memulai Communitix...")
-                    } else {
+            var isInitialized by remember { mutableStateOf(false) }
+            
+            LaunchedEffect(Unit) {
+                container.initialize()
+                isInitialized = true
+            }
+            
+            if (isInitialized) {
+                val themeMode = container.userRepository.themeMode
+                CommunityEventManagementTheme(themeMode = themeMode) {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background,
+                    ) {
                         AppNavigation()
                     }
                 }

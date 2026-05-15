@@ -1,4 +1,4 @@
-package com.example.communityeventmanagement.ui.screens.home
+package com.example.communityeventmanagement.features.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -50,19 +50,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.communityeventmanagement.R
+import com.example.communityeventmanagement.data.model.Community
+import com.example.communityeventmanagement.data.model.Event
 import com.example.communityeventmanagement.data.model.UserProfile
-import com.example.communityeventmanagement.data.repository.AppState
+import com.example.communityeventmanagement.ui.AppViewModelProvider
 import com.example.communityeventmanagement.ui.components.CommunityDashboardCard
 import com.example.communityeventmanagement.ui.components.CommunityEventCard
 import com.example.communityeventmanagement.ui.components.EmptyState
+import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
+import com.example.communityeventmanagement.ui.theme.ThemePreviews
 import com.example.communityeventmanagement.util.CoverImage
 import java.util.Calendar
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     currentUser: UserProfile?,
@@ -70,26 +75,71 @@ fun HomeScreen(
     onNavigateToAdminPanel: () -> Unit,
     onNavigateToCommunityDetail: (Int) -> Unit,
     onNavigateToEventDetail: (Int, Int) -> Unit,
-    viewModel: HomeViewModel = viewModel()
+    viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory),
 ) {
-    var showFilterSheet by remember { mutableStateOf(false) }
+    HomeContent(
+        currentUser = currentUser,
+        searchQuery = viewModel.searchQuery,
+        selectedCategory = viewModel.selectedCategory,
+        selectedDateFilter = viewModel.selectedDateFilter,
+        categories = viewModel.categories,
+        recommendedEvents = viewModel.recommendedEvents,
+        recommendedCommunities = viewModel.recommendedCommunities,
+        filteredEvents = viewModel.filteredEvents,
+        isEventRegistered = { viewModel.isEventRegistered(it) },
+        onSearchQueryChange = { viewModel.searchQuery = it },
+        onCategorySelect = { viewModel.selectedCategory = it },
+        onDateFilterSelect = { viewModel.selectedDateFilter = it },
+        onNavigateToCommunityList = onNavigateToCommunityList,
+        onNavigateToAdminPanel = onNavigateToAdminPanel,
+        onNavigateToCommunityDetail = onNavigateToCommunityDetail,
+        onNavigateToEventDetail = onNavigateToEventDetail
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeContent(
+    currentUser: UserProfile?,
+    searchQuery: String,
+    selectedCategory: String,
+    selectedDateFilter: String,
+    categories: List<String>,
+    recommendedEvents: List<Event>,
+    recommendedCommunities: List<Community>,
+    filteredEvents: List<Pair<Event, Int>>,
+    isEventRegistered: (Int) -> Boolean,
+    onSearchQueryChange: (String) -> Unit,
+    onCategorySelect: (String) -> Unit,
+    onDateFilterSelect: (String) -> Unit,
+    onNavigateToCommunityList: () -> Unit,
+    onNavigateToAdminPanel: () -> Unit,
+    onNavigateToCommunityDetail: (Int) -> Unit,
+    onNavigateToEventDetail: (Int, Int) -> Unit,
+) {
+    var showFilterSheet by remember { mutableStateOf(value = false) }
     val sheetState = rememberModalBottomSheetState()
-    val dateFilters = listOf("Kapan Saja", "Hari Ini", "Minggu Ini", "Bulan Ini")
+    val dateFilters = listOf(
+        stringResource(R.string.time_any), 
+        stringResource(R.string.time_today), 
+        stringResource(R.string.time_this_week), 
+        stringResource(R.string.time_this_month),
+    )
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Communitix", fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary, letterSpacing = (-1).sp)
+                    Text(stringResource(R.string.app_name), fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary, letterSpacing = (-1).sp)
                 },
                 actions = {
-                    if (currentUser != null && currentUser.role == "Admin") {
+                    if (currentUser?.role == "Admin") {
                         IconButton(onClick = onNavigateToAdminPanel) {
-                            Icon(Icons.Default.AdminPanelSettings, contentDescription = "Admin", tint = MaterialTheme.colorScheme.primary)
+                            Icon(Icons.Default.AdminPanelSettings, contentDescription = stringResource(R.string.admin_panel), tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
             )
         }
     ) { paddingValues ->
@@ -100,19 +150,19 @@ fun HomeScreen(
             // Salam user
             item {
                 Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
-                    val timeOfDay = when(Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
-                        in 0..11 -> "Pagi"
-                        in 12..15 -> "Siang"
-                        in 16..18 -> "Sore"
-                        else -> "Malam"
+                    val welcomeMessage = when(Calendar.getInstance()[Calendar.HOUR_OF_DAY]) {
+                        in 0..11 -> stringResource(R.string.welcome_morning)
+                        in 12..15 -> stringResource(R.string.welcome_afternoon)
+                        in 16..18 -> stringResource(R.string.welcome_evening)
+                        else -> stringResource(R.string.welcome_night)
                     }
                     Text(
-                        text = "Selamat $timeOfDay,",
+                        text = welcomeMessage,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = currentUser?.name?.split(" ")?.first() ?: "Guest",
+                        text = currentUser?.name?.split(" ")?.first() ?: stringResource(R.string.guest),
                         style = MaterialTheme.typography.displaySmall,
                         fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.onBackground
@@ -124,19 +174,19 @@ fun HomeScreen(
             item {
                 Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)) {
                     OutlinedTextField(
-                        value = viewModel.searchQuery,
-                        onValueChange = { viewModel.searchQuery = it },
+                        value = searchQuery,
+                        onValueChange = onSearchQueryChange,
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Cari event favoritmu...", color = MaterialTheme.colorScheme.outline) },
+                        placeholder = { Text(stringResource(R.string.search_placeholder), color = MaterialTheme.colorScheme.outline) },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                         trailingIcon = {
-                            if (viewModel.searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { viewModel.searchQuery = "" }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Clear", modifier = Modifier.size(18.dp))
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { onSearchQueryChange("") }) {
+                                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.cd_clear), modifier = Modifier.size(18.dp))
                                 }
                             } else {
                                 IconButton(onClick = { showFilterSheet = true }) {
-                                    Icon(Icons.Default.Tune, contentDescription = "Filter", tint = MaterialTheme.colorScheme.primary)
+                                    Icon(Icons.Default.Tune, contentDescription = stringResource(R.string.cd_filter), tint = MaterialTheme.colorScheme.primary)
                                 }
                             }
                         },
@@ -152,13 +202,16 @@ fun HomeScreen(
                 }
             }
 
-            if (viewModel.searchQuery.isEmpty() && viewModel.selectedCategory == "Semua" && viewModel.selectedDateFilter == "Kapan Saja") {
+            if (((searchQuery.isEmpty()) && (selectedCategory == "Semua")) && (selectedDateFilter == "Kapan Saja")) {
                 // Event featured
-                val featuredEvent = viewModel.recommendedEvents.firstOrNull()
+                val featuredEvent = recommendedEvents.firstOrNull()
                 if (featuredEvent != null) {
                     item {
                         Column(modifier = Modifier.padding(top = 16.dp)) {
-                            SectionHeader(title = "Event Unggulan", action = "Lihat Semua", onActionClick = { })
+                            SectionHeader(
+                                title = stringResource(R.string.featured_events), 
+                                action = stringResource(R.string.see_all)
+                            ) { }
                             Card(
                                 onClick = { onNavigateToEventDetail(featuredEvent.id, featuredEvent.communityId) },
                                 modifier = Modifier
@@ -170,15 +223,19 @@ fun HomeScreen(
                             ) {
                                 Box {
                                     CoverImage(imageUri = featuredEvent.coverImageUri, modifier = Modifier.fillMaxSize())
-                                    Box(modifier = Modifier.fillMaxSize().background(
-                                        Brush.verticalGradient(
-                                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.9f)),
-                                            startY = 150f
-                                        )
-                                    ))
-                                    Column(modifier = Modifier.align(Alignment.BottomStart).padding(24.dp)) {
+                                    Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.9f)),
+                            startY = 150f
+                        )
+                    )
+            )
+            Column(modifier = Modifier.align(Alignment.BottomStart).padding(24.dp)) {
                                         Surface(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(8.dp)) {
-                                            Text("FEATURED", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = Color.White, fontWeight = FontWeight.Black)
+                                            Text(stringResource(R.string.label_featured), modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = Color.White, fontWeight = FontWeight.Black)
                                         }
                                         Spacer(Modifier.height(8.dp))
                                         Text(featuredEvent.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black, color = Color.White)
@@ -194,17 +251,20 @@ fun HomeScreen(
                 }
 
                 // Komunitas Populer
-                val popComms = viewModel.recommendedCommunities
-                if (popComms.isNotEmpty()) {
+                if (recommendedCommunities.isNotEmpty()) {
                     item {
                         Column(modifier = Modifier.padding(top = 24.dp)) {
-                            SectionHeader(title = "Komunitas Populer", action = "Lihat Semua", onActionClick = onNavigateToCommunityList)
+                            SectionHeader(
+                                title = stringResource(R.string.popular_communities), 
+                                action = stringResource(R.string.see_all), 
+                                onActionClick = onNavigateToCommunityList
+                            )
                             LazyRow(
                                 contentPadding = PaddingValues(horizontal = 24.dp),
                                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                                 modifier = Modifier.padding(vertical = 8.dp)
                             ) {
-                                items(popComms) { community ->
+                                items(recommendedCommunities, key = { it.id }) { community ->
                                     CommunityDashboardCard(community) { onNavigateToCommunityDetail(community.id) }
                                 }
                             }
@@ -213,18 +273,18 @@ fun HomeScreen(
                 }
 
                 // Rekomendasi Event
-                val recEvents = viewModel.recommendedEvents.drop(1).take(5)
+                val recEvents = recommendedEvents.asSequence().drop(1).take(5).toList()
                 if (recEvents.isNotEmpty()) {
                     item {
                         Column(modifier = Modifier.padding(top = 24.dp)) {
-                            SectionHeader(title = "Pilihan Untukmu", action = "", onActionClick = {})
+                            SectionHeader(title = stringResource(R.string.choices_for_you), action = "") {}
                         }
                     }
-                    items(recEvents) { event ->
+                    items(recEvents, key = { it.id }) { event ->
                         Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)) {
                             CommunityEventCard(
                                 event = event,
-                                isRegistered = AppState.registeredEventIds.contains(event.id),
+                                isRegistered = isEventRegistered(event.id),
                                 onClick = { onNavigateToEventDetail(event.id, event.communityId) }
                             )
                         }
@@ -232,18 +292,17 @@ fun HomeScreen(
                 } else if (featuredEvent == null) {
                     item {
                         EmptyState(
-                            title = "Belum ada event",
-                            subtitle = "Coba cari komunitas untuk melihat event mereka.",
+                            title = stringResource(R.string.no_events),
+                            subtitle = stringResource(R.string.no_events_subtitle),
                             modifier = Modifier.padding(top = 32.dp)
                         )
                     }
                 }
             } else {
                 // Hasil Cari
-                val filteredEvents = viewModel.filteredEvents
                 item {
                     Text(
-                        text = "Hasil Pencarian",
+                        text = stringResource(R.string.search_results),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Black,
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
@@ -252,18 +311,18 @@ fun HomeScreen(
                 if (filteredEvents.isEmpty()) {
                     item {
                         EmptyState(
-                            title = "Oops! Tidak ada hasil.",
+                            title = stringResource(R.string.no_search_results),
                             modifier = Modifier.padding(vertical = 32.dp),
                             icon = Icons.Default.SearchOff,
-                            subtitle = "Coba kata kunci lain atau filter berbeda."
+                            subtitle = stringResource(R.string.no_search_results_subtitle)
                         )
                     }
                 } else {
-                    items(filteredEvents) { (event, communityId) ->
+                    items(filteredEvents, key = { it.first.id }) { (event, communityId) ->
                         Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)) {
                             CommunityEventCard(
                                 event = event,
-                                isRegistered = AppState.registeredEventIds.contains(event.id),
+                                isRegistered = isEventRegistered(event.id),
                                 onClick = { onNavigateToEventDetail(event.id, communityId) }
                             )
                         }
@@ -277,7 +336,7 @@ fun HomeScreen(
     if (showFilterSheet) {
         ModalBottomSheet(
             onDismissRequest = { showFilterSheet = false },
-            sheetState = sheetState
+            sheetState = sheetState,
         ) {
             Column(
                 modifier = Modifier
@@ -285,16 +344,16 @@ fun HomeScreen(
                     .padding(24.dp)
                     .padding(bottom = 32.dp)
             ) {
-                Text("Filter Event", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black)
+                Text(stringResource(R.string.filter_event), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black)
                 Spacer(Modifier.height(24.dp))
                 
-                Text("Kategori", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.category), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(12.dp))
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(viewModel.categories) { category ->
+                    items(categories) { category ->
                         FilterChip(
-                            selected = viewModel.selectedCategory == category,
-                            onClick = { viewModel.selectedCategory = category },
+                            selected = selectedCategory == category,
+                            onClick = { onCategorySelect(category) },
                             label = { Text(category) }
                         )
                     }
@@ -302,13 +361,13 @@ fun HomeScreen(
                 
                 Spacer(Modifier.height(24.dp))
                 
-                Text("Waktu", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.time), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(12.dp))
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(dateFilters) { filter ->
                         FilterChip(
-                            selected = viewModel.selectedDateFilter == filter,
-                            onClick = { viewModel.selectedDateFilter = filter },
+                            selected = selectedDateFilter == filter,
+                            onClick = { onDateFilterSelect(filter) },
                             label = { Text(filter) }
                         )
                     }
@@ -321,20 +380,19 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text("Terapkan Filter", fontWeight = FontWeight.ExtraBold)
+                    Text(stringResource(R.string.apply_filter), fontWeight = FontWeight.ExtraBold)
                 }
             }
         }
     }
 }
 
-// Header bagian
 @Composable
-fun SectionHeader(title: String, action: String, onActionClick: () -> Unit) {
+fun SectionHeader(title: String, action: String, onActionClick: () -> Unit = {}) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
         if (action.isNotEmpty()) {
@@ -342,5 +400,35 @@ fun SectionHeader(title: String, action: String, onActionClick: () -> Unit) {
                 Text(action, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
             }
         }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun HomeScreenPreview() {
+    CommunityEventManagementTheme {
+        HomeContent(
+            currentUser = UserProfile(id = "1", name = "Budi Santoso", email = "budi@example.com"),
+            searchQuery = "",
+            selectedCategory = "Semua",
+            selectedDateFilter = "Kapan Saja",
+            categories = listOf("Semua", "Hobi", "Teknologi", "Pendidikan"),
+            recommendedEvents = listOf(
+                Event(1, "Workshop Jetpack Compose", "Belajar Compose.", "2025-06-20", "10:00", "Gedung A", "Teknologi"),
+                Event(2, "Meetup Flutter", "Sharing Flutter.", "2025-07-01", "13:00", "Online", "Teknologi")
+            ),
+            recommendedCommunities = listOf(
+                Community(1, "Android Dev", "Komunitas Android.", "Teknologi", null, "1", "Admin")
+            ),
+            filteredEvents = emptyList(),
+            isEventRegistered = { false },
+            onSearchQueryChange = {},
+            onCategorySelect = {},
+            onDateFilterSelect = {},
+            onNavigateToCommunityList = {},
+            onNavigateToAdminPanel = {},
+            onNavigateToCommunityDetail = {},
+            onNavigateToEventDetail = { _, _ -> }
+        )
     }
 }

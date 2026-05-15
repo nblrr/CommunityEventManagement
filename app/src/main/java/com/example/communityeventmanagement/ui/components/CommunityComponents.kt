@@ -31,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,7 +57,9 @@ fun CommunityDashboardCard(
     isTrusted: Boolean = false,
     onClick: () -> Unit
 ) {
-    val memberCount = community.events.flatMap { it.registeredUserIds }.distinct().size
+    val memberCount = remember(community) {
+        community.events.flatMap { it.registeredUserIds }.distinct().size
+    }
 
     Card(
         onClick = onClick,
@@ -289,7 +292,9 @@ fun CommunityEventCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isUpcoming = DateFormatter.isUpcoming(event.date)
+    val isUpcoming = remember(event.date) {
+        DateFormatter.isUpcoming(event.date)
+    }
 
     Card(
         modifier = modifier.fillMaxWidth(),

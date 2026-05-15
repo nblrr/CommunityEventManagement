@@ -1,8 +1,10 @@
 package com.example.communityeventmanagement.features.community
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.communityeventmanagement.data.repository.CommunityRepository
 import com.example.communityeventmanagement.data.repository.UserRepository
+import kotlinx.coroutines.launch
 
 class CommunityDetailViewModel(
     private val userRepository: UserRepository,
@@ -12,7 +14,9 @@ class CommunityDetailViewModel(
     
     fun toggleJoin(communityId: Int) {
         val userId = userRepository.currentUser?.id ?: return
-        communityRepository.toggleCommunityJoin(communityId, userId)
+        viewModelScope.launch {
+            communityRepository.toggleCommunityJoin(communityId, userId)
+        }
     }
     
     fun isJoined(communityId: Int) = communityRepository.joinedCommunityIds.contains(communityId)

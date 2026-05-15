@@ -4,9 +4,10 @@
     <string name="back">Kembali</string>
     <string name="guest">Guest</string>
     <string name="see_all">Lihat Semua</string>
-    <string name="loading_msg">Memuat...</string>
+    <string name="loading_msg">Memuat…</string>
     <string name="btn_choose">Pilih</string>
     <string name="btn_cancel">Batal</string>
+    <string name="btn_close">Tutup</string>
     <string name="category">Kategori</string>
     <string name="time">Waktu</string>
 
@@ -48,9 +49,9 @@
     <string name="txt_already_have_account">Sudah punya akun?</string>
 
     <!-- Home -->
-    <string name="search_placeholder">Cari event favoritmu...</string>
+    <string name="search_placeholder">Cari event favoritmu…</string>
     <string name="featured_events">Event Unggulan</string>
-    <string name="popular_communities">Komunitas Populer</string>
+    <string name="popular_communities">Komunitas Popular</string>
     <string name="choices_for_you">Pilihan Untukmu</string>
     <string name="label_featured">FEATURED</string>
     <string name="filter_event">Filter Event</string>
@@ -72,7 +73,7 @@
     <string name="msg_no_data_found">Tidak ada data ditemukan.</string>
 
     <!-- Community -->
-    <string name="search_hint_community">Cari komunitas...</string>
+    <string name="search_hint_community">Cari komunitas…</string>
     <string name="section_about_community">Tentang Komunitas</string>
     <string name="label_community_name">Nama Komunitas</string>
     <string name="create_community">Buat Komunitas</string>
@@ -123,10 +124,14 @@
     <string name="menu_manage_own_community">Kelola komunitas sendiri</string>
     <string name="menu_apply_trusted">Ajukan Trusted Organizer</string>
     <string name="menu_get_verification_badge">Dapatkan lencana verifikasi</string>
-    <string name="menu_verification_processing">Verifikasi Diproses</string>
-    <string name="menu_being_reviewed">Sedang ditinjau admin</string>
-    <string name="menu_preferences">Preferensi</string>
-    <string name="menu_notifications_theme">Notifikasi &amp; Tema</string>
+    <string name="menu_verification_status">Status Verifikasi</string>
+    <string name="menu_verification_in_progress">Dalam Peninjauan</string>
+    <string name="menu_preferences">Pengaturan &amp; Preferensi</string>
+    <string name="menu_preferences_subtitle">Notifikasi, Tema, &amp; Lainnya</string>
+    <string name="menu_app_theme">Tema Aplikasi</string>
+    <string name="theme_auto">Ikuti Sistem</string>
+    <string name="theme_light">Terang</string>
+    <string name="theme_dark">Gelap</string>
     <string name="label_reason_apply_trusted">Alasan ingin jadi trusted?</string>
     <string name="label_experience_manage_community">Pengalaman kelola komunitas</string>
     <string name="msg_application_sent">Pengajuan dikirim!</string>
@@ -136,7 +141,7 @@
     <string name="btn_logout">Keluar</string>
 
     <!-- Admin Panel -->
-    <string name="search_hint_user_organizer">Cari user atau organizer...</string>
+    <string name="search_hint_user_organizer">Cari user atau organizer…</string>
     <string name="tab_user">User</string>
     <string name="tab_organizer">Organizer</string>
     <string name="tab_applications">Pengajuan</string>
@@ -153,9 +158,19 @@
     <string name="btn_approve">Terima</string>
     <string name="btn_reject">Tolak</string>
 
+    <!-- Validation Errors -->
+    <string name="error_name_too_short">Nama minimal 2 karakter.</string>
+    <string name="error_invalid_email">Format email tidak valid.</string>
+    <string name="error_password_too_short">Password minimal 6 karakter.</string>
+    <string name="error_passwords_dont_match">Konfirmasi password tidak cocok.</string>
+    <string name="error_invalid_phone">Nomor WhatsApp tidak valid (8–15 digit).</string>
+    <string name="error_email_already_registered">Email sudah terdaftar.</string>
+    <string name="error_invalid_credentials">Email atau password salah.</string>
+    <string name="error_account_blocked">Akun ini telah diblokir oleh admin.</string>
+
     <!-- Forum -->
     <string name="subtitle_forum">Anggota Komunitas</string>
-    <string name="hint_message">Ketik pesan...</string>
+    <string name="hint_message">Ketik pesan…</string>
 
     <!-- Status & Roles -->
     <string name="status_followed">DIKUTI</string>

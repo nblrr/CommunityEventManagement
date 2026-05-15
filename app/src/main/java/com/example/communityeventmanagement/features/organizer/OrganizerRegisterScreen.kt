@@ -63,7 +63,22 @@ fun OrganizerRegisterScreen(
             
             OutlinedTextField(value = viewModel.organizerName, onValueChange = { viewModel.organizerName = it }, label = { Text(stringResource(R.string.label_organizer_name)) }, leadingIcon = { Icon(Icons.Default.Business, contentDescription = null) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp))
             OutlinedTextField(value = viewModel.personInCharge, onValueChange = { viewModel.personInCharge = it }, label = { Text(stringResource(R.string.label_pic)) }, leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp))
-            OutlinedTextField(value = viewModel.phone, onValueChange = { viewModel.phone = it }, label = { Text(stringResource(R.string.label_whatsapp)) }, leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp))
+            
+            OutlinedTextField(
+                value = viewModel.phone, 
+                onValueChange = { viewModel.phone = it; viewModel.errorMessage = null }, 
+                label = { Text(stringResource(R.string.label_whatsapp)) }, 
+                leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) }, 
+                modifier = Modifier.fillMaxWidth(), 
+                shape = RoundedCornerShape(14.dp),
+                isError = viewModel.errorMessage != null,
+                supportingText = {
+                    if (viewModel.errorMessage != null) {
+                        Text(stringResource(viewModel.errorMessage!!), color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            )
+
             OutlinedTextField(value = viewModel.description, onValueChange = { viewModel.description = it }, label = { Text(stringResource(R.string.label_short_desc)) }, leadingIcon = { Icon(Icons.Default.Description, contentDescription = null) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp), minLines = 3)
 
             Spacer(Modifier.height(32.dp))

@@ -11,6 +11,7 @@ composeBom = "2026.02.01"
 gson = "2.13.2"
 coil = "2.7.0"
 navigationCompose = "2.9.7"
+material = "1.14.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -35,6 +36,7 @@ androidx-compose-icons-core = { group = "androidx.compose.material", name = "mat
 androidx-compose-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

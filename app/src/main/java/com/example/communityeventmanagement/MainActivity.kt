@@ -7,6 +7,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.communityeventmanagement.navigation.AppNavigation
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
@@ -16,13 +21,25 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         
         enableEdgeToEdge()
+        val container = (application as CommunityApplication).container
+        
         setContent {
-            CommunityEventManagementTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background,
-                ) {
-                    AppNavigation()
+            var isInitialized by remember { mutableStateOf(false) }
+            
+            LaunchedEffect(Unit) {
+                container.initialize()
+                isInitialized = true
+            }
+            
+            if (isInitialized) {
+                val themeMode = container.userRepository.themeMode
+                CommunityEventManagementTheme(themeMode = themeMode) {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background,
+                    ) {
+                        AppNavigation()
+                    }
                 }
             }
         }

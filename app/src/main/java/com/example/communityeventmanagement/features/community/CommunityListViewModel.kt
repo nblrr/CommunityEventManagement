@@ -1,14 +1,18 @@
 package com.example.communityeventmanagement.features.community
 
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
 import com.example.communityeventmanagement.data.repository.CommunityRepository
 
 class CommunityListViewModel(
     private val communityRepository: CommunityRepository
 ) : ViewModel() {
-    val communities
-        get() = communityRepository.communities
+    val communities by derivedStateOf {
+        communityRepository.communities
+    }
         
-    val joinedCommunityIds
-        get() = communityRepository.joinedCommunityIds
+    val joinedCommunityIds by derivedStateOf {
+        communityRepository.joinedCommunityIds
+    }
 }

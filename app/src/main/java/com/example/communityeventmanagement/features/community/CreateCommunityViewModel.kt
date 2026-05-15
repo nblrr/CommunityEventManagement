@@ -4,9 +4,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.communityeventmanagement.data.model.Community
 import com.example.communityeventmanagement.data.repository.CommunityRepository
 import com.example.communityeventmanagement.data.repository.UserRepository
+import kotlinx.coroutines.launch
 
 class CreateCommunityViewModel(
     private val userRepository: UserRepository,
@@ -33,8 +35,10 @@ class CreateCommunityViewModel(
             organizerName = user.name
         )
         communityRepository.communities.add(newCommunity)
-        communityRepository.saveCommunityData()
-        communityRepository.joinedCommunityIds.add(newId)
-        onSuccess(newId)
+        viewModelScope.launch {
+            communityRepository.saveCommunityData()
+            communityRepository.joinedCommunityIds.add(newId)
+            onSuccess(newId)
+        }
     }
 }

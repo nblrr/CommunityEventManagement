@@ -9,7 +9,7 @@ data class UserProfile(
     val role: String = "User", // "User", "Organizer", "Admin"
     val isBlocked: Boolean = false,
     val isTrusted: Boolean = false,
-    val trustedAppStatus: String = "NONE", // NONE, PENDING, APPROVED, REJECTED
+    val trustedApplicationStatus: String = "NONE",
     val organizerProfile: OrganizerProfile? = null,
 )
 

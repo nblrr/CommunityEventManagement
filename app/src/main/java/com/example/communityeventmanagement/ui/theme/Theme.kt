@@ -56,7 +56,12 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun CommunityEventManagementTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeMode: String = "AUTO",
+    darkTheme: Boolean = when(themeMode) {
+        "LIGHT" -> false
+        "DARK" -> true
+        else -> isSystemInDarkTheme()
+    },
     content: @Composable () -> Unit,
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme

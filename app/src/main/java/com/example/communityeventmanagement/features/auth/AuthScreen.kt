@@ -1,14 +1,37 @@
 package com.example.communityeventmanagement.features.auth
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,8 +87,9 @@ fun LoginScreen(
             }
 
             Spacer(modifier = Modifier.height(28.dp))
+            val context = androidx.compose.ui.platform.LocalContext.current
             Button(
-                onClick = { viewModel.login(onLoginSuccess) },
+                onClick = { viewModel.login(onLoginSuccess, context) },
                 enabled = viewModel.isLoginFormValid, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(14.dp)
             ) { Text(stringResource(R.string.btn_login), fontWeight = FontWeight.ExtraBold, fontSize = 16.sp) }
 
@@ -113,8 +137,9 @@ fun RegisterScreen(
             }
 
             Spacer(modifier = Modifier.height(28.dp))
+            val context = androidx.compose.ui.platform.LocalContext.current
             Button(
-                onClick = { viewModel.register(onRegisterSuccess) },
+                onClick = { viewModel.register(onRegisterSuccess, context) },
                 enabled = viewModel.isRegisterFormValid, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(14.dp), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
             ) { Text(stringResource(R.string.btn_register_now), fontWeight = FontWeight.ExtraBold, fontSize = 16.sp) }
 

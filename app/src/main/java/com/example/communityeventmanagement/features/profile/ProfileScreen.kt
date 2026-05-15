@@ -20,10 +20,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.HourglassBottom
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
@@ -61,7 +66,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -70,7 +74,6 @@ import com.example.communityeventmanagement.R
 import com.example.communityeventmanagement.data.model.UserProfile
 import com.example.communityeventmanagement.ui.AppViewModelProvider
 import com.example.communityeventmanagement.ui.components.CommunityCard
-import com.example.communityeventmanagement.util.CoverImage
 import com.example.communityeventmanagement.util.ImagePickerBox
 import kotlinx.coroutines.launch
 
@@ -85,10 +88,11 @@ fun ProfileScreen(
 ) {
     var showLogoutDialog by remember { mutableStateOf(value = false) }
     var showTrustedAppSheet by remember { mutableStateOf(false) }
+    var showThemeDialog by remember { mutableStateOf(false) }
 
-    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val applicationSentMsg = stringResource(R.string.msg_application_sent)
 
     val joinedCommunities = viewModel.joinedCommunities
     val createdCommunities = viewModel.managedCommunities
@@ -111,7 +115,7 @@ fun ProfileScreen(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
             contentPadding = PaddingValues(bottom = 120.dp)
         ) {
-            // Profil
+            // User Profile Section
             item {
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp),
@@ -134,7 +138,7 @@ fun ProfileScreen(
                     
                     Spacer(Modifier.height(16.dp))
                     
-                    // Badge
+                    // User Badge Section
                     Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)) {
                         Row(
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), 
@@ -155,7 +159,7 @@ fun ProfileScreen(
                 }
             }
 
-            // Statistik
+            // Statistics Section
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp),
@@ -166,7 +170,7 @@ fun ProfileScreen(
                 }
             }
 
-            // Menu Pengaturan
+            // Account Settings Menu
             item {
                 Column(modifier = Modifier.padding(top = 24.dp)) {
                     Text(stringResource(R.string.section_account_settings), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp))
@@ -175,17 +179,23 @@ fun ProfileScreen(
                         ProfileMenuItem(icon = Icons.Default.Star, title = stringResource(R.string.menu_become_organizer), subtitle = stringResource(R.string.menu_manage_own_community), color = MaterialTheme.colorScheme.primary, onClick = onNavigateToOrganizerRegister)
                     }
 
-                    if ((currentUser?.role == "Organizer" && !currentUser.isTrusted) && currentUser.trustedAppStatus != "PENDING") {
+                    if ((currentUser?.role == "Organizer" && !currentUser.isTrusted) && currentUser.trustedApplicationStatus != "PENDING") {
                         ProfileMenuItem(icon = Icons.Default.VerifiedUser, title = stringResource(R.string.menu_apply_trusted), subtitle = stringResource(R.string.menu_get_verification_badge), color = Color(0xFF3B82F6), onClick = { showTrustedAppSheet = true })
-                    } else if (currentUser?.trustedAppStatus == "PENDING") {
-                        ProfileMenuItem(icon = Icons.Default.HourglassBottom, title = stringResource(R.string.menu_verification_processing), subtitle = stringResource(R.string.menu_being_reviewed), color = Color.Gray) {}
+                    } else if (currentUser?.trustedApplicationStatus == "PENDING") {
+                        ProfileMenuItem(icon = Icons.Default.HourglassBottom, title = stringResource(R.string.menu_verification_status), subtitle = stringResource(R.string.menu_verification_in_progress), color = Color.Gray) {}
                     }
 
-                    ProfileMenuItem(icon = Icons.Default.Settings, title = stringResource(R.string.menu_preferences), subtitle = stringResource(R.string.menu_notifications_theme), color = MaterialTheme.colorScheme.outline) {}
+                    ProfileMenuItem(
+                        icon = Icons.Default.Settings, 
+                        title = stringResource(R.string.menu_preferences), 
+                        subtitle = stringResource(R.string.menu_preferences_subtitle), 
+                        color = MaterialTheme.colorScheme.outline,
+                        onClick = { showThemeDialog = true }
+                    )
                 }
             }
 
-            // Komunitas Saya
+            // My Communities Section
             if (joinedCommunities.isNotEmpty()) {
                 item {
                     Text(stringResource(R.string.section_my_communities), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp))
@@ -199,7 +209,7 @@ fun ProfileScreen(
         }
     }
 
-    // Form Pengajuan (Bottom Sheet)
+    // Application Form (Bottom Sheet)
     if (showTrustedAppSheet) {
         var reason by remember { mutableStateOf("") }
         var experience by remember { mutableStateOf("") }
@@ -217,7 +227,7 @@ fun ProfileScreen(
                     onClick = {
                         viewModel.submitTrustedApplication(reason, experience)
                         showTrustedAppSheet = false
-                        scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.msg_application_sent)) }
+                        scope.launch { snackbarHostState.showSnackbar(applicationSentMsg) }
                     },
                     enabled = reason.isNotBlank() && experience.isNotBlank(),
                     modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(16.dp)
@@ -226,7 +236,65 @@ fun ProfileScreen(
         }
     }
 
-    // Keluar (Dialog)
+    // Theme Picker Dialog
+    if (showThemeDialog) {
+        AlertDialog(
+            onDismissRequest = { showThemeDialog = false },
+            title = { Text(stringResource(R.string.menu_app_theme), fontWeight = FontWeight.Black) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val options = listOf("AUTO", "LIGHT", "DARK")
+                    options.forEach { option ->
+                        val label = when(option) {
+                            "LIGHT" -> stringResource(R.string.theme_light)
+                            "DARK" -> stringResource(R.string.theme_dark)
+                            else -> stringResource(R.string.theme_auto)
+                        }
+                        Surface(
+                            onClick = { 
+                                viewModel.saveTheme(option)
+                                showThemeDialog = false
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (viewModel.currentThemeMode == option) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Icon(
+                                    imageVector = when(option) {
+                                        "LIGHT" -> Icons.Default.LightMode
+                                        "DARK" -> Icons.Default.DarkMode
+                                        else -> Icons.Default.BrightnessAuto
+                                    },
+                                    contentDescription = null,
+                                    tint = if (viewModel.currentThemeMode == option) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = label, 
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = if (viewModel.currentThemeMode == option) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (viewModel.currentThemeMode == option) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(Modifier.weight(1f))
+                                if (viewModel.currentThemeMode == option) {
+                                    Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { showThemeDialog = false }) { Text(stringResource(R.string.btn_close)) } },
+            shape = RoundedCornerShape(28.dp)
+        )
+    }
+
+    // Logout Dialog
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
@@ -234,7 +302,7 @@ fun ProfileScreen(
             text = { Text(stringResource(R.string.dialog_logout_msg)) },
             confirmButton = {
                 Button(
-                    onClick = {
+                    onClick = { 
                         viewModel.logout()
                         onLogout() 
                     }, 

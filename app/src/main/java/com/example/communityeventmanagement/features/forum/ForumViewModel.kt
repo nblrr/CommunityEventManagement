@@ -4,9 +4,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.communityeventmanagement.data.model.ForumMessage
 import com.example.communityeventmanagement.data.repository.CommunityRepository
 import com.example.communityeventmanagement.data.repository.UserRepository
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -37,7 +39,9 @@ class ForumViewModel(
             communityRepository.communities[index] = community.copy(
                 forumMessages = community.forumMessages + newMessage
             )
-            communityRepository.saveForumData(communityId)
+            viewModelScope.launch {
+                communityRepository.saveForumData(communityId)
+            }
             messageText = ""
         }
     }

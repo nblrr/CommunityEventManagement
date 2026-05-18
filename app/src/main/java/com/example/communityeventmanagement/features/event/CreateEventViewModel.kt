@@ -34,6 +34,16 @@ class CreateEventViewModel(
         "Health", "Art", "Music", "Sports", "Social"
     )
 
+    val isTimeValid: Boolean
+        get() {
+            if (time.isBlank()) return false
+            val parts = time.split(".")
+            if (parts.size != 2) return false
+            val hour = parts[0].toIntOrNull() ?: return false
+            val minute = parts[1].toIntOrNull() ?: return false
+            return hour in 0..23 && minute in 0..59
+        }
+
     val isDateTimeValid: Boolean
         get() {
             val millis = selectedDateMillis ?: return true
@@ -46,14 +56,12 @@ class CreateEventViewModel(
                 set(Calendar.MONTH, dateCal.get(Calendar.MONTH))
                 set(Calendar.DAY_OF_MONTH, dateCal.get(Calendar.DAY_OF_MONTH))
                 
-                if (this@CreateEventViewModel.time.isNotBlank()) {
+                if (isTimeValid) {
                     val parts = this@CreateEventViewModel.time.split(".")
-                    if (parts.size == 2) {
-                        set(Calendar.HOUR_OF_DAY, parts[0].toIntOrNull() ?: 0)
-                        set(Calendar.MINUTE, parts[1].toIntOrNull() ?: 0)
-                        set(Calendar.SECOND, 0)
-                        set(Calendar.MILLISECOND, 0)
-                    }
+                    set(Calendar.HOUR_OF_DAY, parts[0].toInt())
+                    set(Calendar.MINUTE, parts[1].toInt())
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
                 } else {
                     set(Calendar.HOUR_OF_DAY, 23)
                     set(Calendar.MINUTE, 59)
@@ -63,7 +71,7 @@ class CreateEventViewModel(
         }
 
     val isFormValid: Boolean
-        get() = title.isNotBlank() && description.isNotBlank() && selectedDateMillis != null && location.isNotBlank() && isDateTimeValid
+        get() = title.isNotBlank() && description.isNotBlank() && selectedDateMillis != null && location.isNotBlank() && isDateTimeValid && isTimeValid
 
     suspend fun submit(communityId: Int) {
         if (!isFormValid) return

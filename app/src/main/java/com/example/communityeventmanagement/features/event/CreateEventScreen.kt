@@ -37,8 +37,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,9 +61,11 @@ import com.example.communityeventmanagement.ui.AppViewModelProvider
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
 import com.example.communityeventmanagement.util.ImagePickerBox
+import com.example.communityeventmanagement.util.TimePickerDialog
 import com.example.communityeventmanagement.util.toDateString
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import java.util.Locale
 import java.util.TimeZone
 
 @Composable
@@ -83,6 +87,7 @@ fun CreateEventScreen(
         coverImageUri = viewModel.coverImageUri,
         categoryOptions = viewModel.categoryOptions,
         isDateTimeValid = viewModel.isDateTimeValid,
+        isTimeValid = viewModel.isTimeValid,
         isSubmitting = viewModel.isSubmitting,
         isFormValid = viewModel.isFormValid,
         showSuccessSheet = viewModel.showSuccessSheet,
@@ -111,6 +116,7 @@ fun CreateEventContent(
     coverImageUri: String?,
     categoryOptions: List<String>,
     isDateTimeValid: Boolean,
+    isTimeValid: Boolean,
     isSubmitting: Boolean,
     isFormValid: Boolean,
     showSuccessSheet: Boolean,
@@ -138,6 +144,12 @@ fun CreateEventContent(
                 return utcTimeMillis >= calendar.timeInMillis
             }
         }
+    )
+
+    var showTimePicker by remember { mutableStateOf(false) }
+    val timePickerState = rememberTimePickerState(
+        initialHour = if (time.isNotBlank()) time.split(".")[0].toIntOrNull() ?: 12 else 12,
+        initialMinute = if (time.isNotBlank() && time.contains(".")) time.split(".")[1].toIntOrNull() ?: 0 else 0
     )
 
     if (showSuccessSheet) {
@@ -195,8 +207,16 @@ fun CreateEventContent(
                 Box(modifier = Modifier.weight(1f).clickable { showDatePicker = true }) {
                     CreateInput(label = stringResource(R.string.label_date), value = selectedDateMillis?.toDateString() ?: "", onValueChange = {}, icon = Icons.Default.CalendarToday, enabled = false)
                 }
-                Box(modifier = Modifier.weight(1f)) {
-                    CreateInput(label = stringResource(R.string.label_time), value = time, onValueChange = onTimeChange, icon = Icons.Default.Schedule)
+                Box(modifier = Modifier.weight(1f).clickable { showTimePicker = true }) {
+                    CreateInput(
+                        label = stringResource(R.string.label_time),
+                        value = time,
+                        onValueChange = {},
+                        icon = Icons.Default.Schedule,
+                        enabled = false,
+                        isError = !isTimeValid && time.isNotBlank(),
+                        supportingText = if (!isTimeValid && time.isNotBlank()) "Format jam tidak valid (HH.mm)" else null
+                    )
                 }
             }
 
@@ -237,16 +257,45 @@ fun CreateEventContent(
             }
         ) { DatePicker(state = datePickerState) }
     }
+
+    if (showTimePicker) {
+        TimePickerDialog(
+            onDismissRequest = { showTimePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    val formattedTime = String.format(Locale.ROOT, "%02d.%02d", timePickerState.hour, timePickerState.minute)
+                    onTimeChange(formattedTime)
+                    showTimePicker = false
+                }) { Text(stringResource(R.string.btn_choose)) }
+            }
+        ) {
+            TimePicker(state = timePickerState)
+        }
+    }
 }
 
 @Composable
 private fun CreateInput(
-    label: String, value: String, onValueChange: (String) -> Unit, icon: ImageVector, enabled: Boolean = true, singleLine: Boolean = true
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    icon: ImageVector,
+    enabled: Boolean = true,
+    singleLine: Boolean = true,
+    isError: Boolean = false,
+    supportingText: String? = null
 ) {
     OutlinedTextField(
-        value = value, onValueChange = onValueChange, label = { Text(label) }, enabled = enabled,
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        enabled = enabled,
         leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp)) },
-        modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), singleLine = singleLine
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        singleLine = singleLine,
+        isError = isError,
+        supportingText = supportingText?.let { { Text(it) } }
     )
 }
 
@@ -258,12 +307,13 @@ fun CreateEventScreenPreview() {
             title = "Workshop Jetpack Compose",
             category = "Pendidikan",
             selectedDateMillis = null,
-            time = "10:00",
+            time = "10.00",
             location = "Gedung Serbaguna",
             description = "Belajar membuat UI dengan Compose.",
             coverImageUri = null,
             categoryOptions = listOf("Pendidikan", "Sosial", "Hobi"),
             isDateTimeValid = true,
+            isTimeValid = true,
             isSubmitting = false,
             isFormValid = true,
             showSuccessSheet = false,

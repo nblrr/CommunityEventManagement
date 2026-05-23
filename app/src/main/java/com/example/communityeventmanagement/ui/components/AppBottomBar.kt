@@ -4,8 +4,8 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,8 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.communityeventmanagement.R
-import com.example.communityeventmanagement.data.model.UserProfile
-
+import com.example.communityeventmanagement.domain.entities.User
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
 
@@ -55,7 +54,7 @@ fun AppBottomBarPreview() {
     CommunityEventManagementTheme {
         Box(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)) {
             AppBottomBar(
-                currentUser = UserProfile(
+                currentUser = User(
                     id = "1",
                     name = "John Doe",
                     email = "john@example.com"
@@ -71,7 +70,7 @@ fun AppBottomBarPreview() {
 
 @Composable
 fun AppBottomBar(
-    currentUser: UserProfile?,
+    currentUser: User?,
     currentRoute: String,
     onNavigateToHome: () -> Unit,
     onNavigateToCommunities: () -> Unit,
@@ -81,10 +80,13 @@ fun AppBottomBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 24.dp)
-            .clip(RoundedCornerShape(28.dp)),
-        tonalElevation = 12.dp,
-        shadowElevation = 16.dp,
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.98f)
+            .glassmorphism(
+                shape = RoundedCornerShape(28.dp), 
+                alpha = if (isSystemInDarkTheme()) 0.5f else 0.8f
+            ),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        color = Color.Transparent
     ) {
         Row(
             modifier = Modifier

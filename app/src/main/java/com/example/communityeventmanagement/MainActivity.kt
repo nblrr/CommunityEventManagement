@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,7 +33,7 @@ class MainActivity : ComponentActivity() {
             }
             
             if (isInitialized) {
-                val themeMode = container.userRepository.themeMode
+                val themeMode by container.userRepository.themeMode.collectAsState()
                 CommunityEventManagementTheme(themeMode = themeMode) {
                     Surface(
                         modifier = Modifier.fillMaxSize(),

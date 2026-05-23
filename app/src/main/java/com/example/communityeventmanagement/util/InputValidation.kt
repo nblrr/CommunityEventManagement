@@ -37,4 +37,13 @@ object InputValidation {
         if (password != confirmPassword) return ValidationResult.Invalid(com.example.communityeventmanagement.R.string.error_passwords_dont_match)
         return ValidationResult.Valid
     }
+
+    fun validateLoginForm(
+        email: String,
+        password: String
+    ): ValidationResult {
+        if (!isEmailValid(email)) return ValidationResult.Invalid(com.example.communityeventmanagement.R.string.error_invalid_email)
+        if (password.isBlank()) return ValidationResult.Invalid(com.example.communityeventmanagement.R.string.error_invalid_credentials)
+        return ValidationResult.Valid
+    }
 }

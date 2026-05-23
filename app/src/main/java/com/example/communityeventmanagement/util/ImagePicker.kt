@@ -56,6 +56,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
@@ -67,6 +68,7 @@ import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
+import com.example.communityeventmanagement.R
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -85,7 +87,7 @@ fun ImagePickerBox(
     var tempUriToCrop by remember { mutableStateOf<Uri?>(null) }
     
     val context = LocalContext.current
-    val shape = if (isProfile) CircleShape else RoundedCornerShape(16.dp)
+    val shape = if (isProfile) CircleShape else MaterialTheme.shapes.small
 
     // Process picked URI by opening Crop Dialog
     fun handlePickedUri(uri: Uri?) {
@@ -124,12 +126,12 @@ fun ImagePickerBox(
             .then(if (isProfile) Modifier.size(height) else Modifier.fillMaxWidth().height(height))
             .clip(shape)
             .background(
-                if (imageUri == null && isProfile) ImageUtils.getColorFromName(userName).copy(alpha = 0.1f)
-                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                if (imageUri == null && isProfile) ImageUtils.getColorFromName(userName)
+                else MaterialTheme.colorScheme.surfaceVariant
             )
             .then(
                 if (imageUri == null)
-                    Modifier.border(width = 1.5.dp, color = MaterialTheme.colorScheme.outlineVariant, shape = shape)
+                    Modifier.border(width = 1.dp, color = MaterialTheme.colorScheme.outlineVariant, shape = shape)
                 else Modifier
             )
             .clickable { showSheet = true },
@@ -163,7 +165,7 @@ fun ImagePickerBox(
                 val initial = if (userName.isNotEmpty()) userName.take(1).uppercase() else "?"
                 val bgColor = ImageUtils.getColorFromName(userName)
                 Box(
-                    modifier = Modifier.fillMaxSize().background(bgColor.copy(alpha = 0.2f)),
+                    modifier = Modifier.fillMaxSize().background(bgColor),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -171,7 +173,7 @@ fun ImagePickerBox(
                         style = MaterialTheme.typography.headlineLarge.copy(
                             fontSize = (height.value * 0.4).sp,
                             fontWeight = FontWeight.Black,
-                            color = bgColor
+                            color = Color.White
                         )
                     )
                 }
@@ -181,13 +183,13 @@ fun ImagePickerBox(
                         Icons.Default.AddPhotoAlternate,
                         contentDescription = null,
                         modifier = Modifier.size(36.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = label,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -199,7 +201,9 @@ fun ImagePickerBox(
     if (showSheet) {
         ModalBottomSheet(
             onDismissRequest = { showSheet = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = MaterialTheme.shapes.large
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp, start = 24.dp, end = 24.dp)) {
                 Row(
@@ -233,17 +237,17 @@ fun ImagePickerBox(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Hapus Gambar?") },
-            text = { Text("Apakah Anda yakin ingin menghapus gambar ini?") },
+            title = { Text(stringResource(R.string.dialog_delete_image_title)) },
+            text = { Text(stringResource(R.string.dialog_delete_image_msg)) },
             confirmButton = {
                 TextButton(onClick = {
                     onImageSelected(null)
                     showDeleteConfirm = false
                     showSheet = false
-                }) { Text("Hapus", color = MaterialTheme.colorScheme.error) }
+                }) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) { Text("Batal") }
+                TextButton(onClick = { showDeleteConfirm = false }) { Text(stringResource(R.string.btn_cancel)) }
             }
         )
     }
@@ -343,10 +347,9 @@ fun CropDialog(
                     )
                 }
                 
-                // Guidance Text
                 Text(
                     text = "Gunakan dua jari untuk zoom & geser",
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = Color.White,
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 32.dp)
                 )
@@ -360,7 +363,7 @@ private fun PickerOptionItem(icon: ImageVector, label: String, onClick: () -> Un
     Surface(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = MaterialTheme.shapes.small,
         color = Color.Transparent
     ) {
         Row(
@@ -391,7 +394,7 @@ fun CoverImage(
         SubcomposeAsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(model)
-                .crossfade(true)
+                .crossfade(false)
                 .build(),
             contentDescription = null,
             contentScale = contentScale,
@@ -402,4 +405,34 @@ fun CoverImage(
     } else {
         Box(modifier = modifier, contentAlignment = Alignment.Center) { placeholder() }
     }
+}
+
+@Composable
+fun AvatarImage(
+    imageUri: String?,
+    name: String,
+    modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.Crop
+) {
+    CoverImage(
+        imageUri = imageUri,
+        modifier = modifier,
+        contentScale = contentScale,
+        placeholder = {
+            val initial = if (name.isNotEmpty()) name.take(1).uppercase() else "?"
+            val bgColor = ImageUtils.getColorFromName(name)
+            Box(
+                modifier = Modifier.fillMaxSize().background(bgColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = initial,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Black,
+                        color = Color.White
+                    )
+                )
+            }
+        }
+    )
 }

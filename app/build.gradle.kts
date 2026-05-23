@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.compose.icons.extended)
     implementation(libs.gson)
     implementation(libs.coil.compose)
+    implementation(libs.androidx.datastore.preferences)
     implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

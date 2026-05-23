@@ -8,64 +8,65 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.communityeventmanagement.domain.entities.ThemeMode
 
 @Preview(name = "Light Mode", showBackground = true)
 @Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 annotation class ThemePreviews
 
 private val DarkColorScheme = darkColorScheme(
-    primary = PrimaryModern,
-    onPrimary = BackgroundDark,
-    primaryContainer = PrimaryModern.copy(alpha = 0.15f),
-    onPrimaryContainer = PrimaryLight,
+    primary = Ube,
+    onPrimary = Color.White,
+    primaryContainer = AmericanBlue,
+    onPrimaryContainer = CadetGrey,
     
-    secondary = SecondaryModern,
-    onSecondary = BackgroundDark,
-    secondaryContainer = SecondaryModern.copy(alpha = 0.15f),
+    secondary = CadetGrey,
+    onSecondary = Color.White,
+    secondaryContainer = AmericanBlue,
     onSecondaryContainer = Color.White,
     
     tertiary = AccentModern,
     
-    background = BackgroundDark,
-    onBackground = OnBackgroundDark,
+    background = ChineseBlack,
+    onBackground = CadetGrey,
     
-    surface = SurfaceDark,
-    onSurface = OnSurfaceDark,
-    surfaceVariant = SurfaceVariantDark,
-    onSurfaceVariant = OnSurfaceDark.copy(alpha = 0.8f),
+    surface = AmericanBlue,
+    onSurface = Color.White,
+    surfaceVariant = AmericanBlue,
+    onSurfaceVariant = CadetGrey,
     
-    outline = OutlineDark,
-    outlineVariant = OutlineDark.copy(alpha = 0.2f),
+    outline = CoolGrey,
+    outlineVariant = CoolGrey,
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = PrimaryModern,
     onPrimary = Color.White,
-    primaryContainer = PrimaryModern.copy(alpha = 0.1f),
+    primaryContainer = PrimaryLight,
     onPrimaryContainer = PrimaryModern,
 
     secondary = SecondaryModern,
     onSecondary = Color.White,
-    secondaryContainer = SecondaryModern.copy(alpha = 0.1f),
+    secondaryContainer = PrimaryLight,
 
-    background = Color(0xFFF8FAFC), // Slate 50
-    onBackground = BackgroundDark,
+    background = BackgroundLight,
+    onBackground = TextPrimaryLight,
 
-    surface = Color.White,
-    onSurface = BackgroundDark,
-    surfaceVariant = Color(0xFFF1F5F9), // Slate 100
-    onSurfaceVariant = Color(0xFF475569), // Slate 500
+    surface = SurfaceLight,
+    onSurface = TextPrimaryLight,
+    surfaceVariant = BackgroundLight,
+    onSurfaceVariant = TextSecondaryLight,
 
-    outline = Color(0xFF94A3B8), // Slate 400
-    outlineVariant = Color(0xFFE2E8F0), // Slate 200
+    outline = DividerLight,
+    outlineVariant = DividerLight,
 )
 
 @Composable
 fun CommunityEventManagementTheme(
-    themeMode: String = "AUTO",
+    themeMode: ThemeMode = ThemeMode.AUTO,
     darkTheme: Boolean = when(themeMode) {
-        "LIGHT" -> false
-        "DARK" -> true
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
         else -> isSystemInDarkTheme()
     },
     content: @Composable () -> Unit,
@@ -75,6 +76,7 @@ fun CommunityEventManagementTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = Shapes,
         content = content,
     )
 }

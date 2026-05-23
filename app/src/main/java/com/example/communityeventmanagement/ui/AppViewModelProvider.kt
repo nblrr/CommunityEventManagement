@@ -5,79 +5,125 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.communityeventmanagement.CommunityApplication
-import com.example.communityeventmanagement.features.admin.AdminPanelViewModel
-import com.example.communityeventmanagement.features.auth.AuthViewModel
-import com.example.communityeventmanagement.features.community.CommunityDetailViewModel
-import com.example.communityeventmanagement.features.community.CommunityListViewModel
-import com.example.communityeventmanagement.features.community.CreateCommunityViewModel
-import com.example.communityeventmanagement.features.event.CreateEventViewModel
-import com.example.communityeventmanagement.features.event.EventDetailViewModel
-import com.example.communityeventmanagement.features.forum.ForumViewModel
-import com.example.communityeventmanagement.features.home.HomeViewModel
-import com.example.communityeventmanagement.features.organizer.OrganizerRegisterViewModel
-import com.example.communityeventmanagement.features.profile.ProfileViewModel
+import com.example.communityeventmanagement.ui.feature.admin.AdminPanelViewModel
+import com.example.communityeventmanagement.ui.feature.auth.AuthViewModel
+import com.example.communityeventmanagement.ui.feature.community.CommunityDetailViewModel
+import com.example.communityeventmanagement.ui.feature.community.CommunityListViewModel
+import com.example.communityeventmanagement.ui.feature.community.CreateCommunityViewModel
+import com.example.communityeventmanagement.ui.feature.event.CreateEventViewModel
+import com.example.communityeventmanagement.ui.feature.event.EventDetailViewModel
+import com.example.communityeventmanagement.ui.feature.forum.ForumViewModel
+import com.example.communityeventmanagement.ui.feature.home.HomeViewModel
+import com.example.communityeventmanagement.ui.feature.organizer.OrganizerRegisterViewModel
+import com.example.communityeventmanagement.ui.feature.profile.ProfileViewModel
 
 object AppViewModelProvider {
     val Factory = viewModelFactory {
         initializer {
+            val container = communityApplication().container
             HomeViewModel(
-                userRepository = communityApplication().container.userRepository,
-                communityRepository = communityApplication().container.communityRepository,
+                getCurrentUser = container.getCurrentUser,
+                getCommunities = container.getCommunities,
+                getRecommendedCommunities = container.getRecommendedCommunities,
+                getRecommendedEvents = container.getRecommendedEvents,
+                getRegisteredEventIds = container.getRegisteredEventIds,
+                refreshData = container.refreshData
             )
         }
         initializer {
+            val container = communityApplication().container
             AuthViewModel(
-                userRepository = communityApplication().container.userRepository,
-                communityRepository = communityApplication().container.communityRepository
+                loginUseCase = container.login,
+                registerUseCase = container.register
             )
         }
         initializer {
+            val container = communityApplication().container
             ProfileViewModel(
-                userRepository = communityApplication().container.userRepository,
-                communityRepository = communityApplication().container.communityRepository
+                getCurrentUser = container.getCurrentUser,
+                getCommunities = container.getCommunities,
+                updateAvatar = container.updateAvatar,
+                updateProfile = container.updateProfile,
+                submitTrustedApplication = container.submitTrustedApplication,
+                saveTheme = container.saveTheme,
+                logout = container.logout,
+                themeModeFlow = container.userRepository.themeMode
             )
         }
         initializer {
+            val container = communityApplication().container
             AdminPanelViewModel(
-                userRepository = communityApplication().container.userRepository
+                getUsers = container.getUsers,
+                getPendingApplications = container.getPendingApplications,
+                approveApplication = container.approveApplication,
+                rejectApplication = container.rejectApplication,
+                toggleUserBlock = container.toggleUserBlock
             )
         }
         initializer {
+            val container = communityApplication().container
             CommunityListViewModel(
-                communityRepository = communityApplication().container.communityRepository
+                getCommunities = container.getCommunities,
+                getJoinedCommunityIds = container.getJoinedCommunityIds
             )
         }
         initializer {
+            val container = communityApplication().container
             CommunityDetailViewModel(
-                userRepository = communityApplication().container.userRepository,
-                communityRepository = communityApplication().container.communityRepository
+                getCurrentUser = container.getCurrentUser,
+                getCommunityDetail = container.getCommunityDetail,
+                joinCommunity = container.joinCommunity,
+                getJoinedCommunityIds = container.getJoinedCommunityIds,
+                getRegisteredEventIds = container.getRegisteredEventIds,
+                deleteCommunity = container.deleteCommunity
             )
         }
         initializer {
+            val container = communityApplication().container
             CreateCommunityViewModel(
-                userRepository = communityApplication().container.userRepository,
-                communityRepository = communityApplication().container.communityRepository
+                getCurrentUser = container.getCurrentUser,
+                getCommunityDetail = container.getCommunityDetail,
+                createCommunity = container.createCommunity,
+                updateCommunity = container.updateCommunity,
+                refreshData = container.refreshData
             )
         }
         initializer {
+            val container = communityApplication().container
             CreateEventViewModel(
-                communityRepository = communityApplication().container.communityRepository
+                getCommunities = container.getCommunities,
+                getEventDetail = container.getEventDetail,
+                createEvent = container.createEvent,
+                updateEvent = container.updateEvent
             )
         }
         initializer {
+            val container = communityApplication().container
             EventDetailViewModel(
-                communityRepository = communityApplication().container.communityRepository,
+                getEventDetail = container.getEventDetail,
+                getCommunityDetailUseCase = container.getCommunityDetail,
+                getCurrentUser = container.getCurrentUser,
+                joinEvent = container.joinEvent,
+                cancelEvent = container.cancelEvent,
+                getRegisteredEventIds = container.getRegisteredEventIds,
+                deleteEvent = container.deleteEvent,
+                addEventRating = container.addEventRating
             )
         }
         initializer {
+            val container = communityApplication().container
             ForumViewModel(
-                userRepository = communityApplication().container.userRepository,
-                communityRepository = communityApplication().container.communityRepository
+                getCurrentUser = container.getCurrentUser,
+                getCommunityDetail = container.getCommunityDetail,
+                getForumMessages = container.getForumMessages,
+                sendMessage = container.sendMessage
             )
         }
         initializer {
+            val container = communityApplication().container
             OrganizerRegisterViewModel(
-                userRepository = communityApplication().container.userRepository
+                getCurrentUser = container.getCurrentUser,
+                registerOrganizer = container.registerOrganizer
             )
         }
     }

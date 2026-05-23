@@ -13,47 +13,6 @@ import java.io.InputStream
 
 object ImageUtils {
     /**
-     * Compresses and resizes an image from URI and returns the new file URI.
-     */
-    fun compressImage(context: Context, uri: Uri, maxWidth: Int = 1080, maxHeight: Int = 1080): Uri? {
-        return try {
-            val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-            val originalBitmap = BitmapFactory.decodeStream(inputStream)
-            inputStream?.close()
-
-            if (originalBitmap == null) return null
-
-            val ratio = originalBitmap.width.toFloat() / originalBitmap.height.toFloat()
-            var width = originalBitmap.width
-            var height = originalBitmap.height
-
-            if (width > maxWidth) {
-                width = maxWidth
-                height = (width / ratio).toInt()
-            }
-            if (height > maxHeight) {
-                height = maxHeight
-                width = (height * ratio).toInt()
-            }
-
-            val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, width, height, true)
-            
-            val compressedFile = File(context.cacheDir, "images/compressed_${System.currentTimeMillis()}.jpg")
-            compressedFile.parentFile?.mkdirs()
-            
-            val outputStream = FileOutputStream(compressedFile)
-            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
-            outputStream.flush()
-            outputStream.close()
-
-            Uri.fromFile(compressedFile)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    /**
      * "Bakes" the crop (scale and offset) into a new image file.
      */
     fun cropAndSaveImage(

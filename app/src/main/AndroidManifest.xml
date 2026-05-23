@@ -5,6 +5,8 @@
     <application
         android:name=".CommunityApplication"
         android:allowBackup="true"
+        android:enableOnBackInvokedCallback="true"
+        tools:targetApi="33"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -15,7 +17,6 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.CommunityEventManagement">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

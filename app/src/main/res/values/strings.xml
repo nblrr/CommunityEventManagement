@@ -8,6 +8,7 @@
     <string name="btn_choose">Pilih</string>
     <string name="btn_cancel">Batal</string>
     <string name="btn_close">Tutup</string>
+    <string name="btn_retry">Coba Lagi</string>
     <string name="category">Kategori</string>
     <string name="time">Waktu</string>
 
@@ -71,13 +72,15 @@
     <string name="no_community_subtitle">Jadilah yang pertama membuat komunitas baru!</string>
     <string name="msg_no_events_yet">Belum ada kegiatan</string>
     <string name="msg_no_data_found">Tidak ada data ditemukan.</string>
+    <string name="empty_data_title">Tidak Ada Data</string>
+    <string name="empty_data_subtitle">Maaf, data yang Anda cari tidak dapat ditemukan.</string>
 
     <!-- Community -->
     <string name="search_hint_community">Cari komunitas…</string>
     <string name="section_about_community">Tentang Komunitas</string>
     <string name="label_community_name">Nama Komunitas</string>
     <string name="create_community">Buat Komunitas</string>
-    <string name="label_category_hint">Kategori (misal: Olahraga, Musik)</string>
+    <string name="label_category_hint">Pilih Kategori</string>
     <string name="label_description">Deskripsi</string>
     <string name="label_organizer">Organizer</string>
     <string name="label_organizer_name">Nama Organizer</string>
@@ -99,6 +102,9 @@
     <string name="label_free">Gratis</string>
     <string name="label_view_on_map">Lihat di Peta</string>
     <string name="section_about_event">Tentang Event</string>
+    <string name="label_quota">Kuota Peserta</string>
+    <string name="label_quota_full">Kuota Penuh</string>
+    <string name="quota_format">%1$d/%2$d Terdaftar</string>
     <string name="section_gallery">Galeri Foto</string>
     <string name="section_participant_reviews">Ulasan Peserta</string>
     <string name="section_upcoming_events">Kegiatan Mendatang</string>
@@ -107,6 +113,11 @@
     <string name="btn_register_event">Daftar Sekarang</string>
     <string name="btn_cancel_registration">Batal Daftar</string>
     <string name="btn_rate_review">Beri Rating &amp; Review</string>
+    <string name="title_rating_dialog">Beri Rating Event</string>
+    <string name="label_rating_score">Skor Rating (1–5)</string>
+    <string name="label_comment_hint">Tulis ulasanmu di sini…</string>
+    <string name="btn_submit_rating">Kirim Ulasan</string>
+    <string name="msg_rating_success">Terima kasih atas ulasanmu!</string>
     <string name="msg_event_created_title">Event Berhasil Dibuat!</string>
     <string name="msg_event_created_body">Kegiatanmu sekarang sudah aktif dan dapat dilihat oleh member komunitas.</string>
 
@@ -120,6 +131,13 @@
     <string name="stat_created">Dibuat</string>
     <string name="section_account_settings">Pengaturan Akun</string>
     <string name="section_my_communities">Komunitas Saya</string>
+    <string name="menu_edit_profile">Edit Profil</string>
+    <string name="menu_my_events">Event Saya</string>
+    <string name="menu_saved_events">Event Tersimpan</string>
+    <string name="menu_settings">Pengaturan</string>
+    <string name="label_followers">Pengikut</string>
+    <string name="label_communities">Komunitas</string>
+    <string name="label_events">Event</string>
     <string name="menu_become_organizer">Daftar Jadi Organizer</string>
     <string name="menu_manage_own_community">Kelola komunitas sendiri</string>
     <string name="menu_apply_trusted">Ajukan Trusted Organizer</string>
@@ -157,6 +175,10 @@
     <string name="label_experience">Pengalaman:</string>
     <string name="btn_approve">Terima</string>
     <string name="btn_reject">Tolak</string>
+    <string name="msg_application_approved_format">Pengajuan %1$s disetujui.</string>
+    <string name="msg_application_rejected_format">Pengajuan %1$s ditolak.</string>
+    <string name="msg_user_unblocked_format">%1$s berhasil dibuka blokirnya.</string>
+    <string name="msg_user_blocked_format">%1$s berhasil diblokir.</string>
 
     <!-- Validation Errors -->
     <string name="error_name_too_short">Nama minimal 2 karakter.</string>
@@ -167,6 +189,8 @@
     <string name="error_email_already_registered">Email sudah terdaftar.</string>
     <string name="error_invalid_credentials">Email atau password salah.</string>
     <string name="error_account_blocked">Akun ini telah diblokir oleh admin.</string>
+    <string name="error_invalid_time_format">Format jam tidak valid (HH.mm)</string>
+    <string name="error_datetime_future">Tanggal &amp; waktu harus lebih dari saat ini</string>
 
     <!-- Forum -->
     <string name="subtitle_forum">Anggota Komunitas</string>
@@ -177,8 +201,11 @@
     <string name="status_registered">Terdaftar</string>
     <string name="status_finished">Selesai</string>
     <string name="status_upcoming">Mendatang</string>
+    <string name="status_active">Aktif</string>
+    <string name="status_inactive">Nonaktif</string>
     <string name="role_trusted_organizer">Trusted Organizer</string>
     <string name="role_member">Member</string>
+    <string name="role_admin">Admin</string>
     <string name="label_blocked">TERBLOKIR</string>
 
     <!-- Content Descriptions -->
@@ -189,4 +216,43 @@
     <string name="cd_send">Kirim</string>
     <string name="cd_create_community">Buat Komunitas</string>
     <string name="cd_create_event">Buat Event</string>
+    <string name="cd_choose_date">Pilih tanggal</string>
+    <string name="label_choose_date_hint">Pilih tanggal…</string>
+
+    <!-- Categories -->
+    <string name="cat_art">Seni</string>
+    <string name="cat_technology">Teknologi</string>
+    <string name="cat_sports">Olahraga</string>
+    <string name="cat_food">Kuliner</string>
+    <string name="cat_business">Bisnis</string>
+    <string name="cat_music">Musik</string>
+    <string name="cat_education">Pendidikan</string>
+    <string name="cat_travel">Wisata</string>
+    <string name="cat_hobbies">Hobi</string>
+    <string name="cat_environment">Lingkungan</string>
+    <string name="cat_comedy">Komedi</string>
+    <string name="cat_health">Kesehatan</string>
+    <string name="cat_social">Sosial</string>
+    <string name="category_all">Semua</string>
+
+    <!-- CRUD Actions -->
+    <string name="action_edit">Edit</string>
+    <string name="action_delete">Hapus</string>
+    <string name="dialog_delete_community_title">Hapus Komunitas?</string>
+    <string name="dialog_delete_community_msg">Semua data dan event dalam komunitas ini akan dihapus secara permanen.</string>
+    <string name="dialog_delete_event_title">Hapus Event?</string>
+    <string name="dialog_delete_event_msg">Data event ini akan dihapus secara permanen.</string>
+    <string name="msg_community_updated">Komunitas berhasil diperbarui.</string>
+    <string name="msg_event_updated">Event berhasil diperbarui.</string>
+    <string name="btn_save_changes">Simpan Perubahan</string>
+    <string name="title_edit_community">Edit Komunitas</string>
+    <string name="title_edit_event">Edit Event</string>
+
+    <!-- Image Picker -->
+    <string name="dialog_delete_image_title">Hapus Gambar?</string>
+    <string name="dialog_delete_image_msg">Apakah Anda yakin ingin menghapus gambar ini?</string>
+    <string name="title_edit_profile">Edit Profil</string>
+    <string name="label_bio">Bio / Deskripsi Singkat</string>
+    <string name="msg_profile_updated">Profil berhasil diperbarui.</string>
+    <string name="btn_save_profile">Simpan Profil</string>
 </resources>

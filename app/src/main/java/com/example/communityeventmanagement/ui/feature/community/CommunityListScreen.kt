@@ -30,12 +30,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.communityeventmanagement.R
 import com.example.communityeventmanagement.domain.entities.Community
 import com.example.communityeventmanagement.domain.entities.User
 import com.example.communityeventmanagement.domain.entities.UserRole
-import com.example.communityeventmanagement.ui.AppViewModelProvider
 import com.example.communityeventmanagement.ui.components.CommunityVerticalCard
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
@@ -45,7 +44,7 @@ fun CommunityListScreen(
     currentUser: User?,
     onNavigateToCommunityDetail: (Int) -> Unit,
     onNavigateToCreateCommunity: () -> Unit,
-    viewModel: CommunityListViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: CommunityListViewModel = hiltViewModel()
 ) {
     val communities by viewModel.communities.collectAsState()
     val joinedCommunityIds by viewModel.joinedCommunityIds.collectAsState()
@@ -127,8 +126,8 @@ fun CommunityListScreenPreview() {
         CommunityListContent(
             currentUser = User(id = "admin_01", name = "Super Admin", email = "admin@eventhub.com", role = UserRole.ADMIN),
             communities = listOf(
-                Community(1, "Tech Talk", "Discussing tech.", "Teknologi", null, "1", "Admin"),
-                Community(2, "Sport Club", "Playing sports.", "Hobi", null, "1", "Admin")
+                Community(1, "Tech Talk", "Discussing tech.", "TECHNOLOGY", null, "1", "Admin"),
+                Community(2, "Sport Club", "Playing sports.", "HOBBIES", null, "1", "Admin")
             ),
             joinedCommunityIds = listOf(1),
             onNavigateToCommunityDetail = {},

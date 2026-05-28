@@ -1,16 +1,52 @@
 package com.example.communityeventmanagement.ui.feature.community
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.EventBusy
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,13 +56,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.communityeventmanagement.R
+import com.example.communityeventmanagement.domain.entities.AppCategories
 import com.example.communityeventmanagement.domain.entities.Community
 import com.example.communityeventmanagement.domain.entities.User
 import com.example.communityeventmanagement.domain.entities.UserRole
-import com.example.communityeventmanagement.ui.AppViewModelProvider
+import com.example.communityeventmanagement.domain.entities.findDisplayRes
 import com.example.communityeventmanagement.ui.components.EventCardItem
 import com.example.communityeventmanagement.ui.components.FullScreenLoading
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
@@ -35,7 +72,6 @@ import com.example.communityeventmanagement.util.CoverImage
 
 @Composable
 fun CommunityDetailScreen(
-    communityId: Int,
     currentUser: User?,
     onNavigateBack: () -> Unit,
     onNavigateToForum: () -> Unit,
@@ -43,33 +79,32 @@ fun CommunityDetailScreen(
     onNavigateToEventDetail: (Int) -> Unit,
     onNavigateToLogin: () -> Unit,
     onNavigateToEditCommunity: (Int) -> Unit,
-    viewModel: CommunityDetailViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: CommunityDetailViewModel = hiltViewModel()
 ) {
-    val communityState by viewModel.getCommunity(communityId).collectAsStateWithLifecycle(initialValue = null)
+    val community by viewModel.community.collectAsStateWithLifecycle()
     
-    if (communityState == null) {
+    if (community == null) {
         FullScreenLoading()
         return
     }
-    val community = communityState!!
     val joinedIds by viewModel.joinedCommunityIds.collectAsStateWithLifecycle()
-    val isJoined = joinedIds.contains(communityId)
-    val isOrganizer = currentUser?.id == community.organizerId || currentUser?.role == UserRole.ADMIN
+    val isJoined = joinedIds.contains(community!!.id)
+    val isOrganizer = currentUser?.id == community!!.organizerId || currentUser?.role == UserRole.ADMIN
 
     CommunityDetailContent(
-        community = community,
+        community = community!!,
         currentUser = currentUser,
         isJoined = isJoined,
         isOrganizer = isOrganizer,
         isEventRegistered = { viewModel.isEventRegistered(it) },
-        onToggleJoin = { viewModel.toggleJoin(communityId) },
+        onToggleJoin = { viewModel.toggleJoin() },
         onNavigateBack = onNavigateBack,
         onNavigateToForum = onNavigateToForum,
         onNavigateToCreateEvent = onNavigateToCreateEvent,
         onNavigateToEventDetail = onNavigateToEventDetail,
         onNavigateToLogin = onNavigateToLogin,
-        onEditCommunity = { onNavigateToEditCommunity(communityId) },
-        onDeleteCommunity = { viewModel.deleteCommunity(communityId, onNavigateBack) }
+        onEditCommunity = { onNavigateToEditCommunity(community!!.id) },
+        onDeleteCommunity = { viewModel.deleteCommunity(onNavigateBack) }
     )
 }
 
@@ -161,7 +196,8 @@ fun CommunityDetailContent(
                     Box(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black))))
                     Column(modifier = Modifier.align(Alignment.BottomStart).padding(24.dp)) {
                         Surface(color = MaterialTheme.colorScheme.primary, shape = MaterialTheme.shapes.extraSmall) {
-                            Text(community.category, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelMedium, color = Color.White)
+                            val categoryName = AppCategories.findDisplayRes(community.category)?.let { stringResource(it) } ?: community.category
+                            Text(categoryName, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelMedium, color = Color.White)
                         }
                         Spacer(Modifier.height(8.dp))
                         Text(community.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black, color = Color.White)
@@ -264,12 +300,12 @@ fun CommunityDetailScreenPreview() {
                 id = 1,
                 name = "Pecinta Kucing Indonesia",
                 description = "Komunitas tempat berkumpulnya para pecinta kucing untuk berbagi tips perawatan dan mengadakan gathering rutin.",
-                category = "Hobi",
+                category = "HOBBIES",
                 organizerId = "1",
                 organizerName = "Budi Santoso",
                 memberIds = listOf("1", "2", "3"),
                 events = listOf(
-                    com.example.communityeventmanagement.domain.entities.Event(1, "Gathering Kucing Sehat", "Acara kumpul bareng.", "2025-06-20", "10:00", "Taman Kota", "Sosial", communityId = 1)
+                    com.example.communityeventmanagement.domain.entities.Event(1, "Gathering Kucing Sehat", "Acara kumpul bareng.", "2025-06-20", "10:00", "Taman Kota", "SOCIAL", communityId = 1)
                 )
             ),
             currentUser = User("2", "Andi", "andi@mail.com"),

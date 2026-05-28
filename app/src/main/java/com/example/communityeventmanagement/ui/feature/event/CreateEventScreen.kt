@@ -26,7 +26,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,9 +33,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.communityeventmanagement.R
-import com.example.communityeventmanagement.ui.AppViewModelProvider
 import com.example.communityeventmanagement.ui.components.CategoryDropdown
 import com.example.communityeventmanagement.ui.components.DatePickerField
 import com.example.communityeventmanagement.ui.components.SuccessBottomSheet
@@ -46,19 +44,11 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun CreateEventScreen(
-    communityId: Int,
-    eventId: Int? = null,
     onNavigateBack: () -> Unit,
     onNavigateToDetail: (Int) -> Unit,
-    viewModel: CreateEventViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: CreateEventViewModel = hiltViewModel()
 ) {
     val scope = rememberCoroutineScope()
-
-    LaunchedEffect(eventId, communityId) {
-        if (eventId != null) {
-            viewModel.loadEvent(eventId, communityId)
-        }
-    }
 
     CreateEventContent(
         title = viewModel.title,
@@ -102,7 +92,7 @@ fun CreateEventScreen(
             viewModel.clearErrors()
         },
         onImageSelected = { viewModel.coverImageUri = it },
-        onSubmit = { scope.launch { viewModel.submit(communityId) } },
+        onSubmit = { scope.launch { viewModel.submit() } },
         onNavigateBack = onNavigateBack
     )
 
@@ -179,7 +169,7 @@ fun CreateEventContent(
 
                 CategoryDropdown(
                     label = stringResource(R.string.label_choose_category),
-                    selectedOption = category,
+                    selectedCategoryId = category,
                     options = com.example.communityeventmanagement.domain.entities.AppCategories,
                     onOptionSelected = onCategoryChange,
                     modifier = Modifier.fillMaxWidth()

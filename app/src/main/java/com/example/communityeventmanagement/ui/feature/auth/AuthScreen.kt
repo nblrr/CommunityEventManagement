@@ -37,10 +37,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.communityeventmanagement.R
 import com.example.communityeventmanagement.domain.entities.User
-import com.example.communityeventmanagement.ui.AppViewModelProvider
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
 import kotlinx.coroutines.launch
@@ -50,7 +49,7 @@ fun LoginScreen(
     onLoginSuccess: (User) -> Unit,
     onNavigateToRegister: () -> Unit,
     onNavigateBack: () -> Unit,
-    viewModel: AuthViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
     val scope = rememberCoroutineScope()
 
@@ -155,7 +154,7 @@ fun RegisterScreen(
     onRegisterSuccess: (User) -> Unit,
     onNavigateToLogin: () -> Unit,
     onNavigateBack: () -> Unit,
-    viewModel: AuthViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
     val scope = rememberCoroutineScope()
 

@@ -4,6 +4,8 @@ import com.example.communityeventmanagement.R
 
 data class Category(val id: String, val resId: Int)
 
+const val CATEGORY_ALL = "ALL"
+
 val AppCategories = listOf(
     Category("ART", R.string.cat_art),
     Category("TECHNOLOGY", R.string.cat_technology),
@@ -19,3 +21,6 @@ val AppCategories = listOf(
     Category("HEALTH", R.string.cat_health),
     Category("SOCIAL", R.string.cat_social)
 )
+
+fun List<Category>.findDisplayRes(id: String): Int? = this.find { it.id == id }?.resId
+fun List<Category>.findCategory(id: String): Category? = this.find { it.id == id }

@@ -6,17 +6,27 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.communityeventmanagement.domain.entities.User
-import com.example.communityeventmanagement.domain.usecase.*
+import com.example.communityeventmanagement.domain.usecase.AddAdmin
+import com.example.communityeventmanagement.domain.usecase.ApproveTrustedApplication
+import com.example.communityeventmanagement.domain.usecase.GetPendingTrustedApplications
+import com.example.communityeventmanagement.domain.usecase.GetUsers
+import com.example.communityeventmanagement.domain.usecase.RejectTrustedApplication
+import com.example.communityeventmanagement.domain.usecase.ToggleUserBlock
+import com.example.communityeventmanagement.domain.util.Resource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AdminPanelViewModel(
+@HiltViewModel
+class AdminPanelViewModel @Inject constructor(
     getUsers: GetUsers,
-    getPendingApplications: GetPendingApplications,
-    private val approveApplication: ApproveApplication,
-    private val rejectApplication: RejectApplication,
-    private val toggleUserBlock: ToggleUserBlock
+    getPendingTrustedApplications: GetPendingTrustedApplications,
+    private val approveTrustedApplication: ApproveTrustedApplication,
+    private val rejectTrustedApplication: RejectTrustedApplication,
+    private val toggleUserBlock: ToggleUserBlock,
+    private val addAdmin: AddAdmin
 ) : ViewModel() {
 
     var searchQuery by mutableStateOf("")
@@ -24,35 +34,75 @@ class AdminPanelViewModel(
     var userToToggleBlock by mutableStateOf<User?>(null)
     var userMessage by mutableStateOf<String?>(null)
 
+    var showAddAdminDialog by mutableStateOf(false)
+    var newAdminName by mutableStateOf("")
+    var newAdminEmail by mutableStateOf("")
+    var newAdminPassword by mutableStateOf("")
+    var isAddingAdmin by mutableStateOf(false)
+
     val users = getUsers().stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
 
-    val pendingApplications = getPendingApplications().stateIn(
+    val pendingApplications = getPendingTrustedApplications().stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
 
-    fun approveApplication(applicationId: String) {
+    fun approveApplication(userId: String) {
         viewModelScope.launch {
-            approveApplication.invoke(applicationId)
+            approveTrustedApplication.invoke(userId)
+            userMessage = "Application approved"
         }
     }
 
-    fun rejectApplication(applicationId: String) {
+    fun rejectApplication(userId: String) {
         viewModelScope.launch {
-            rejectApplication.invoke(applicationId)
+            rejectTrustedApplication.invoke(userId)
+            userMessage = "Application rejected"
         }
     }
 
     fun toggleUserBlock(userId: String) {
         viewModelScope.launch {
-            toggleUserBlock.invoke(userId)
+            val result = toggleUserBlock.invoke(userId)
+            if (result is Resource.Error) {
+                userMessage = result.message
+            }
             userToToggleBlock = null
         }
+    }
+
+    fun onAddAdmin() {
+        if (newAdminName.isBlank() || newAdminEmail.isBlank() || newAdminPassword.isBlank()) {
+            userMessage = "Please fill all fields"
+            return
+        }
+        viewModelScope.launch {
+            isAddingAdmin = true
+            val result = addAdmin(newAdminName, newAdminEmail, newAdminPassword)
+            isAddingAdmin = false
+            when (result) {
+                is Resource.Success -> {
+                    userMessage = "Admin added successfully"
+                    showAddAdminDialog = false
+                    resetAddAdminFields()
+                }
+                is Resource.Error -> {
+                    userMessage = result.message
+                }
+                else -> {}
+            }
+        }
+    }
+
+    private fun resetAddAdminFields() {
+        newAdminName = ""
+        newAdminEmail = ""
+        newAdminPassword = ""
     }
 
     fun clearMessage() {

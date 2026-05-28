@@ -42,8 +42,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.communityeventmanagement.R
+import com.example.communityeventmanagement.domain.entities.AppCategories
 import com.example.communityeventmanagement.domain.entities.Community
 import com.example.communityeventmanagement.domain.entities.Event
+import com.example.communityeventmanagement.domain.entities.findDisplayRes
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
 import com.example.communityeventmanagement.util.CoverImage
@@ -59,7 +61,7 @@ fun CommunityHorizontalCardPreview() {
                     id = 1,
                     name = "Pecinta Kucing",
                     description = "Komunitas berbagi info tentang kucing.",
-                    category = "Hobi",
+                    category = "HOBBIES",
                     organizerId = "1",
                     organizerName = "Budi",
                     memberIds = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
@@ -82,7 +84,7 @@ fun CommunityVerticalCardPreview() {
                     id = 1,
                     name = "Tech Community",
                     description = "Sharing knowledge about technology and programming. Join us for weekly meetups!",
-                    category = "Teknologi",
+                    category = "TECHNOLOGY",
                     organizerId = "1",
                     organizerName = "Admin",
                     memberCount = 3,
@@ -109,7 +111,7 @@ fun EventCardItemPreview() {
                         description = "Belajar Jetpack Compose.",
                         date = "2025-06-20",
                         location = "Gedung Serbaguna",
-                        category = "Pendidikan"
+                        category = "EDUCATION"
                     ),
                     isRegistered = false,
                     onClick = {}
@@ -121,7 +123,7 @@ fun EventCardItemPreview() {
                         description = "Sharing sesson.",
                         date = "2025-07-15",
                         location = "Online Zoom",
-                        category = "Pendidikan"
+                        category = "EDUCATION"
                     ),
                     isRegistered = true,
                     onClick = {}
@@ -206,7 +208,7 @@ fun CommunityHorizontalCard(
             )
             
             Text(
-                text = community.category,
+                text = AppCategories.findDisplayRes(community.category)?.let { stringResource(it) } ?: community.category,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
@@ -286,7 +288,7 @@ fun CommunityVerticalCard(
                             color = MaterialTheme.colorScheme.primaryContainer
                         ) {
                             Text(
-                                text = community.category.uppercase(),
+                                text = (AppCategories.findDisplayRes(community.category)?.let { stringResource(it) } ?: community.category).uppercase(),
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary,

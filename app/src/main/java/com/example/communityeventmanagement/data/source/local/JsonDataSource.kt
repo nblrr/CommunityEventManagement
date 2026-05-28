@@ -1,96 +1,86 @@
 package com.example.communityeventmanagement.data.source.local
 
 import android.content.Context
-import com.example.communityeventmanagement.data.dto.CommunityDto
-import com.example.communityeventmanagement.data.dto.ForumMessageDto
-import com.example.communityeventmanagement.data.dto.TrustedApplicationDto
-import com.example.communityeventmanagement.data.dto.UserDto
+import android.util.Log
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 
-class JsonDataSource(private val appContext: Context, private val baseDir: File? = null) {
+class JsonDataSource(private val context: Context, private val baseDir: File? = null) {
+    val tag = "JsonDataSource"
     private val gson = GsonBuilder()
         .setPrettyPrinting()
         .disableHtmlEscaping()
         .create()
-    private val filesDir = baseDir ?: appContext.filesDir
-    
-    private val usersFile = File(filesDir, "users.json")
-    private val communitiesFile = File(filesDir, "communities.json")
-    private val trustedAppsFile = File(filesDir, "trusted_applications.json")
+    private val filesDir = baseDir ?: context.filesDir
 
-    private fun loadFromAssets(fileName: String): String? {
+    fun getLocalFile(fileName: String): File = 
+        File(filesDir, fileName)
+    
+    fun localFileExists(fileName: String): Boolean = 
+        getLocalFile(fileName).exists()
+
+    suspend fun copyAssetToInternalStorage(fileName: String) {
+        withContext(Dispatchers.IO) {
+            val target = getLocalFile(fileName)
+            if (target.exists()) return@withContext
+            try {
+                context.assets.open("data/$fileName").use { input ->
+                    target.outputStream().use { output -> input.copyTo(output) }
+                }
+                Log.d(tag, "Copied: $fileName")
+            } catch (e: Exception) {
+                Log.e(tag, "Failed to copy asset: $fileName", e)
+            }
+        }
+    }
+
+    suspend inline fun <reified T> loadList(fileName: String): List<T> {
+        if (!localFileExists(fileName)) copyAssetToInternalStorage(fileName)
+        return withContext(Dispatchers.IO) {
+            try {
+                val json = getLocalFile(fileName).readText()
+                Gson().fromJson<List<T>>(json, object : TypeToken<List<T>>() {}.type) ?: emptyList()
+            } catch (e: Exception) {
+                Log.e(tag, "Error loading list from $fileName", e)
+                emptyList()
+            }
+        }
+    }
+
+    suspend fun <T> safeLoad(tag: String, block: suspend () -> T): T? {
         return try {
-            appContext.assets.open("data/$fileName").bufferedReader().use { it.readText() }
-        } catch (_: Exception) {
+            block()
+        } catch (e: Exception) {
+            Log.e("JsonDataSource", "$tag: ${e.message}", e)
             null
         }
     }
 
-    private fun <T> saveToFile(file: File, data: T) {
+    suspend fun <T> saveData(fileName: String, data: T) = withContext(Dispatchers.IO) {
+        val file = getLocalFile(fileName)
         try {
-            file.writeText(gson.toJson(data))
+            val json = gson.toJson(data)
+            file.writeText(json)
+            Log.d(tag, "Saved data to $fileName (${json.length} bytes)")
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(tag, "Error saving to $fileName", e)
         }
     }
 
-    private fun <T> loadFromFile(file: File, typeToken: TypeToken<T>, assetFileName: String? = null): T? {
-        var result: T? = null
-        try {
-            if (file.exists()) {
-                val content = file.readText()
-                if (content.isNotBlank()) {
-                    result = gson.fromJson(content, typeToken.type)
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            try { file.delete() } catch (_: Exception) {}
-        }
+    // Specific save methods (loading is now generic via loadList)
+    suspend fun saveUsers(users: List<com.example.communityeventmanagement.data.dto.UserDto>) = 
+        saveData("users.json", users)
 
-        if (result == null && assetFileName != null) {
-            try {
-                loadFromAssets(assetFileName)?.let { assetData ->
-                    result = gson.fromJson(assetData, typeToken.type)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-        return result
-    }
+    suspend fun saveCommunities(communities: List<com.example.communityeventmanagement.data.dto.CommunityDto>) = 
+        saveData("communities.json", communities)
 
-    fun saveUsers(users: List<UserDto>) = saveToFile(usersFile, users)
+    suspend fun saveTrustedApplications(apps: List<com.example.communityeventmanagement.data.dto.TrustedApplicationDto>) = 
+        saveData("trusted_applications.json", apps)
 
-    fun loadUsers(): List<UserDto> {
-        val type = object : TypeToken<List<UserDto>>() {}
-        return loadFromFile(usersFile, type, "users.json") ?: emptyList()
-    }
-
-    fun saveCommunities(communities: List<CommunityDto>) = saveToFile(communitiesFile, communities)
-
-    fun loadCommunities(): List<CommunityDto> {
-        val type = object : TypeToken<List<CommunityDto>>() {}
-        return loadFromFile(communitiesFile, type, "communities.json") ?: emptyList()
-    }
-
-    fun saveForumMessages(communityId: Int, messages: List<ForumMessageDto>) {
-        val file = File(filesDir, "forum_$communityId.json")
-        saveToFile(file, messages)
-    }
-
-    fun loadForumMessages(communityId: Int): List<ForumMessageDto> {
-        val file = File(filesDir, "forum_$communityId.json")
-        val type = object : TypeToken<List<ForumMessageDto>>() {}
-        return loadFromFile(file, type) ?: emptyList()
-    }
-
-    fun saveTrustedApplications(apps: List<TrustedApplicationDto>) = saveToFile(trustedAppsFile, apps)
-
-    fun loadTrustedApplications(): List<TrustedApplicationDto> {
-        val type = object : TypeToken<List<TrustedApplicationDto>>() {}
-        return loadFromFile(trustedAppsFile, type) ?: emptyList()
-    }
+    suspend fun saveAllForumMessages(messages: List<com.example.communityeventmanagement.data.dto.ForumMessageDto>) = 
+        saveData("forum_messages.json", messages)
 }

@@ -61,13 +61,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.communityeventmanagement.R
+import com.example.communityeventmanagement.domain.entities.AppCategories
 import com.example.communityeventmanagement.domain.entities.Event
 import com.example.communityeventmanagement.domain.entities.Rating
 import com.example.communityeventmanagement.domain.entities.User
-import com.example.communityeventmanagement.ui.AppViewModelProvider
+import com.example.communityeventmanagement.domain.entities.findDisplayRes
 import com.example.communityeventmanagement.ui.components.FullScreenLoading
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
@@ -76,45 +77,40 @@ import com.example.communityeventmanagement.util.DateUtils
 
 @Composable
 fun EventDetailScreen(
-    eventId: Int,
-    communityId: Int,
     currentUser: User?,
     onNavigateBack: () -> Unit,
     onNavigateToLogin: () -> Unit,
     onNavigateToEditEvent: (Int, Int) -> Unit,
-    viewModel: EventDetailViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: EventDetailViewModel = hiltViewModel()
 ) {
-    val eventState by viewModel.getEvent(eventId, communityId).collectAsStateWithLifecycle(initialValue = null)
+    val event by viewModel.event.collectAsStateWithLifecycle()
+    val community by viewModel.community.collectAsStateWithLifecycle()
     
-    if (eventState == null) {
+    if (event == null) {
         FullScreenLoading()
         return
     }
-    val event = eventState!!
-    
-    val communityState by viewModel.getCommunityDetail(communityId).collectAsStateWithLifecycle(initialValue = null)
-    val community = communityState
     
     val registeredIds by viewModel.registeredEventIds.collectAsStateWithLifecycle()
-    val isRegistered = registeredIds.contains(eventId)
+    val isRegistered = registeredIds.contains(event!!.id)
     val isOrganizer = currentUser?.id == community?.organizerId
-    val isUpcoming = DateUtils.isUpcoming(event.date, event.time)
-    val isFull = event.maxAttendees > 0 && event.attendeeCount >= event.maxAttendees
+    val isUpcoming = DateUtils.isUpcoming(event!!.date, event!!.time)
+    val isFull = event!!.maxAttendees > 0 && event!!.attendeeCount >= event!!.maxAttendees
 
     EventDetailContent(
-        event = event,
+        event = event!!,
         communityName = community?.name ?: "",
         isRegistered = isRegistered,
         isOrganizer = isOrganizer,
         isUpcoming = isUpcoming,
         isFull = isFull,
         currentUser = currentUser,
-        onToggleRegistration = { viewModel.toggleRegistration(eventId, communityId) },
+        onToggleRegistration = { viewModel.toggleRegistration() },
         onNavigateBack = onNavigateBack,
         onNavigateToLogin = onNavigateToLogin,
-        onEditEvent = { onNavigateToEditEvent(eventId, communityId) },
-        onDeleteEvent = { viewModel.deleteEvent(communityId, eventId, onNavigateBack) },
-        onSubmitRating = { score, comment -> viewModel.submitRating(communityId, eventId, score, comment) }
+        onEditEvent = { onNavigateToEditEvent(event!!.id, event!!.communityId) },
+        onDeleteEvent = { viewModel.deleteEvent(onNavigateBack) },
+        onSubmitRating = { score, comment -> viewModel.submitRating(score, comment) }
     )
 }
 
@@ -205,7 +201,8 @@ fun EventDetailContent(
 
             item {
                 Column(modifier = Modifier.padding(24.dp)) {
-                    Text(event.category.uppercase(), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                    val categoryName = AppCategories.findDisplayRes(event.category)?.let { stringResource(it) } ?: event.category
+                    Text(categoryName.uppercase(), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     Text(event.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black, modifier = Modifier.padding(vertical = 8.dp))
                     
                     TextButton(onClick = {}, contentPadding = PaddingValues(0.dp)) {
@@ -432,7 +429,7 @@ fun EventDetailScreenPreview() {
                 date = "25 6 2025",
                 time = "10.00 - 15.00",
                 location = "Gedung Serbaguna Lt. 2",
-                category = "Pendidikan",
+                category = "EDUCATION",
                 maxAttendees = 20,
                 attendeeCount = 20,
                 registeredUserIds = List(20) { it.toString() },

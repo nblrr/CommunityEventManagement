@@ -57,14 +57,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.communityeventmanagement.R
+import com.example.communityeventmanagement.domain.entities.ApplicationStatus
 import com.example.communityeventmanagement.domain.entities.Community
 import com.example.communityeventmanagement.domain.entities.ThemeMode
 import com.example.communityeventmanagement.domain.entities.User
 import com.example.communityeventmanagement.domain.entities.UserRole
-import com.example.communityeventmanagement.ui.AppViewModelProvider
 import com.example.communityeventmanagement.ui.components.CommunityHorizontalCard
 import com.example.communityeventmanagement.ui.components.StatusBadge
 import com.example.communityeventmanagement.ui.components.glassmorphism
@@ -76,10 +76,11 @@ import com.example.communityeventmanagement.util.AvatarImage
 fun ProfileScreen(
     currentUser: User?,
     onNavigateToOrganizerRegister: () -> Unit,
+    onNavigateToTrustedApply: () -> Unit,
     onNavigateToCommunityDetail: (Int) -> Unit,
     onNavigateToEditProfile: () -> Unit,
     onLogout: () -> Unit,
-    viewModel: ProfileViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val user by viewModel.currentUser.collectAsStateWithLifecycle()
     val communities by viewModel.communities.collectAsStateWithLifecycle(initialValue = emptyList())
@@ -93,6 +94,7 @@ fun ProfileScreen(
         onThemeChange = viewModel::saveTheme,
         onLogoutClick = { viewModel.logout(onLogout) },
         onNavigateToOrganizerRegister = onNavigateToOrganizerRegister,
+        onNavigateToTrustedApply = onNavigateToTrustedApply,
         onNavigateToCommunityDetail = onNavigateToCommunityDetail,
         onNavigateToEditProfile = onNavigateToEditProfile
     )
@@ -108,6 +110,7 @@ fun ProfileContent(
     onThemeChange: (Int) -> Unit,
     onLogoutClick: () -> Unit,
     onNavigateToOrganizerRegister: () -> Unit,
+    onNavigateToTrustedApply: () -> Unit,
     onNavigateToCommunityDetail: (Int) -> Unit,
     onNavigateToEditProfile: () -> Unit,
 ) {
@@ -140,11 +143,11 @@ fun ProfileContent(
                 .padding(paddingValues),
             contentPadding = PaddingValues(bottom = 120.dp)
         ) {
-            // Profile Header with Gradient
+            // Profile Header
             item {
                 ProfileHeader(
                     user = user,
-                    onAvatarClick = { onAvatarChange(null) } // Placeholder for image picker
+                    onAvatarClick = { onAvatarChange(null) }
                 )
             }
 
@@ -153,7 +156,7 @@ fun ProfileContent(
                 val followedCount = communities.count { it.memberIds.contains(user?.id) }
                 ProfileStats(
                     communitiesCount = followedCount,
-                    eventsCount = 0 // Placeholder
+                    eventsCount = 0
                 )
             }
 
@@ -179,11 +182,29 @@ fun ProfileContent(
                                 onClick = { /* Navigate to Saved Events */ }
                             )
                             
+                            // Role-based actions
                             if (user?.role == UserRole.USER) {
                                 ProfileMenuItem(
                                     icon = Icons.Rounded.VerifiedUser,
                                     title = stringResource(R.string.menu_become_organizer),
                                     onClick = onNavigateToOrganizerRegister
+                                )
+                            } else if (user?.role == UserRole.ORGANIZER && !user.isTrusted) {
+                                val statusText = when (user.trustedApplicationStatus) {
+                                    ApplicationStatus.PENDING -> stringResource(R.string.menu_verification_in_progress)
+                                    ApplicationStatus.REJECTED -> stringResource(R.string.btn_retry)
+                                    else -> null
+                                }
+                                
+                                ProfileMenuItem(
+                                    icon = Icons.Rounded.VerifiedUser,
+                                    title = stringResource(R.string.menu_apply_trusted),
+                                    trailingText = statusText,
+                                    onClick = {
+                                        if (user.trustedApplicationStatus != ApplicationStatus.PENDING) {
+                                            onNavigateToTrustedApply()
+                                        }
+                                    }
                                 )
                             }
 
@@ -203,7 +224,7 @@ fun ProfileContent(
                 }
             }
 
-            // My Communities Section (if any)
+            // My Communities Section
             val myCommunities = communities.filter { it.organizerId == user?.id }
             if (myCommunities.isNotEmpty()) {
                 item {
@@ -271,8 +292,6 @@ private fun ProfileHeader(
             .padding(bottom = 16.dp),
         contentAlignment = Alignment.TopCenter
     ) {
-        // Solid Header Background - REMOVED
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -546,6 +565,7 @@ fun ProfileScreenPreview() {
             onThemeChange = {},
             onLogoutClick = {},
             onNavigateToOrganizerRegister = {},
+            onNavigateToTrustedApply = {},
             onNavigateToCommunityDetail = {},
             onNavigateToEditProfile = {}
         )

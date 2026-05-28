@@ -29,10 +29,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.communityeventmanagement.R
 import com.example.communityeventmanagement.domain.entities.User
-import com.example.communityeventmanagement.ui.AppViewModelProvider
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
 
@@ -41,7 +40,7 @@ fun OrganizerRegisterScreen(
     currentUser: User? = null,
     onRegisterSuccess: (String) -> Unit,
     onNavigateBack: () -> Unit,
-    viewModel: OrganizerRegisterViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: OrganizerRegisterViewModel = hiltViewModel()
 ) {
     var organizerName by remember { mutableStateOf("") }
     var personInCharge by remember { mutableStateOf("") }

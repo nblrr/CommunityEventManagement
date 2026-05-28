@@ -1,5 +1,6 @@
 package com.example.communityeventmanagement.ui.feature.event
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.communityeventmanagement.domain.usecase.AddEventRating
@@ -10,11 +11,16 @@ import com.example.communityeventmanagement.domain.usecase.GetCurrentUser
 import com.example.communityeventmanagement.domain.usecase.GetEventDetail
 import com.example.communityeventmanagement.domain.usecase.GetRegisteredEventIds
 import com.example.communityeventmanagement.domain.usecase.JoinEvent
+import com.example.communityeventmanagement.domain.util.Resource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class EventDetailViewModel(
+@HiltViewModel
+class EventDetailViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
     private val getEventDetail: GetEventDetail,
     private val getCommunityDetailUseCase: GetCommunityDetail,
     private val getCurrentUser: GetCurrentUser,
@@ -25,10 +31,22 @@ class EventDetailViewModel(
     private val addEventRating: AddEventRating
 ) : ViewModel() {
 
-    fun getEvent(eventId: Int, communityId: Int) = getEventDetail(eventId, communityId)
-    fun getCommunityDetail(communityId: Int) = getCommunityDetailUseCase(communityId)
+    private val eventId: Int = checkNotNull(savedStateHandle["eventId"])
+    private val communityId: Int = checkNotNull(savedStateHandle["communityId"])
 
-    fun toggleRegistration(eventId: Int, communityId: Int) {
+    val event = getEventDetail(eventId, communityId).stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = null
+    )
+
+    val community = getCommunityDetailUseCase(communityId).stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = null
+    )
+
+    fun toggleRegistration() {
         val userId = getCurrentUser().value?.id ?: return
         val isRegistered = registeredEventIds.value.contains(eventId)
         viewModelScope.launch {
@@ -46,16 +64,17 @@ class EventDetailViewModel(
         initialValue = emptySet()
     )
 
-    fun deleteEvent(communityId: Int, eventId: Int, onSuccess: () -> Unit) {
+    fun deleteEvent(onSuccess: () -> Unit) {
         viewModelScope.launch {
-            val result = deleteEvent(communityId, eventId)
-            if (result.isSuccess) {
-                onSuccess()
+            when (deleteEvent(communityId, eventId)) {
+                is Resource.Success -> onSuccess()
+                is Resource.Error -> { /* Handle error */ }
+                is Resource.Loading -> {}
             }
         }
     }
 
-    fun submitRating(communityId: Int, eventId: Int, score: Int, comment: String) {
+    fun submitRating(score: Int, comment: String) {
         val user = getCurrentUser().value ?: return
         viewModelScope.launch {
             addEventRating(communityId, eventId, user.id, user.name, score, comment)

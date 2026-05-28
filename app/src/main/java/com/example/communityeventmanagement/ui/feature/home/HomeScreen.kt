@@ -54,11 +54,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.communityeventmanagement.R
 import com.example.communityeventmanagement.domain.entities.UserRole
-import com.example.communityeventmanagement.ui.AppViewModelProvider
 import com.example.communityeventmanagement.ui.components.CommunityHorizontalCard
 import com.example.communityeventmanagement.ui.components.EmptyState
 import com.example.communityeventmanagement.ui.components.EventCardItem
@@ -74,7 +73,7 @@ fun HomeScreen(
     onNavigateToAdminPanel: () -> Unit,
     onNavigateToCommunityDetail: (Int) -> Unit,
     onNavigateToEventDetail: (Int, Int) -> Unit,
-    viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory),
+    viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -341,19 +340,11 @@ fun HomeContent(
                 Text(stringResource(R.string.category), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(12.dp))
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(uiState.categories) { categoryId ->
-                        val categoryObj = com.example.communityeventmanagement.domain.entities.AppCategories.find { it.id == categoryId }
+                    items(uiState.categories) { category ->
                         FilterChip(
-                            selected = uiState.selectedCategory == categoryId,
-                            onClick = { onCategorySelect(categoryId) },
-                            label = { 
-                                Text(
-                                    if (categoryId == HomeUiState.CATEGORY_ALL) 
-                                        stringResource(R.string.category_all) 
-                                    else 
-                                        categoryObj?.let { stringResource(it.resId) } ?: categoryId
-                                ) 
-                            },
+                            selected = uiState.selectedCategory == category.id,
+                            onClick = { onCategorySelect(category.id) },
+                            label = { Text(stringResource(category.resId)) },
                             shape = MaterialTheme.shapes.small
                         )
                     }
@@ -412,13 +403,17 @@ fun HomeScreenPreview() {
             uiState = HomeUiState(
                 currentUser = com.example.communityeventmanagement.domain.entities.User(id = "1", name = "Budi Santoso", email = "budi@example.com"),
                 recommendedEvents = listOf(
-                    com.example.communityeventmanagement.domain.entities.Event(1, "Workshop Jetpack Compose", "Belajar Compose.", "2025-06-20", "10:00", "Gedung A", "Teknologi"),
-                    com.example.communityeventmanagement.domain.entities.Event(2, "Meetup Flutter", "Sharing Flutter.", "2025-07-01", "13:00", "Online", "Teknologi")
+                    com.example.communityeventmanagement.domain.entities.Event(1, "Workshop Jetpack Compose", "Belajar Compose.", "2025-06-20", "10:00", "Gedung A", "TECHNOLOGY"),
+                    com.example.communityeventmanagement.domain.entities.Event(2, "Meetup Flutter", "Sharing Flutter.", "2025-07-01", "13:00", "Online", "TECHNOLOGY")
                 ),
                 recommendedCommunities = listOf(
-                    com.example.communityeventmanagement.domain.entities.Community(1, "Android Dev", "Komunitas Android.", "Teknologi", null, "1", "Admin")
+                    com.example.communityeventmanagement.domain.entities.Community(1, "Android Dev", "Komunitas Android.", "TECHNOLOGY", null, "1", "Admin")
                 ),
-                categories = listOf("All", "Teknologi", "Hobi")
+                categories = listOf(
+                    com.example.communityeventmanagement.domain.entities.Category(HomeUiState.CATEGORY_ALL, R.string.category_all),
+                    com.example.communityeventmanagement.domain.entities.Category("TECHNOLOGY", R.string.cat_technology),
+                    com.example.communityeventmanagement.domain.entities.Category("HOBBIES", R.string.cat_hobbies)
+                )
             ),
             onSearchQueryChange = {},
             onCategorySelect = {},

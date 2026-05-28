@@ -5,22 +5,27 @@ import androidx.lifecycle.viewModelScope
 import com.example.communityeventmanagement.domain.entities.ThemeMode
 import com.example.communityeventmanagement.domain.entities.User
 import com.example.communityeventmanagement.domain.usecase.*
+import com.example.communityeventmanagement.domain.repository.UserRepository
+import com.example.communityeventmanagement.domain.util.Resource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ProfileViewModel(
+@HiltViewModel
+class ProfileViewModel @Inject constructor(
     private val getCurrentUser: GetCurrentUser,
     private val getCommunities: GetCommunities,
     private val updateAvatar: UpdateAvatar,
     private val updateProfile: UpdateProfile,
-    private val submitTrustedApplication: SubmitTrustedApplication,
     private val saveTheme: SaveTheme,
     private val logout: Logout,
-    val themeModeFlow: StateFlow<ThemeMode>
+    private val userRepository: UserRepository
 ) : ViewModel() {
+
+    val themeModeFlow: StateFlow<ThemeMode> = userRepository.themeMode
 
     val currentUser: StateFlow<User?> = getCurrentUser().stateIn(
         scope = viewModelScope,
@@ -32,13 +37,6 @@ class ProfileViewModel(
     fun updateAvatar(uri: String?) {
         viewModelScope.launch {
             updateAvatar.invoke(uri)
-        }
-    }
-
-    fun submitTrustedApplication(organizerName: String, reason: String) {
-        viewModelScope.launch {
-            val userCommunities = communities.first().filter { it.organizerName == organizerName }
-            submitTrustedApplication.invoke(userCommunities, reason, "Experienced organizer")
         }
     }
 
@@ -62,8 +60,10 @@ class ProfileViewModel(
 
     fun updateProfile(name: String, bio: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
-            updateProfile.invoke(name, bio).onSuccess {
-                onSuccess()
+            when (updateProfile.invoke(name, bio)) {
+                is Resource.Success -> onSuccess()
+                is Resource.Error -> { /* Handle error */ }
+                is Resource.Loading -> {}
             }
         }
     }

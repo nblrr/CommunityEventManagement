@@ -2,11 +2,9 @@ package com.example.communityeventmanagement.domain.usecase
 
 import com.example.communityeventmanagement.domain.entities.User
 import com.example.communityeventmanagement.domain.repository.CommunityRepository
+import javax.inject.Inject
 
-/**
- * UseCase to refresh participation data for the current user.
- */
-class RefreshData(private val repository: CommunityRepository) {
+class RefreshData @Inject constructor(private val repository: CommunityRepository) {
     suspend operator fun invoke(currentUser: User?) {
         repository.refreshUserParticipation(currentUser)
     }

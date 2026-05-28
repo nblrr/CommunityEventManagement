@@ -32,6 +32,7 @@ import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
@@ -79,12 +80,14 @@ import java.util.TimeZone
 @Composable
 fun CategoryDropdown(
     label: String,
-    selectedOption: String,
+    selectedCategoryId: String,
     options: List<Category>,
     onOptionSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val selectedCategory = options.find { it.id == selectedCategoryId }
+    val displayText = selectedCategory?.let { stringResource(it.resId) } ?: selectedCategoryId
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -92,13 +95,13 @@ fun CategoryDropdown(
         modifier = modifier
     ) {
         OutlinedTextField(
-            value = selectedOption,
+            value = displayText,
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-            modifier = Modifier.menuAnchor().fillMaxWidth(),
+            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, true).fillMaxWidth(),
             shape = MaterialTheme.shapes.small
         )
         ExposedDropdownMenu(

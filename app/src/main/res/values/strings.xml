@@ -179,6 +179,8 @@
     <string name="msg_application_rejected_format">Pengajuan %1$s ditolak.</string>
     <string name="msg_user_unblocked_format">%1$s berhasil dibuka blokirnya.</string>
     <string name="msg_user_blocked_format">%1$s berhasil diblokir.</string>
+    <string name="msg_admin_added">Admin berhasil ditambahkan.</string>
+    <string name="error_cannot_block_admin">Tidak dapat memblokir sesama Admin.</string>
 
     <!-- Validation Errors -->
     <string name="error_name_too_short">Nama minimal 2 karakter.</string>
@@ -255,4 +257,6 @@
     <string name="label_bio">Bio / Deskripsi Singkat</string>
     <string name="msg_profile_updated">Profil berhasil diperbarui.</string>
     <string name="btn_save_profile">Simpan Profil</string>
+    <string name="title_add_admin">Tambah Admin Baru</string>
+    <string name="btn_add_admin">Tambah Admin</string>
 </resources>

@@ -21,15 +21,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.communityeventmanagement.R
 import com.example.communityeventmanagement.domain.entities.AppCategories
-import com.example.communityeventmanagement.ui.AppViewModelProvider
 import com.example.communityeventmanagement.ui.components.CategoryDropdown
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
@@ -37,17 +35,10 @@ import com.example.communityeventmanagement.util.ImagePickerBox
 
 @Composable
 fun CreateCommunityScreen(
-    communityId: Int? = null,
     onSuccess: (Int) -> Unit,
     onNavigateBack: () -> Unit,
-    viewModel: CreateCommunityViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: CreateCommunityViewModel = hiltViewModel()
 ) {
-    LaunchedEffect(communityId) {
-        if (communityId != null) {
-            viewModel.loadCommunity(communityId)
-        }
-    }
-
     CreateCommunityContent(
         name = viewModel.name,
         category = viewModel.category,
@@ -123,7 +114,7 @@ fun CreateCommunityContent(
             
             CategoryDropdown(
                 label = stringResource(R.string.category),
-                selectedOption = category,
+                selectedCategoryId = category,
                 options = AppCategories,
                 onOptionSelected = onCategoryChange,
                 modifier = Modifier.fillMaxWidth()
@@ -171,7 +162,7 @@ fun CreateCommunityScreenPreview() {
     CommunityEventManagementTheme {
         CreateCommunityContent(
             name = "Tech Community",
-            category = "Teknologi",
+            category = "TECHNOLOGY",
             description = "A group for tech enthusiasts to share knowledge.",
             coverImageUri = null,
             errorMessage = null,

@@ -1,0 +1,18 @@
+[
+  {
+    "id": "msg_1",
+    "community_id": 1,
+    "sender": "Budi Santoso",
+    "message": "Halo semua",
+    "time": "12:00",
+    "avatar_initials": "BS"
+  },
+  {
+    "id": "msg_2",
+    "community_id": 2,
+    "sender": "Rizal Pratama",
+    "message": "Ada event minggu ini?",
+    "time": "13:00",
+    "avatar_initials": "RP"
+  }
+]

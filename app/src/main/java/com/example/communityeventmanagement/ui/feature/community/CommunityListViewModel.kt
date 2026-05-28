@@ -4,10 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.communityeventmanagement.domain.usecase.GetCommunities
 import com.example.communityeventmanagement.domain.usecase.GetJoinedCommunityIds
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
-class CommunityListViewModel(
+@HiltViewModel
+class CommunityListViewModel @Inject constructor(
     getCommunities: GetCommunities,
     getJoinedCommunityIds: GetJoinedCommunityIds
 ) : ViewModel() {

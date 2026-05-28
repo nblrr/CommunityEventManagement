@@ -5,8 +5,11 @@ import com.example.communityeventmanagement.data.dto.ForumMessageDto
 import com.example.communityeventmanagement.domain.entities.Community
 import com.example.communityeventmanagement.domain.entities.ForumMessage
 
+import android.util.Log
+
 fun CommunityDto.toDomain(): Community {
     val commId = this.id ?: 0
+    Log.d("MAPPER_DEBUG", "Mapping CommunityDto: id=$commId, name=$name")
     return Community(
         id = commId,
         name = this.name ?: "Unnamed Community",
@@ -26,6 +29,8 @@ fun CommunityDto.toDomain(): Community {
 
 fun ForumMessageDto.toDomain(): ForumMessage {
     return ForumMessage(
+        id = this.id ?: "msg_${System.currentTimeMillis()}",
+        communityId = this.communityId ?: 0,
         sender = this.sender ?: "Unknown",
         message = this.message ?: "",
         time = this.time ?: "",
@@ -50,6 +55,8 @@ fun Community.toDto(): CommunityDto {
 
 fun ForumMessage.toDto(): ForumMessageDto {
     return ForumMessageDto(
+        id = this.id,
+        communityId = this.communityId,
         sender = this.sender,
         message = this.message,
         time = this.time,

@@ -1,5 +1,6 @@
 package com.example.communityeventmanagement.data.repository
 
+import android.util.Log
 import com.example.communityeventmanagement.data.mapper.toDomain
 import com.example.communityeventmanagement.data.mapper.toDto
 import com.example.communityeventmanagement.data.source.local.JsonDataSource
@@ -8,15 +9,21 @@ import com.example.communityeventmanagement.domain.entities.Event
 import com.example.communityeventmanagement.domain.entities.ForumMessage
 import com.example.communityeventmanagement.domain.entities.Rating
 import com.example.communityeventmanagement.domain.entities.User
+import com.example.communityeventmanagement.domain.repository.CommunityRepository
+import com.example.communityeventmanagement.domain.util.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import com.example.communityeventmanagement.domain.repository.CommunityRepository as ICommunityRepository
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class CommunityRepository(private val dataSource: JsonDataSource) : ICommunityRepository {
+@Singleton
+class CommunityRepositoryImpl @Inject constructor(private val dataSource: JsonDataSource) : CommunityRepository {
+    private val tag = "CommunityRepositoryImpl"
+
     private val _communities = MutableStateFlow<List<Community>>(emptyList())
     override val communities: StateFlow<List<Community>> = _communities.asStateFlow()
 
@@ -27,54 +34,35 @@ class CommunityRepository(private val dataSource: JsonDataSource) : ICommunityRe
     override val registeredEventIds: StateFlow<Set<Int>> = _registeredEventIds.asStateFlow()
 
     override suspend fun loadCommunities(users: List<User>) {
-        val loadedCommunityDtos = dataSource.loadCommunities()
+        Log.d(tag, "Loading communities")
+        val loadedCommunityDtos = dataSource.loadList<com.example.communityeventmanagement.data.dto.CommunityDto>("communities.json")
+        val allForumMessages = dataSource.loadList<com.example.communityeventmanagement.data.dto.ForumMessageDto>("forum_messages.json").map { it.toDomain() }
+        
         val loadedCommunities = loadedCommunityDtos.map { dto ->
-            // Use Mapper but force-resolve memberIds and name from Master Data
-            val communityFromDto = dto.toDomain()
+            var community = dto.toDomain()
             
-            // 1. Force Member IDs from DTO (Ensure no loss in SSOT)
-            val newMemberIds = dto.memberIds ?: emptyList()
-            var community = communityFromDto.copy(
-                memberIds = newMemberIds,
-                memberCount = if (dto.memberCount != null) dto.memberCount else newMemberIds.size
-            )
-
-            // 2. Resolve organizer name from master user list IF FOUND
-            // This prevents overwriting with "Unknown" if user is not in the list
             if (users.isNotEmpty()) {
                 users.find { it.id == community.organizerId }?.let { user ->
                     community = community.copy(organizerName = user.name)
                 }
             }
 
-            // 3. Load forum messages separately
-            val messages = dataSource.loadForumMessages(community.id).map { it.toDomain() }
-            if (messages.isNotEmpty()) {
-                community.copy(forumMessages = messages)
-            } else {
-                community
+            val filteredMessages = allForumMessages.filter { it.communityId == community.id }
+            if (filteredMessages.isNotEmpty()) {
+                community = community.copy(forumMessages = filteredMessages)
             }
+            community
         }
         _communities.value = loadedCommunities
     }
 
-    private suspend fun persistCommunities(): Result<Unit> {
-        return try {
-            dataSource.saveCommunities(_communities.value.map { it.toDto() })
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    private suspend fun persistCommunities() {
+        dataSource.saveCommunities(_communities.value.map { it.toDto() })
     }
 
     override suspend fun saveForumData(communityId: Int) {
-        try {
-            _communities.value.find { it.id == communityId }?.let { community ->
-                dataSource.saveForumMessages(communityId, community.forumMessages.map { it.toDto() })
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        val allCurrentMessages = _communities.value.flatMap { it.forumMessages }.map { it.toDto() }
+        dataSource.saveAllForumMessages(allCurrentMessages)
     }
 
     override suspend fun refreshUserParticipation(currentUser: User?) {
@@ -111,7 +99,6 @@ class CommunityRepository(private val dataSource: JsonDataSource) : ICommunityRe
                     val newMemberIds = community.memberIds + userId
                     community.copy(memberIds = newMemberIds, memberCount = newMemberIds.size)
                 } else if (!isJoining && alreadyJoined) {
-                    // When leaving community, also cancel all event registrations in this community
                     val updatedEvents = community.events.map { event ->
                         if (event.registeredUserIds.contains(userId)) {
                             val newRegisteredIds = event.registeredUserIds - userId
@@ -130,15 +117,15 @@ class CommunityRepository(private val dataSource: JsonDataSource) : ICommunityRe
         _communities.value = updatedCommunities
     }
 
-    override suspend fun toggleCommunityJoin(communityId: Int, userId: String) {
-        val community = _communities.value.find { it.id == communityId } ?: return
+    override suspend fun toggleCommunityJoin(communityId: Int, userId: String): Resource<Unit> = safeCall {
+        val community = _communities.value.find { it.id == communityId } ?: throw Exception("Community not found")
         val isJoined = community.memberIds.contains(userId)
         updateCommunityMembers(communityId, userId, !isJoined)
         persistCommunities()
         refreshUserParticipation(User(userId, "", ""))
     }
 
-    override suspend fun toggleEventRegistration(communityId: Int, eventId: Int, userId: String) {
+    override suspend fun toggleEventRegistration(communityId: Int, eventId: Int, userId: String): Resource<Unit> = safeCall {
         val updatedCommunities = _communities.value.map { community ->
             if (community.id == communityId) {
                 val updatedEvents = community.events.map { event ->
@@ -170,7 +157,7 @@ class CommunityRepository(private val dataSource: JsonDataSource) : ICommunityRe
         refreshUserParticipation(User(userId, "", ""))
     }
 
-    override suspend fun addEventRating(communityId: Int, eventId: Int, userId: String, userName: String, score: Int, comment: String) {
+    override suspend fun addEventRating(communityId: Int, eventId: Int, userId: String, userName: String, score: Int, comment: String): Resource<Unit> = safeCall {
         val updatedCommunities = _communities.value.map { community ->
             if (community.id == communityId) {
                 val updatedEvents = community.events.map { event ->
@@ -192,7 +179,7 @@ class CommunityRepository(private val dataSource: JsonDataSource) : ICommunityRe
         persistCommunities()
     }
 
-    override suspend fun addGalleryImage(communityId: Int, eventId: Int, imageUri: String) {
+    override suspend fun addGalleryImage(communityId: Int, eventId: Int, imageUri: String): Resource<Unit> = safeCall {
         val updatedCommunities = _communities.value.map { community ->
             if (community.id == communityId) {
                 val updatedEvents = community.events.map { event ->
@@ -207,109 +194,69 @@ class CommunityRepository(private val dataSource: JsonDataSource) : ICommunityRe
         persistCommunities()
     }
 
-    override suspend fun addCommunity(community: Community): Result<Unit> {
-        return try {
-            _communities.value = _communities.value + community
-            persistCommunities()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    override suspend fun addCommunity(community: Community): Resource<Unit> = safeCall {
+        _communities.value = _communities.value + community
+        persistCommunities()
     }
 
-    override suspend fun updateCommunity(community: Community): Result<Unit> {
-        return try {
-            _communities.value = _communities.value.map {
-                if (it.id == community.id) community else it
-            }
-            persistCommunities()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+    override suspend fun updateCommunity(community: Community): Resource<Unit> = safeCall {
+        _communities.value = _communities.value.map {
+            if (it.id == community.id) community else it
         }
+        persistCommunities()
     }
 
-    override suspend fun deleteCommunity(communityId: Int): Result<Unit> {
-        return try {
-            _communities.value = _communities.value.filter { it.id != communityId }
-            persistCommunities()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    override suspend fun deleteCommunity(communityId: Int): Resource<Unit> = safeCall {
+        _communities.value = _communities.value.filter { it.id != communityId }
+        persistCommunities()
     }
 
-    override suspend fun addEvent(communityId: Int, event: Event): Result<Unit> {
-        return try {
-            val updatedCommunities = _communities.value.map { community ->
-                if (community.id == communityId) {
-                    community.copy(events = community.events + event)
-                } else community
-            }
-            _communities.value = updatedCommunities
-            persistCommunities()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+    override suspend fun addEvent(communityId: Int, event: Event): Resource<Unit> = safeCall {
+        val updatedCommunities = _communities.value.map { community ->
+            if (community.id == communityId) {
+                community.copy(events = community.events + event)
+            } else community
         }
+        _communities.value = updatedCommunities
+        persistCommunities()
     }
 
-    override suspend fun updateEvent(communityId: Int, event: Event): Result<Unit> {
-        return try {
-            val updatedCommunities = _communities.value.map { community ->
-                if (community.id == communityId) {
-                    val updatedEvents = community.events.map { 
-                        if (it.id == event.id) event else it
-                    }
-                    community.copy(events = updatedEvents)
-                } else community
-            }
-            _communities.value = updatedCommunities
-            persistCommunities()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+    override suspend fun updateEvent(communityId: Int, event: Event): Resource<Unit> = safeCall {
+        val updatedCommunities = _communities.value.map { community ->
+            if (community.id == communityId) {
+                val updatedEvents = community.events.map { 
+                    if (it.id == event.id) event else it
+                }
+                community.copy(events = updatedEvents)
+            } else community
         }
+        _communities.value = updatedCommunities
+        persistCommunities()
     }
 
-    override suspend fun deleteEvent(communityId: Int, eventId: Int): Result<Unit> {
-        return try {
-            val updatedCommunities = _communities.value.map { community ->
-                if (community.id == communityId) {
-                    val updatedEvents = community.events.filter { it.id != eventId }
-                    community.copy(events = updatedEvents)
-                } else community
-            }
-            _communities.value = updatedCommunities
-            persistCommunities()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+    override suspend fun deleteEvent(communityId: Int, eventId: Int): Resource<Unit> = safeCall {
+        val updatedCommunities = _communities.value.map { community ->
+            if (community.id == communityId) {
+                val updatedEvents = community.events.filter { it.id != eventId }
+                community.copy(events = updatedEvents)
+            } else community
         }
+        _communities.value = updatedCommunities
+        persistCommunities()
     }
 
-    override suspend fun addForumMessage(communityId: Int, message: ForumMessage): Result<Unit> {
-        return try {
-            val updatedCommunities = _communities.value.map { community ->
-                if (community.id == communityId) {
-                    community.copy(forumMessages = community.forumMessages + message)
-                } else community
-            }
-            _communities.value = updatedCommunities
-            saveForumData(communityId)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+    override suspend fun addForumMessage(communityId: Int, message: ForumMessage): Resource<Unit> = safeCall {
+        val updatedCommunities = _communities.value.map { community ->
+            if (community.id == communityId) {
+                community.copy(forumMessages = community.forumMessages + message)
+            } else community
         }
+        _communities.value = updatedCommunities
+        saveForumData(communityId)
     }
 
-    override suspend fun saveCommunities(): Result<Unit> {
-        return try {
-            persistCommunities()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    override suspend fun saveCommunities(): Resource<Unit> = safeCall {
+        persistCommunities()
     }
 
     override suspend fun getEvent(eventId: Int, communityId: Int): Event? {

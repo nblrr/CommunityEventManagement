@@ -1,13 +1,24 @@
 package com.example.communityeventmanagement.ui.feature.community
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.communityeventmanagement.domain.usecase.*
+import com.example.communityeventmanagement.domain.usecase.DeleteCommunity
+import com.example.communityeventmanagement.domain.usecase.GetCommunityDetail
+import com.example.communityeventmanagement.domain.usecase.GetCurrentUser
+import com.example.communityeventmanagement.domain.usecase.GetJoinedCommunityIds
+import com.example.communityeventmanagement.domain.usecase.GetRegisteredEventIds
+import com.example.communityeventmanagement.domain.usecase.JoinCommunity
+import com.example.communityeventmanagement.domain.util.Resource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class CommunityDetailViewModel(
+@HiltViewModel
+class CommunityDetailViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
     private val getCurrentUser: GetCurrentUser,
     private val getCommunityDetail: GetCommunityDetail,
     private val joinCommunity: JoinCommunity,
@@ -16,9 +27,15 @@ class CommunityDetailViewModel(
     private val deleteCommunity: DeleteCommunity
 ) : ViewModel() {
 
-    fun getCommunity(id: Int) = getCommunityDetail(id)
+    private val communityId: Int = checkNotNull(savedStateHandle["communityId"])
+
+    val community = getCommunityDetail(communityId).stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = null
+    )
     
-    fun toggleJoin(communityId: Int) {
+    fun toggleJoin() {
         val userId = getCurrentUser().value?.id ?: return
         viewModelScope.launch {
             joinCommunity(communityId, userId)
@@ -41,11 +58,12 @@ class CommunityDetailViewModel(
 
     fun isEventRegistered(eventId: Int) = registeredEventIds.value.contains(eventId)
 
-    fun deleteCommunity(communityId: Int, onSuccess: () -> Unit) {
+    fun deleteCommunity(onSuccess: () -> Unit) {
         viewModelScope.launch {
-            val result = deleteCommunity(communityId)
-            if (result.isSuccess) {
-                onSuccess()
+            when (deleteCommunity(communityId)) {
+                is Resource.Success -> onSuccess()
+                is Resource.Error -> { /* Handle error */ }
+                is Resource.Loading -> {}
             }
         }
     }

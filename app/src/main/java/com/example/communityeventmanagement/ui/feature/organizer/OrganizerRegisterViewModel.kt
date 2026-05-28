@@ -8,9 +8,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.communityeventmanagement.domain.entities.Organizer
 import com.example.communityeventmanagement.domain.usecase.GetCurrentUser
 import com.example.communityeventmanagement.domain.usecase.RegisterOrganizer
+import com.example.communityeventmanagement.domain.util.Resource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class OrganizerRegisterViewModel(
+@HiltViewModel
+class OrganizerRegisterViewModel @Inject constructor(
     private val getCurrentUser: GetCurrentUser,
     private val registerOrganizer: RegisterOrganizer
 ) : ViewModel() {
@@ -26,11 +30,12 @@ class OrganizerRegisterViewModel(
                 phone = contact,
                 description = description
             )
-            val result = registerOrganizer.invoke(user.id, organizer)
-            if (result.isSuccess) {
-                onSuccess()
-            } else {
-                errorMessageResId = com.example.communityeventmanagement.R.string.msg_no_data_found
+            when (registerOrganizer.invoke(user.id, organizer)) {
+                is Resource.Success -> onSuccess()
+                is Resource.Error -> {
+                    errorMessageResId = com.example.communityeventmanagement.R.string.msg_no_data_found
+                }
+                is Resource.Loading -> {}
             }
         }
     }

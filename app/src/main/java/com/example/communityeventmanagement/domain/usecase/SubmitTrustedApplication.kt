@@ -1,13 +1,11 @@
 package com.example.communityeventmanagement.domain.usecase
 
-import com.example.communityeventmanagement.domain.entities.Community
 import com.example.communityeventmanagement.domain.repository.UserRepository
+import com.example.communityeventmanagement.domain.util.Resource
+import javax.inject.Inject
 
-/**
- * UseCase to submit an application for Trusted Organizer status.
- */
-class SubmitTrustedApplication(private val userRepository: UserRepository) {
-    suspend operator fun invoke(communities: List<Community>, reason: String, experience: String): Result<Unit> {
-        return userRepository.submitTrustedApplication(communities, reason, experience)
+class SubmitTrustedApplication @Inject constructor(private val userRepository: UserRepository) {
+    suspend operator fun invoke(communityName: String, reason: String, experience: String): Resource<Unit> {
+        return userRepository.submitTrustedApplication(communityName, reason, experience)
     }
 }

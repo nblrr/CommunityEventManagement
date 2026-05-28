@@ -7,15 +7,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.communityeventmanagement.CommunityApplication
 import com.example.communityeventmanagement.domain.entities.UserRole
+import com.example.communityeventmanagement.ui.MainViewModel
 import com.example.communityeventmanagement.ui.components.AppBottomBar
 import com.example.communityeventmanagement.ui.feature.admin.AdminPanelScreen
 import com.example.communityeventmanagement.ui.feature.auth.LoginScreen
@@ -30,6 +30,7 @@ import com.example.communityeventmanagement.ui.feature.home.HomeScreen
 import com.example.communityeventmanagement.ui.feature.organizer.OrganizerRegisterScreen
 import com.example.communityeventmanagement.ui.feature.profile.EditProfileScreen
 import com.example.communityeventmanagement.ui.feature.profile.ProfileScreen
+import com.example.communityeventmanagement.ui.feature.profile.TrustedOrganizerApplyScreen
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
@@ -38,6 +39,7 @@ sealed class Screen(val route: String) {
     data object Profile : Screen("profile")
     data object EditProfile : Screen("edit_profile")
     data object OrganizerRegister : Screen("organizer_register")
+    data object TrustedOrganizerApply : Screen("trusted_organizer_apply")
     data object CommunityList : Screen("community_list")
     data object CommunityDetail : Screen("community_detail/{communityId}") {
         fun createRoute(communityId: Int) = "community_detail/$communityId"
@@ -59,20 +61,19 @@ sealed class Screen(val route: String) {
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    viewModel: MainViewModel = hiltViewModel()
+) {
     val navController = rememberNavController()
-    val context = LocalContext.current
-    val container = (context.applicationContext as CommunityApplication).container
-    val userRepository = container.userRepository
     
-    val currentUser by userRepository.currentUser.collectAsState()
+    val currentUser by viewModel.currentUser.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination?.route
 
     // Handle blocking logic
     LaunchedEffect(currentUser) {
         if (currentUser?.isBlocked == true) {
-            userRepository.logout()
+            viewModel.logout()
             navController.navigate(Screen.Home.route) {
                 popUpTo(0) { inclusive = true }
             }
@@ -165,6 +166,7 @@ fun AppNavigation() {
                 ProfileScreen(
                     currentUser = currentUser,
                     onNavigateToOrganizerRegister = { navController.navigate(Screen.OrganizerRegister.route) },
+                    onNavigateToTrustedApply = { navController.navigate(Screen.TrustedOrganizerApply.route) },
                     onNavigateToCommunityDetail = { id -> navController.navigate(Screen.CommunityDetail.createRoute(id)) },
                     onNavigateToEditProfile = { navController.navigate(Screen.EditProfile.route) },
                     onLogout = {
@@ -191,6 +193,13 @@ fun AppNavigation() {
                 )
             }
 
+            composable(Screen.TrustedOrganizerApply.route) {
+                TrustedOrganizerApplyScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onSuccess = { navController.popBackStack() }
+                )
+            }
+
             composable(Screen.CommunityList.route) {
                 CommunityListScreen(
                     currentUser = currentUser,
@@ -211,12 +220,13 @@ fun AppNavigation() {
             ) { backStackEntry ->
                 val communityId = backStackEntry.arguments?.getInt("communityId") ?: 0
                 CommunityDetailScreen(
-                    communityId = communityId,
                     currentUser = currentUser,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToForum = { navController.navigate(Screen.Forum.createRoute(communityId)) },
                     onNavigateToCreateEvent = { navController.navigate(Screen.CreateEvent.createRoute(communityId)) },
-                    onNavigateToEventDetail = { eventId -> navController.navigate(Screen.EventDetail.createRoute(eventId, communityId)) },
+                    onNavigateToEventDetail = { eventId ->
+                        navController.navigate(Screen.EventDetail.createRoute(eventId, communityId))
+                    },
                     onNavigateToLogin = { navController.navigate(Screen.Login.route) },
                     onNavigateToEditCommunity = { id -> navController.navigate(Screen.CreateCommunity.createRoute(id)) }
                 )
@@ -229,10 +239,9 @@ fun AppNavigation() {
                     defaultValue = -1 
                 })
             ) { backStackEntry ->
-                val id = backStackEntry.arguments?.getInt("id").takeIf { it != -1 }
                 CreateCommunityScreen(
-                    communityId = id,
                     onSuccess = { newId ->
+                        val id = backStackEntry.arguments?.getInt("id").takeIf { it != -1 }
                         navController.popBackStack()
                         if (id == null) {
                             navController.navigate(Screen.CommunityDetail.createRoute(newId))
@@ -251,12 +260,8 @@ fun AppNavigation() {
                         defaultValue = -1 
                     }
                 )
-            ) { backStackEntry ->
-                val communityId = backStackEntry.arguments?.getInt("communityId") ?: 0
-                val eventId = backStackEntry.arguments?.getInt("eventId").takeIf { it != -1 }
+            ) {
                 CreateEventScreen(
-                    communityId = communityId,
-                    eventId = eventId,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToDetail = { /* Handled by popBack */ }
                 )
@@ -269,11 +274,7 @@ fun AppNavigation() {
                     navArgument("communityId") { type = NavType.IntType }
                 )
             ) { backStackEntry ->
-                val eventId = backStackEntry.arguments?.getInt("eventId") ?: 0
-                val communityId = backStackEntry.arguments?.getInt("communityId") ?: 0
                 EventDetailScreen(
-                    eventId = eventId,
-                    communityId = communityId,
                     currentUser = currentUser,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToLogin = { navController.navigate(Screen.Login.route) },
@@ -284,10 +285,8 @@ fun AppNavigation() {
             composable(
                 route = Screen.Forum.route,
                 arguments = listOf(navArgument("communityId") { type = NavType.IntType })
-            ) { backStackEntry ->
-                val communityId = backStackEntry.arguments?.getInt("communityId") ?: 0
+            ) {
                 ForumScreen(
-                    communityId = communityId,
                     currentUser = currentUser,
                     onNavigateBack = { navController.popBackStack() }
                 )

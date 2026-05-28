@@ -16,6 +16,8 @@ data class Community(
 }
 
 data class ForumMessage(
+    val id: String = "msg_${System.currentTimeMillis()}",
+    val communityId: Int = 0,
     val sender: String,
     val message: String,
     val time: String,

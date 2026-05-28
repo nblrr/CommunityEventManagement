@@ -3,6 +3,7 @@ package com.example.communityeventmanagement.ui.feature.event
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.communityeventmanagement.domain.entities.AppCategories
@@ -11,19 +12,28 @@ import com.example.communityeventmanagement.domain.usecase.CreateEvent
 import com.example.communityeventmanagement.domain.usecase.GetCommunities
 import com.example.communityeventmanagement.domain.usecase.GetEventDetail
 import com.example.communityeventmanagement.domain.usecase.UpdateEvent
+import com.example.communityeventmanagement.domain.util.Resource
 import com.example.communityeventmanagement.util.toDateString
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.TimeZone
+import javax.inject.Inject
 
-class CreateEventViewModel(
+@HiltViewModel
+class CreateEventViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
     private val getCommunities: GetCommunities,
     private val getEventDetail: GetEventDetail,
     private val createEvent: CreateEvent,
     private val updateEvent: UpdateEvent
 ) : ViewModel() {
+
+    val communityId: Int = checkNotNull(savedStateHandle["communityId"])
+    private val eventId: Int? = savedStateHandle.get<Int>("eventId")?.takeIf { it != -1 }
+
     var title by mutableStateOf("")
     var description by mutableStateOf("")
     var selectedDateMillis by mutableStateOf<Long?>(null)
@@ -37,6 +47,10 @@ class CreateEventViewModel(
     var isEditMode by mutableStateOf(false)
     var existingEvent: Event? = null
     var errorMessageResId by mutableStateOf<Int?>(null)
+
+    init {
+        eventId?.let { loadEvent(it, communityId) }
+    }
 
     val timeSlots = listOf(
         "07.00", "08.00", "09.00", "10.00", "11.00", "12.00",
@@ -97,13 +111,11 @@ class CreateEventViewModel(
                 maxAttendees = if (event.maxAttendees > 0) event.maxAttendees.toString() else ""
                 time = event.time
                 coverImageUri = event.coverImageUri
-                // Date parsing would be needed here to set selectedDateMillis
-                // For simplicity, we might just skip setting it or implement parsing
             }
         }
     }
 
-    suspend fun submit(communityId: Int) {
+    suspend fun submit() {
         if (!isFormValid) return
         
         val dateMillis = selectedDateMillis ?: return
@@ -124,11 +136,14 @@ class CreateEventViewModel(
                     maxAttendees = maxAttendees.toIntOrNull() ?: 0,
                     coverImageUri = coverImageUri
                 )
-                val result = updateEvent(communityId, updated)
-                if (result.isSuccess) {
-                    showSuccessSheet = true
-                } else {
-                    errorMessageResId = com.example.communityeventmanagement.R.string.msg_no_data_found
+                when (updateEvent(communityId, updated)) {
+                    is Resource.Success -> {
+                        showSuccessSheet = true
+                    }
+                    is Resource.Error -> {
+                        errorMessageResId = com.example.communityeventmanagement.R.string.msg_no_data_found
+                    }
+                    is Resource.Loading -> {}
                 }
             }
         } else {
@@ -147,11 +162,14 @@ class CreateEventViewModel(
                 registeredUserIds = emptyList()
             )
             
-            val result = createEvent(communityId, newEvent)
-            if (result.isSuccess) {
-                showSuccessSheet = true
-            } else {
-                errorMessageResId = com.example.communityeventmanagement.R.string.msg_no_data_found
+            when (createEvent(communityId, newEvent)) {
+                is Resource.Success -> {
+                    showSuccessSheet = true
+                }
+                is Resource.Error -> {
+                    errorMessageResId = com.example.communityeventmanagement.R.string.msg_no_data_found
+                }
+                is Resource.Loading -> {}
             }
         }
         

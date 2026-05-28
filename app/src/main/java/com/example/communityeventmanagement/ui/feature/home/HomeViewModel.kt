@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.communityeventmanagement.R
 import com.example.communityeventmanagement.domain.entities.AppCategories
+import com.example.communityeventmanagement.domain.entities.Category
 import com.example.communityeventmanagement.domain.entities.Community
 import com.example.communityeventmanagement.domain.entities.Event
 import com.example.communityeventmanagement.domain.entities.User
@@ -14,12 +15,14 @@ import com.example.communityeventmanagement.domain.usecase.GetRecommendedEvents
 import com.example.communityeventmanagement.domain.usecase.GetRegisteredEventIds
 import com.example.communityeventmanagement.domain.usecase.RefreshData
 import com.example.communityeventmanagement.util.DateUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class HomeUiState(
     val currentUser: User? = null,
@@ -27,7 +30,7 @@ data class HomeUiState(
     val recommendedEvents: List<Event> = emptyList(),
     val filteredEvents: List<Event> = emptyList(),
     val registeredEventIds: Set<Int> = emptySet(),
-    val categories: List<String> = emptyList(),
+    val categories: List<Category> = emptyList(),
     val searchQuery: String = "",
     val selectedCategory: String = CATEGORY_ALL,
     val selectedDateFilter: Int = R.string.time_any,
@@ -35,11 +38,12 @@ data class HomeUiState(
     val isLoading: Boolean = false
 ) {
     companion object {
-        const val CATEGORY_ALL = "All"
+        const val CATEGORY_ALL = com.example.communityeventmanagement.domain.entities.CATEGORY_ALL
     }
 }
 
-class HomeViewModel(
+@HiltViewModel
+class HomeViewModel @Inject constructor(
     getCurrentUser: GetCurrentUser,
     getCommunities: GetCommunities,
     private val getRecommendedCommunities: GetRecommendedCommunities,
@@ -82,7 +86,7 @@ class HomeViewModel(
         val filteredEvents = allEvents.filter { event ->
             val matchesSearch = event.title.contains(query, ignoreCase = true) ||
                     event.description.contains(query, ignoreCase = true)
-            val matchesCategory = category == HomeUiState.CATEGORY_ALL || event.category == category
+            val matchesCategory = category == HomeUiState.CATEGORY_ALL || event.category.equals(category, ignoreCase = true)
             val matchesDate = when (dateFilter) {
                 R.string.time_today -> DateUtils.isToday(event.date)
                 R.string.time_this_week -> DateUtils.isThisWeek(event.date)
@@ -98,7 +102,7 @@ class HomeViewModel(
             recommendedEvents = recommendedEvents,
             filteredEvents = filteredEvents,
             registeredEventIds = registeredIds,
-            categories = listOf(HomeUiState.CATEGORY_ALL) + AppCategories.map { it.id },
+            categories = listOf(Category(HomeUiState.CATEGORY_ALL, R.string.category_all)) + AppCategories,
             searchQuery = query,
             selectedCategory = category,
             selectedDateFilter = dateFilter,

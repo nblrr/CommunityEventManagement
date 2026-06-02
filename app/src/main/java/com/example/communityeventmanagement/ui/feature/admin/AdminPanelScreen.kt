@@ -55,9 +55,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.communityeventmanagement.R
-import com.example.communityeventmanagement.domain.entities.TrustedApplication
-import com.example.communityeventmanagement.domain.entities.User
-import com.example.communityeventmanagement.domain.entities.UserRole
+import com.example.communityeventmanagement.domain.model.TrustedApplication
+import com.example.communityeventmanagement.domain.model.User
+import com.example.communityeventmanagement.domain.model.UserRole
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
 
@@ -399,3 +399,4 @@ fun AdminPanelScreenPreview() {
         )
     }
 }
+

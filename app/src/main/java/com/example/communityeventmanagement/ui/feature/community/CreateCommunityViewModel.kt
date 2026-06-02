@@ -6,9 +6,13 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.communityeventmanagement.domain.entities.Community
-import com.example.communityeventmanagement.domain.usecase.*
-import com.example.communityeventmanagement.domain.util.Resource
+import com.example.communityeventmanagement.domain.model.Community
+import com.example.communityeventmanagement.domain.usecase.community.CreateCommunity
+import com.example.communityeventmanagement.domain.usecase.community.GetCommunityDetail
+import com.example.communityeventmanagement.domain.usecase.community.UpdateCommunity
+import com.example.communityeventmanagement.domain.usecase.user.GetCurrentUser
+import com.example.communityeventmanagement.domain.usecase.auth.RefreshData
+import com.example.communityeventmanagement.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -16,7 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateCommunityViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val getCurrentUser: GetCurrentUser,
     private val getCommunityDetail: GetCommunityDetail,
     private val createCommunity: CreateCommunity,
@@ -109,3 +113,4 @@ class CreateCommunityViewModel @Inject constructor(
         errorMessageResId = null
     }
 }
+

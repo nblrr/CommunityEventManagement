@@ -42,10 +42,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.communityeventmanagement.R
-import com.example.communityeventmanagement.domain.entities.AppCategories
-import com.example.communityeventmanagement.domain.entities.Community
-import com.example.communityeventmanagement.domain.entities.Event
-import com.example.communityeventmanagement.domain.entities.findDisplayRes
+import com.example.communityeventmanagement.domain.model.AppCategories
+import com.example.communityeventmanagement.domain.model.Community
+import com.example.communityeventmanagement.domain.model.Event
+import com.example.communityeventmanagement.domain.model.findDisplayRes
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
 import com.example.communityeventmanagement.util.CoverImage
@@ -446,3 +446,4 @@ fun EventCardItem(
         }
     }
 }
+

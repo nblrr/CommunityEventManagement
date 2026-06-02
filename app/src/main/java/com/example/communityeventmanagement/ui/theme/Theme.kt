@@ -8,7 +8,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.communityeventmanagement.domain.entities.ThemeMode
+import com.example.communityeventmanagement.domain.model.ThemeMode
 
 @Preview(name = "Light Mode", showBackground = true)
 @Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
@@ -80,3 +80,4 @@ fun CommunityEventManagementTheme(
         content = content,
     )
 }
+

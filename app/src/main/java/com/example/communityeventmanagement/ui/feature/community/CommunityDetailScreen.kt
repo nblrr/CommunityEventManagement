@@ -59,11 +59,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.communityeventmanagement.R
-import com.example.communityeventmanagement.domain.entities.AppCategories
-import com.example.communityeventmanagement.domain.entities.Community
-import com.example.communityeventmanagement.domain.entities.User
-import com.example.communityeventmanagement.domain.entities.UserRole
-import com.example.communityeventmanagement.domain.entities.findDisplayRes
+import com.example.communityeventmanagement.domain.model.AppCategories
+import com.example.communityeventmanagement.domain.model.Community
+import com.example.communityeventmanagement.domain.model.User
+import com.example.communityeventmanagement.domain.model.UserRole
+import com.example.communityeventmanagement.domain.model.findDisplayRes
 import com.example.communityeventmanagement.ui.components.EventCardItem
 import com.example.communityeventmanagement.ui.components.FullScreenLoading
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
@@ -305,7 +305,7 @@ fun CommunityDetailScreenPreview() {
                 organizerName = "Budi Santoso",
                 memberIds = listOf("1", "2", "3"),
                 events = listOf(
-                    com.example.communityeventmanagement.domain.entities.Event(1, "Gathering Kucing Sehat", "Acara kumpul bareng.", "2025-06-20", "10:00", "Taman Kota", "SOCIAL", communityId = 1)
+                    com.example.communityeventmanagement.domain.model.Event(1, "Gathering Kucing Sehat", "Acara kumpul bareng.", "2025-06-20", "10:00", "Taman Kota", "SOCIAL", communityId = 1)
                 )
             ),
             currentUser = User("2", "Andi", "andi@mail.com"),
@@ -323,3 +323,4 @@ fun CommunityDetailScreenPreview() {
         )
     }
 }
+

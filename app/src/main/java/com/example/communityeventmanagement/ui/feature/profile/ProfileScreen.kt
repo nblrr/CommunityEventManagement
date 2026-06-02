@@ -60,11 +60,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.communityeventmanagement.R
-import com.example.communityeventmanagement.domain.entities.ApplicationStatus
-import com.example.communityeventmanagement.domain.entities.Community
-import com.example.communityeventmanagement.domain.entities.ThemeMode
-import com.example.communityeventmanagement.domain.entities.User
-import com.example.communityeventmanagement.domain.entities.UserRole
+import com.example.communityeventmanagement.domain.model.ApplicationStatus
+import com.example.communityeventmanagement.domain.model.Community
+import com.example.communityeventmanagement.domain.model.ThemeMode
+import com.example.communityeventmanagement.domain.model.User
+import com.example.communityeventmanagement.domain.model.UserRole
 import com.example.communityeventmanagement.ui.components.CommunityHorizontalCard
 import com.example.communityeventmanagement.ui.components.StatusBadge
 import com.example.communityeventmanagement.ui.components.glassmorphism
@@ -74,7 +74,6 @@ import com.example.communityeventmanagement.util.AvatarImage
 
 @Composable
 fun ProfileScreen(
-    currentUser: User?,
     onNavigateToOrganizerRegister: () -> Unit,
     onNavigateToTrustedApply: () -> Unit,
     onNavigateToCommunityDetail: (Int) -> Unit,
@@ -571,3 +570,4 @@ fun ProfileScreenPreview() {
         )
     }
 }
+

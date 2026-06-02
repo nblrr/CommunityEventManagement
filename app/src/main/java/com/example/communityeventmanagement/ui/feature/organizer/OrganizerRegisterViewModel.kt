@@ -5,10 +5,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.communityeventmanagement.domain.entities.Organizer
-import com.example.communityeventmanagement.domain.usecase.GetCurrentUser
-import com.example.communityeventmanagement.domain.usecase.RegisterOrganizer
-import com.example.communityeventmanagement.domain.util.Resource
+import com.example.communityeventmanagement.domain.model.Organizer
+import com.example.communityeventmanagement.domain.usecase.user.GetCurrentUser
+import com.example.communityeventmanagement.domain.usecase.user.RegisterOrganizer
+import com.example.communityeventmanagement.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -44,3 +44,5 @@ class OrganizerRegisterViewModel @Inject constructor(
         errorMessageResId = null
     }
 }
+
+

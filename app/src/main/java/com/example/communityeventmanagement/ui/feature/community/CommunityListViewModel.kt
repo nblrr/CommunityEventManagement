@@ -2,8 +2,8 @@ package com.example.communityeventmanagement.ui.feature.community
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.communityeventmanagement.domain.usecase.GetCommunities
-import com.example.communityeventmanagement.domain.usecase.GetJoinedCommunityIds
+import com.example.communityeventmanagement.domain.usecase.community.GetCommunities
+import com.example.communityeventmanagement.domain.usecase.community.GetJoinedCommunityIds
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -26,3 +26,4 @@ class CommunityListViewModel @Inject constructor(
         initialValue = emptySet()
     )
 }
+

@@ -2,8 +2,8 @@ package com.example.communityeventmanagement.data.mapper
 
 import com.example.communityeventmanagement.data.dto.CommunityDto
 import com.example.communityeventmanagement.data.dto.ForumMessageDto
-import com.example.communityeventmanagement.domain.entities.Community
-import com.example.communityeventmanagement.domain.entities.ForumMessage
+import com.example.communityeventmanagement.domain.model.Community
+import com.example.communityeventmanagement.domain.model.ForumMessage
 
 import android.util.Log
 
@@ -63,3 +63,4 @@ fun ForumMessage.toDto(): ForumMessageDto {
         avatarInitials = this.avatarInitials
     )
 }
+

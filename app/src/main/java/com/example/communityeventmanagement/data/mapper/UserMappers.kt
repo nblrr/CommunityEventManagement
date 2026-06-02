@@ -2,10 +2,10 @@ package com.example.communityeventmanagement.data.mapper
 
 import com.example.communityeventmanagement.data.dto.OrganizerDto
 import com.example.communityeventmanagement.data.dto.UserDto
-import com.example.communityeventmanagement.domain.entities.ApplicationStatus
-import com.example.communityeventmanagement.domain.entities.Organizer
-import com.example.communityeventmanagement.domain.entities.User
-import com.example.communityeventmanagement.domain.entities.UserRole
+import com.example.communityeventmanagement.domain.model.ApplicationStatus
+import com.example.communityeventmanagement.domain.model.Organizer
+import com.example.communityeventmanagement.domain.model.User
+import com.example.communityeventmanagement.domain.model.UserRole
 
 fun UserDto.toDomain(): User {
     return User(
@@ -64,3 +64,4 @@ fun Organizer.toDto(): OrganizerDto {
         phone = this.phone
     )
 }
+

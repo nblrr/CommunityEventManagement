@@ -4,13 +4,13 @@ import android.util.Log
 import com.example.communityeventmanagement.data.mapper.toDomain
 import com.example.communityeventmanagement.data.mapper.toDto
 import com.example.communityeventmanagement.data.source.local.JsonDataSource
-import com.example.communityeventmanagement.domain.entities.Community
-import com.example.communityeventmanagement.domain.entities.Event
-import com.example.communityeventmanagement.domain.entities.ForumMessage
-import com.example.communityeventmanagement.domain.entities.Rating
-import com.example.communityeventmanagement.domain.entities.User
+import com.example.communityeventmanagement.domain.model.Community
+import com.example.communityeventmanagement.domain.model.Event
+import com.example.communityeventmanagement.domain.model.ForumMessage
+import com.example.communityeventmanagement.domain.model.Rating
+import com.example.communityeventmanagement.domain.model.User
 import com.example.communityeventmanagement.domain.repository.CommunityRepository
-import com.example.communityeventmanagement.domain.util.Resource
+import com.example.communityeventmanagement.util.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -195,7 +195,7 @@ class CommunityRepositoryImpl @Inject constructor(private val dataSource: JsonDa
     }
 
     override suspend fun addCommunity(community: Community): Resource<Unit> = safeCall {
-        _communities.value = _communities.value + community
+        _communities.value += community
         persistCommunities()
     }
 
@@ -286,3 +286,4 @@ class CommunityRepositoryImpl @Inject constructor(private val dataSource: JsonDa
             .take(10)
     }
 }
+

@@ -45,7 +45,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun CreateEventScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToDetail: (Int) -> Unit,
     viewModel: CreateEventViewModel = hiltViewModel()
 ) {
     val scope = rememberCoroutineScope()
@@ -170,7 +169,7 @@ fun CreateEventContent(
                 CategoryDropdown(
                     label = stringResource(R.string.label_choose_category),
                     selectedCategoryId = category,
-                    options = com.example.communityeventmanagement.domain.entities.AppCategories,
+                    options = com.example.communityeventmanagement.domain.model.AppCategories,
                     onOptionSelected = onCategoryChange,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -260,3 +259,4 @@ fun CreateEventContent(
         }
     }
 }
+

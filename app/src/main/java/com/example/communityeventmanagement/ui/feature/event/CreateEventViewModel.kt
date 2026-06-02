@@ -6,13 +6,11 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.communityeventmanagement.domain.entities.AppCategories
-import com.example.communityeventmanagement.domain.entities.Event
-import com.example.communityeventmanagement.domain.usecase.CreateEvent
-import com.example.communityeventmanagement.domain.usecase.GetCommunities
-import com.example.communityeventmanagement.domain.usecase.GetEventDetail
-import com.example.communityeventmanagement.domain.usecase.UpdateEvent
-import com.example.communityeventmanagement.domain.util.Resource
+import com.example.communityeventmanagement.domain.model.Event
+import com.example.communityeventmanagement.domain.usecase.event.CreateEvent
+import com.example.communityeventmanagement.domain.usecase.event.GetEventDetail
+import com.example.communityeventmanagement.domain.usecase.event.UpdateEvent
+import com.example.communityeventmanagement.util.Resource
 import com.example.communityeventmanagement.util.toDateString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -24,8 +22,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateEventViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
-    private val getCommunities: GetCommunities,
+    savedStateHandle: SavedStateHandle,
     private val getEventDetail: GetEventDetail,
     private val createEvent: CreateEvent,
     private val updateEvent: UpdateEvent
@@ -51,13 +48,6 @@ class CreateEventViewModel @Inject constructor(
     init {
         eventId?.let { loadEvent(it, communityId) }
     }
-
-    val timeSlots = listOf(
-        "07.00", "08.00", "09.00", "10.00", "11.00", "12.00",
-        "13.00", "14.00", "15.00", "16.00", "17.00", "18.00", "19.00", "20.00"
-    )
-
-    val categoryOptions = AppCategories
 
     val isTimeValid: Boolean
         get() {
@@ -180,3 +170,5 @@ class CreateEventViewModel @Inject constructor(
         errorMessageResId = null
     }
 }
+
+

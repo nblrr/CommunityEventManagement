@@ -9,7 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class JsonDataSource(private val context: Context, private val baseDir: File? = null) {
+class JsonDataSource(private val context: Context, baseDir: File? = null) {
     val tag = "JsonDataSource"
     private val gson = GsonBuilder()
         .setPrettyPrinting()
@@ -48,15 +48,6 @@ class JsonDataSource(private val context: Context, private val baseDir: File? = 
                 Log.e(tag, "Error loading list from $fileName", e)
                 emptyList()
             }
-        }
-    }
-
-    suspend fun <T> safeLoad(tag: String, block: suspend () -> T): T? {
-        return try {
-            block()
-        } catch (e: Exception) {
-            Log.e("JsonDataSource", "$tag: ${e.message}", e)
-            null
         }
     }
 

@@ -7,9 +7,11 @@ import android.graphics.Canvas
 import android.graphics.Matrix
 import android.net.Uri
 import androidx.compose.ui.geometry.Offset
+import androidx.core.graphics.createBitmap
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
+import kotlin.math.abs
 
 object ImageUtils {
     /**
@@ -39,7 +41,7 @@ object ImageUtils {
             val finalScale = baseScale * scale
             
             // 2. Create the result bitmap (the size of the container)
-            val resultBitmap = Bitmap.createBitmap(containerWidthPx, containerHeightPx, Bitmap.Config.ARGB_8888)
+            val resultBitmap = createBitmap(containerWidthPx, containerHeightPx)
             val canvas = Canvas(resultBitmap)
             
             // 3. Apply transformations
@@ -86,7 +88,7 @@ object ImageUtils {
             androidx.compose.ui.graphics.Color(0xFFFFA726), 
             androidx.compose.ui.graphics.Color(0xFF8D6E63)
         )
-        val index = Math.abs(name.hashCode()) % colors.size
+        val index = abs(name.hashCode()) % colors.size
         return colors[index]
     }
 }

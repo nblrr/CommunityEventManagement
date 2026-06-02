@@ -3,15 +3,15 @@ package com.example.communityeventmanagement.ui.feature.event
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.communityeventmanagement.domain.usecase.AddEventRating
-import com.example.communityeventmanagement.domain.usecase.CancelEvent
-import com.example.communityeventmanagement.domain.usecase.DeleteEvent
-import com.example.communityeventmanagement.domain.usecase.GetCommunityDetail
-import com.example.communityeventmanagement.domain.usecase.GetCurrentUser
-import com.example.communityeventmanagement.domain.usecase.GetEventDetail
-import com.example.communityeventmanagement.domain.usecase.GetRegisteredEventIds
-import com.example.communityeventmanagement.domain.usecase.JoinEvent
-import com.example.communityeventmanagement.domain.util.Resource
+import com.example.communityeventmanagement.domain.usecase.community.GetCommunityDetail
+import com.example.communityeventmanagement.domain.usecase.event.AddEventRating
+import com.example.communityeventmanagement.domain.usecase.event.CancelEvent
+import com.example.communityeventmanagement.domain.usecase.event.DeleteEvent
+import com.example.communityeventmanagement.domain.usecase.event.GetEventDetail
+import com.example.communityeventmanagement.domain.usecase.event.GetRegisteredEventIds
+import com.example.communityeventmanagement.domain.usecase.event.JoinEvent
+import com.example.communityeventmanagement.domain.usecase.user.GetCurrentUser
+import com.example.communityeventmanagement.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -20,9 +20,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EventDetailViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
-    private val getEventDetail: GetEventDetail,
-    private val getCommunityDetailUseCase: GetCommunityDetail,
+    savedStateHandle: SavedStateHandle,
+    getEventDetail: GetEventDetail,
+    getCommunityDetailUseCase: GetCommunityDetail,
     private val getCurrentUser: GetCurrentUser,
     private val joinEvent: JoinEvent,
     private val cancelEvent: CancelEvent,
@@ -81,3 +81,5 @@ class EventDetailViewModel @Inject constructor(
         }
     }
 }
+
+

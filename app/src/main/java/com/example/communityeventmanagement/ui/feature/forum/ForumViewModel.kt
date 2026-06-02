@@ -6,10 +6,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.communityeventmanagement.domain.entities.ForumMessage
-import com.example.communityeventmanagement.domain.usecase.GetCurrentUser
-import com.example.communityeventmanagement.domain.usecase.GetForumMessages
-import com.example.communityeventmanagement.domain.usecase.SendMessage
+import com.example.communityeventmanagement.domain.model.ForumMessage
+import com.example.communityeventmanagement.domain.usecase.user.GetCurrentUser
+import com.example.communityeventmanagement.domain.usecase.forum.GetForumMessages
+import com.example.communityeventmanagement.domain.usecase.forum.SendMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +23,7 @@ import javax.inject.Inject
 class ForumViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getCurrentUser: GetCurrentUser,
-    private val getForumMessages: GetForumMessages,
+    getForumMessages: GetForumMessages,
     private val sendMessage: SendMessage
 ) : ViewModel() {
 
@@ -56,3 +56,5 @@ class ForumViewModel @Inject constructor(
         }
     }
 }
+
+

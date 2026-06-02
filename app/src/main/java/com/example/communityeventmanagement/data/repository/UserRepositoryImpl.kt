@@ -5,14 +5,14 @@ import com.example.communityeventmanagement.data.mapper.toDomain
 import com.example.communityeventmanagement.data.mapper.toDto
 import com.example.communityeventmanagement.data.source.local.DataStoreManager
 import com.example.communityeventmanagement.data.source.local.JsonDataSource
-import com.example.communityeventmanagement.domain.entities.ApplicationStatus
-import com.example.communityeventmanagement.domain.entities.Organizer
-import com.example.communityeventmanagement.domain.entities.ThemeMode
-import com.example.communityeventmanagement.domain.entities.TrustedApplication
-import com.example.communityeventmanagement.domain.entities.User
-import com.example.communityeventmanagement.domain.entities.UserRole
+import com.example.communityeventmanagement.domain.model.ApplicationStatus
+import com.example.communityeventmanagement.domain.model.Organizer
+import com.example.communityeventmanagement.domain.model.ThemeMode
+import com.example.communityeventmanagement.domain.model.TrustedApplication
+import com.example.communityeventmanagement.domain.model.User
+import com.example.communityeventmanagement.domain.model.UserRole
 import com.example.communityeventmanagement.domain.repository.UserRepository
-import com.example.communityeventmanagement.domain.util.Resource
+import com.example.communityeventmanagement.util.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -136,7 +136,7 @@ class UserRepositoryImpl @Inject constructor(
         if (_trustedApplications.value.any { it.userId == user.id }) return@safeCall
         
         val application = TrustedApplication(user.id, user.name, communityName, reason, experience, ApplicationStatus.PENDING)
-        _trustedApplications.value = _trustedApplications.value + application
+        _trustedApplications.value += application
         saveTrustedApplications()
         
         val updatedUsers = _users.value.map {
@@ -213,3 +213,4 @@ class UserRepositoryImpl @Inject constructor(
         dataSource.saveTrustedApplications(_trustedApplications.value.map { it.toDto() })
     }
 }
+

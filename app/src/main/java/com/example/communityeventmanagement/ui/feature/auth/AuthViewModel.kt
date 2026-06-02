@@ -4,10 +4,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.example.communityeventmanagement.domain.entities.User
-import com.example.communityeventmanagement.domain.usecase.Login
-import com.example.communityeventmanagement.domain.usecase.Register
-import com.example.communityeventmanagement.domain.util.Resource
+import com.example.communityeventmanagement.domain.model.User
+import com.example.communityeventmanagement.domain.usecase.auth.Login
+import com.example.communityeventmanagement.domain.usecase.auth.Register
+import com.example.communityeventmanagement.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -63,3 +63,5 @@ class AuthViewModel @Inject constructor(
         registerErrorMessageResId = null
     }
 }
+
+

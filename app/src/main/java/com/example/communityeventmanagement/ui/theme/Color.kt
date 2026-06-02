@@ -12,18 +12,6 @@ val TextPrimaryLight = Color(0xFF1F2937) // On Surface
 val TextSecondaryLight = Color(0xFF6B7280) // Gray 500
 val DividerLight = Color(0xFFE2E8F0) // Slate 200
 
-val BackgroundDark = Color(0xFF0F172A)
-val SurfaceDark = Color(0xFF1E293B)
-val SurfaceVariantDark = Color(0xFF334155)
-
-val OnBackgroundDark = Color(0xFFF1F5F9)
-val OnSurfaceDark = Color(0xFFE2E8F0)
-val OutlineDark = Color(0xFF475569)
-
-// Status Colors
-val SuccessModern = Color(0xFF10B981)
-val ErrorModern = Color(0xFFEF4444)
-
 // Legacy Palette (keeping for compatibility during transition if needed)
 val CadetGrey = Color(0xFF959BB5)
 val ChineseBlack = Color(0xFF0A1123)

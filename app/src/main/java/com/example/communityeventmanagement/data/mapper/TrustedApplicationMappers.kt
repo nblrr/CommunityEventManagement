@@ -1,8 +1,8 @@
 package com.example.communityeventmanagement.data.mapper
 
 import com.example.communityeventmanagement.data.dto.TrustedApplicationDto
-import com.example.communityeventmanagement.domain.entities.ApplicationStatus
-import com.example.communityeventmanagement.domain.entities.TrustedApplication
+import com.example.communityeventmanagement.domain.model.ApplicationStatus
+import com.example.communityeventmanagement.domain.model.TrustedApplication
 
 fun TrustedApplicationDto.toDomain(): TrustedApplication {
     return TrustedApplication(
@@ -29,3 +29,4 @@ fun TrustedApplication.toDto(): TrustedApplicationDto {
         status = this.status.name
     )
 }
+

@@ -2,8 +2,8 @@ package com.example.communityeventmanagement.data.mapper
 
 import com.example.communityeventmanagement.data.dto.EventDto
 import com.example.communityeventmanagement.data.dto.RatingDto
-import com.example.communityeventmanagement.domain.entities.Event
-import com.example.communityeventmanagement.domain.entities.Rating
+import com.example.communityeventmanagement.domain.model.Event
+import com.example.communityeventmanagement.domain.model.Rating
 
 fun EventDto.toDomain(): Event {
     return Event(
@@ -62,3 +62,4 @@ fun Rating.toDto(): RatingDto {
         date = this.date
     )
 }
+

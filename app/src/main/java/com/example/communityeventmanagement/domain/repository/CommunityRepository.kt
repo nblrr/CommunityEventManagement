@@ -1,10 +1,10 @@
 package com.example.communityeventmanagement.domain.repository
 
-import com.example.communityeventmanagement.domain.entities.Community
-import com.example.communityeventmanagement.domain.entities.Event
-import com.example.communityeventmanagement.domain.entities.ForumMessage
-import com.example.communityeventmanagement.domain.entities.User
-import com.example.communityeventmanagement.domain.util.Resource
+import com.example.communityeventmanagement.domain.model.Community
+import com.example.communityeventmanagement.domain.model.Event
+import com.example.communityeventmanagement.domain.model.ForumMessage
+import com.example.communityeventmanagement.domain.model.User
+import com.example.communityeventmanagement.util.Resource
 import kotlinx.coroutines.flow.StateFlow
 
 interface CommunityRepository {
@@ -31,3 +31,4 @@ interface CommunityRepository {
     fun getRecommendedCommunities(): List<Community>
     fun getRecommendedEvents(isUpcoming: (String) -> Boolean): List<Event>
 }
+

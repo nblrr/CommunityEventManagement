@@ -27,7 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.communityeventmanagement.R
-import com.example.communityeventmanagement.domain.entities.AppCategories
+import com.example.communityeventmanagement.domain.model.AppCategories
 import com.example.communityeventmanagement.ui.components.CategoryDropdown
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
@@ -177,3 +177,4 @@ fun CreateCommunityScreenPreview() {
         )
     }
 }
+

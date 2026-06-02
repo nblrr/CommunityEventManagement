@@ -1,7 +1,7 @@
 package com.example.communityeventmanagement.data.repository
 
 import android.util.Log
-import com.example.communityeventmanagement.domain.util.Resource
+import com.example.communityeventmanagement.util.Resource
 
 private const val TAG = "RepositoryExtensions"
 
@@ -17,3 +17,4 @@ suspend fun <T> safeCall(call: suspend () -> T): Resource<T> {
         Resource.Error(e.message ?: "An unknown error occurred")
     }
 }
+

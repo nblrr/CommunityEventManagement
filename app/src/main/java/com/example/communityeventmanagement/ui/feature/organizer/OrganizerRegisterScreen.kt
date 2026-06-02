@@ -31,13 +31,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.communityeventmanagement.R
-import com.example.communityeventmanagement.domain.entities.User
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
 
 @Composable
 fun OrganizerRegisterScreen(
-    currentUser: User? = null,
     onRegisterSuccess: (String) -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: OrganizerRegisterViewModel = hiltViewModel()
@@ -178,3 +176,4 @@ fun OrganizerRegisterScreenPreview() {
         )
     }
 }
+

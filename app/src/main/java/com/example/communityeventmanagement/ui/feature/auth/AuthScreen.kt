@@ -39,7 +39,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.communityeventmanagement.R
-import com.example.communityeventmanagement.domain.entities.User
+import com.example.communityeventmanagement.domain.model.User
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
 import kotlinx.coroutines.launch
@@ -321,3 +321,4 @@ fun AuthPreview() {
         )
     }
 }
+

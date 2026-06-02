@@ -64,11 +64,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.communityeventmanagement.R
-import com.example.communityeventmanagement.domain.entities.AppCategories
-import com.example.communityeventmanagement.domain.entities.Event
-import com.example.communityeventmanagement.domain.entities.Rating
-import com.example.communityeventmanagement.domain.entities.User
-import com.example.communityeventmanagement.domain.entities.findDisplayRes
+import com.example.communityeventmanagement.domain.model.AppCategories
+import com.example.communityeventmanagement.domain.model.Event
+import com.example.communityeventmanagement.domain.model.Rating
+import com.example.communityeventmanagement.domain.model.User
+import com.example.communityeventmanagement.domain.model.findDisplayRes
 import com.example.communityeventmanagement.ui.components.FullScreenLoading
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
@@ -452,3 +452,4 @@ fun EventDetailScreenPreview() {
         )
     }
 }
+

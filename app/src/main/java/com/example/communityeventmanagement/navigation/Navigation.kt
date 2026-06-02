@@ -14,7 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.communityeventmanagement.domain.entities.UserRole
+import com.example.communityeventmanagement.domain.model.UserRole
 import com.example.communityeventmanagement.ui.MainViewModel
 import com.example.communityeventmanagement.ui.components.AppBottomBar
 import com.example.communityeventmanagement.ui.feature.admin.AdminPanelScreen
@@ -164,7 +164,6 @@ fun AppNavigation(
 
             composable(Screen.Profile.route) {
                 ProfileScreen(
-                    currentUser = currentUser,
                     onNavigateToOrganizerRegister = { navController.navigate(Screen.OrganizerRegister.route) },
                     onNavigateToTrustedApply = { navController.navigate(Screen.TrustedOrganizerApply.route) },
                     onNavigateToCommunityDetail = { id -> navController.navigate(Screen.CommunityDetail.createRoute(id)) },
@@ -185,7 +184,6 @@ fun AppNavigation(
 
             composable(Screen.OrganizerRegister.route) {
                 OrganizerRegisterScreen(
-                    currentUser = currentUser,
                     onRegisterSuccess = { _ ->
                         navController.popBackStack()
                     },
@@ -262,8 +260,7 @@ fun AppNavigation(
                 )
             ) {
                 CreateEventScreen(
-                    onNavigateBack = { navController.popBackStack() },
-                    onNavigateToDetail = { /* Handled by popBack */ }
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
 
@@ -273,7 +270,7 @@ fun AppNavigation(
                     navArgument("eventId") { type = NavType.IntType },
                     navArgument("communityId") { type = NavType.IntType }
                 )
-            ) { backStackEntry ->
+            ) {
                 EventDetailScreen(
                     currentUser = currentUser,
                     onNavigateBack = { navController.popBackStack() },
@@ -302,3 +299,4 @@ fun AppNavigation(
         }
     }
 }
+

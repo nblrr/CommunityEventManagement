@@ -2,11 +2,16 @@ package com.example.communityeventmanagement.ui.feature.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.communityeventmanagement.domain.entities.ThemeMode
-import com.example.communityeventmanagement.domain.entities.User
-import com.example.communityeventmanagement.domain.usecase.*
+import com.example.communityeventmanagement.domain.model.ThemeMode
+import com.example.communityeventmanagement.domain.model.User
 import com.example.communityeventmanagement.domain.repository.UserRepository
-import com.example.communityeventmanagement.domain.util.Resource
+import com.example.communityeventmanagement.domain.usecase.app.SaveTheme
+import com.example.communityeventmanagement.domain.usecase.auth.Logout
+import com.example.communityeventmanagement.domain.usecase.community.GetCommunities
+import com.example.communityeventmanagement.domain.usecase.user.GetCurrentUser
+import com.example.communityeventmanagement.domain.usecase.user.UpdateAvatar
+import com.example.communityeventmanagement.domain.usecase.user.UpdateProfile
+import com.example.communityeventmanagement.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,13 +21,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val getCurrentUser: GetCurrentUser,
-    private val getCommunities: GetCommunities,
+    getCurrentUser: GetCurrentUser,
+    getCommunities: GetCommunities,
     private val updateAvatar: UpdateAvatar,
     private val updateProfile: UpdateProfile,
     private val saveTheme: SaveTheme,
     private val logout: Logout,
-    private val userRepository: UserRepository
+    userRepository: UserRepository
 ) : ViewModel() {
 
     val themeModeFlow: StateFlow<ThemeMode> = userRepository.themeMode
@@ -68,3 +73,4 @@ class ProfileViewModel @Inject constructor(
         }
     }
 }
+

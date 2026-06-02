@@ -5,10 +5,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.communityeventmanagement.domain.usecase.GetCommunities
-import com.example.communityeventmanagement.domain.usecase.GetCurrentUser
-import com.example.communityeventmanagement.domain.usecase.SubmitTrustedApplication
-import com.example.communityeventmanagement.domain.util.Resource
+import com.example.communityeventmanagement.domain.usecase.community.GetCommunities
+import com.example.communityeventmanagement.domain.usecase.user.GetCurrentUser
+import com.example.communityeventmanagement.domain.usecase.user.SubmitTrustedApplication
+import com.example.communityeventmanagement.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -54,3 +54,5 @@ class TrustedOrganizerApplyViewModel @Inject constructor(
         errorMessageResId = null
     }
 }
+
+

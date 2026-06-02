@@ -1,10 +1,10 @@
 package com.example.communityeventmanagement.domain.repository
 
-import com.example.communityeventmanagement.domain.entities.Organizer
-import com.example.communityeventmanagement.domain.entities.ThemeMode
-import com.example.communityeventmanagement.domain.entities.TrustedApplication
-import com.example.communityeventmanagement.domain.entities.User
-import com.example.communityeventmanagement.domain.util.Resource
+import com.example.communityeventmanagement.domain.model.Organizer
+import com.example.communityeventmanagement.domain.model.ThemeMode
+import com.example.communityeventmanagement.domain.model.TrustedApplication
+import com.example.communityeventmanagement.domain.model.User
+import com.example.communityeventmanagement.util.Resource
 import kotlinx.coroutines.flow.StateFlow
 
 interface UserRepository {
@@ -27,3 +27,4 @@ interface UserRepository {
     suspend fun saveTheme(mode: ThemeMode)
     suspend fun initialize()
 }
+

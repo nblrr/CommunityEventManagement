@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.communityeventmanagement.R
-import com.example.communityeventmanagement.domain.entities.User
+import com.example.communityeventmanagement.domain.model.User
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
 
@@ -220,3 +220,4 @@ private fun RowScope.NavItem(
         }
     }
 }
+

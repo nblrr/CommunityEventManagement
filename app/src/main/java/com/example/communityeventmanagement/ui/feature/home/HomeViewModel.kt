@@ -3,17 +3,16 @@ package com.example.communityeventmanagement.ui.feature.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.communityeventmanagement.R
-import com.example.communityeventmanagement.domain.entities.AppCategories
-import com.example.communityeventmanagement.domain.entities.Category
-import com.example.communityeventmanagement.domain.entities.Community
-import com.example.communityeventmanagement.domain.entities.Event
-import com.example.communityeventmanagement.domain.entities.User
-import com.example.communityeventmanagement.domain.usecase.GetCommunities
-import com.example.communityeventmanagement.domain.usecase.GetCurrentUser
-import com.example.communityeventmanagement.domain.usecase.GetRecommendedCommunities
-import com.example.communityeventmanagement.domain.usecase.GetRecommendedEvents
-import com.example.communityeventmanagement.domain.usecase.GetRegisteredEventIds
-import com.example.communityeventmanagement.domain.usecase.RefreshData
+import com.example.communityeventmanagement.domain.model.AppCategories
+import com.example.communityeventmanagement.domain.model.Category
+import com.example.communityeventmanagement.domain.model.Community
+import com.example.communityeventmanagement.domain.model.Event
+import com.example.communityeventmanagement.domain.model.User
+import com.example.communityeventmanagement.domain.usecase.community.GetCommunities
+import com.example.communityeventmanagement.domain.usecase.user.GetCurrentUser
+import com.example.communityeventmanagement.domain.usecase.community.GetRecommendedCommunities
+import com.example.communityeventmanagement.domain.usecase.event.GetRecommendedEvents
+import com.example.communityeventmanagement.domain.usecase.event.GetRegisteredEventIds
 import com.example.communityeventmanagement.util.DateUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +20,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class HomeUiState(
@@ -38,7 +36,7 @@ data class HomeUiState(
     val isLoading: Boolean = false
 ) {
     companion object {
-        const val CATEGORY_ALL = com.example.communityeventmanagement.domain.entities.CATEGORY_ALL
+        const val CATEGORY_ALL = com.example.communityeventmanagement.domain.model.CATEGORY_ALL
     }
 }
 
@@ -48,8 +46,7 @@ class HomeViewModel @Inject constructor(
     getCommunities: GetCommunities,
     private val getRecommendedCommunities: GetRecommendedCommunities,
     private val getRecommendedEvents: GetRecommendedEvents,
-    private val getRegisteredEventIds: GetRegisteredEventIds,
-    private val refreshData: RefreshData
+    getRegisteredEventIds: GetRegisteredEventIds
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
@@ -126,12 +123,6 @@ class HomeViewModel @Inject constructor(
     fun onDateFilterChange(filter: Int) {
         _selectedDateFilter.value = filter
     }
-
-    fun refresh() {
-        viewModelScope.launch {
-            _isRefreshing.value = true
-            refreshData(uiState.value.currentUser)
-            _isRefreshing.value = false
-        }
-    }
 }
+
+

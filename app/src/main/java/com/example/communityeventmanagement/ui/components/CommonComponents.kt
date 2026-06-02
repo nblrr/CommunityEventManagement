@@ -1,11 +1,5 @@
 package com.example.communityeventmanagement.ui.components
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -57,7 +51,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -67,7 +60,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.communityeventmanagement.R
-import com.example.communityeventmanagement.domain.entities.Category
+import com.example.communityeventmanagement.domain.model.Category
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
 import com.example.communityeventmanagement.util.TimePickerDialog
@@ -172,15 +165,14 @@ fun DatePickerField(
             }
         )
         DatePickerDialog(
-            onDismissRequest = { showPicker = false },
+            onDismissRequest = { },
             confirmButton = {
                 TextButton(onClick = {
                     onDateSelected(pickerState.selectedDateMillis)
-                    showPicker = false
                 }) { Text(stringResource(R.string.btn_choose), fontWeight = FontWeight.Bold) }
             },
             dismissButton = {
-                TextButton(onClick = { showPicker = false }) { Text(stringResource(R.string.btn_cancel)) }
+                TextButton(onClick = { }) { Text(stringResource(R.string.btn_cancel)) }
             },
             colors = DatePickerDefaults.colors(
                 containerColor = MaterialTheme.colorScheme.surface,
@@ -239,16 +231,15 @@ fun TimePickerField(
 
     if (showPicker) {
         TimePickerDialog(
-            onDismissRequest = { showPicker = false },
+            onDismissRequest = { },
             confirmButton = {
                 TextButton(onClick = {
                     val formattedTime = String.format(Locale.ROOT, "%02d.%02d", timePickerState.hour, timePickerState.minute)
                     onTimeSelected(formattedTime)
-                    showPicker = false
                 }) { Text(stringResource(R.string.btn_choose), fontWeight = FontWeight.Bold) }
             },
             dismissButton = {
-                TextButton(onClick = { showPicker = false }) { Text(stringResource(R.string.btn_cancel)) }
+                TextButton(onClick = { }) { Text(stringResource(R.string.btn_cancel)) }
             },
             containerColor = MaterialTheme.colorScheme.surface
         ) {
@@ -260,37 +251,6 @@ fun TimePickerField(
             )
         }
     }
-}
-
-@Composable
-fun ShimmerItem(
-    modifier: Modifier = Modifier,
-    shape: RoundedCornerShape = RoundedCornerShape(12.dp)
-) {
-    val shimmerColors = listOf(
-        MaterialTheme.colorScheme.surfaceVariant,
-        MaterialTheme.colorScheme.surface,
-        MaterialTheme.colorScheme.surfaceVariant,
-    )
-
-    val transition = rememberInfiniteTransition(label = "shimmer")
-    val translateAnim = transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1000f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1200, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "shimmerTranslation"
-    )
-
-    val brush = Brush.linearGradient(
-        colors = shimmerColors,
-        start = Offset.Zero,
-        end = Offset(x = translateAnim.value, y = translateAnim.value)
-    )
-
-    Box(modifier = modifier.background(brush, shape))
 }
 
 @Composable
@@ -413,17 +373,9 @@ fun SuccessBottomSheet(
 }
 
 @Composable
-fun InlineLoading(modifier: Modifier = Modifier) {
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-    }
-}
-
-@Composable
 fun Modifier.glassmorphism(
     shape: Shape = MaterialTheme.shapes.large,
-    alpha: Float = if (isSystemInDarkTheme()) 0.4f else 0.75f,
-    edgeAlpha: Float = 0.15f
+    alpha: Float = if (isSystemInDarkTheme()) 0.4f else 0.75f
 ): Modifier = this
     .clip(shape)
     .background(MaterialTheme.colorScheme.surface.copy(alpha = alpha))
@@ -475,3 +427,4 @@ fun CommonComponentsPreview() {
         }
     }
 }
+

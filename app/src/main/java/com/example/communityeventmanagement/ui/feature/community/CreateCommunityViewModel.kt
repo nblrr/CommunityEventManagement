@@ -13,8 +13,11 @@ import com.example.communityeventmanagement.domain.usecase.community.UpdateCommu
 import com.example.communityeventmanagement.domain.usecase.user.GetCurrentUser
 import com.example.communityeventmanagement.domain.usecase.auth.RefreshData
 import com.example.communityeventmanagement.util.Resource
+import com.example.communityeventmanagement.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -29,6 +32,9 @@ class CreateCommunityViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val communityId: Int? = savedStateHandle.get<Int>("id")?.takeIf { it != -1 }
+
+    private val _uiEvent = Channel<UiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     var name by mutableStateOf("")
     var category by mutableStateOf("")
@@ -71,13 +77,14 @@ class CreateCommunityViewModel @Inject constructor(
                         description = description.trim(),
                         coverImageUri = coverImageUri
                     )
-                    when (updateCommunity(updated)) {
+                    when (val result = updateCommunity(updated)) {
                         is Resource.Success -> {
                             refreshData(user)
                             onSuccess(current.id)
                         }
                         is Resource.Error -> {
                             errorMessageResId = com.example.communityeventmanagement.R.string.msg_no_data_found
+                            _uiEvent.send(UiEvent.ShowSnackbar(result.message))
                         }
                         is Resource.Loading -> {}
                     }
@@ -95,13 +102,14 @@ class CreateCommunityViewModel @Inject constructor(
                     organizerName = user.name,
                     memberCount = 0
                 )
-                when (createCommunity(newCommunity)) {
+                when (val result = createCommunity(newCommunity)) {
                     is Resource.Success -> {
                         refreshData(user)
                         onSuccess(newId)
                     }
                     is Resource.Error -> {
                         errorMessageResId = com.example.communityeventmanagement.R.string.msg_no_data_found
+                        _uiEvent.send(UiEvent.ShowSnackbar(result.message))
                     }
                     is Resource.Loading -> {}
                 }

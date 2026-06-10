@@ -7,16 +7,21 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.communityeventmanagement.domain.model.ForumMessage
-import com.example.communityeventmanagement.domain.usecase.user.GetCurrentUser
 import com.example.communityeventmanagement.domain.usecase.forum.GetForumMessages
 import com.example.communityeventmanagement.domain.usecase.forum.SendMessage
+import com.example.communityeventmanagement.domain.usecase.user.GetCurrentUser
+import com.example.communityeventmanagement.util.Resource
+import com.example.communityeventmanagement.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,6 +31,9 @@ class ForumViewModel @Inject constructor(
     getForumMessages: GetForumMessages,
     private val sendMessage: SendMessage
 ) : ViewModel() {
+
+    private val _uiEvent = Channel<UiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     private val communityId: Int = savedStateHandle.get<Int>("communityId") ?: 0
     var messageText by mutableStateOf("")
@@ -51,8 +59,15 @@ class ForumViewModel @Inject constructor(
         )
 
         viewModelScope.launch {
-            sendMessage(communityId, newMessage)
-            messageText = ""
+            when (val result = sendMessage(communityId, newMessage)) {
+                is Resource.Success -> {
+                    messageText = ""
+                }
+                is Resource.Error -> {
+                    _uiEvent.send(UiEvent.ShowSnackbar(result.message))
+                }
+                is Resource.Loading -> {}
+            }
         }
     }
 }

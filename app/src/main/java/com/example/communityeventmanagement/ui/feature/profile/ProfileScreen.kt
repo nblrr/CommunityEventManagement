@@ -31,7 +31,6 @@ import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,8 +40,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -71,6 +72,8 @@ import com.example.communityeventmanagement.ui.components.glassmorphism
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
 import com.example.communityeventmanagement.util.AvatarImage
+import com.example.communityeventmanagement.util.UiEvent
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun ProfileScreen(
@@ -79,11 +82,20 @@ fun ProfileScreen(
     onNavigateToCommunityDetail: (Int) -> Unit,
     onNavigateToEditProfile: () -> Unit,
     onLogout: () -> Unit,
-    viewModel: ProfileViewModel = hiltViewModel()
+    onShowSnackbar: (String) -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val user by viewModel.currentUser.collectAsStateWithLifecycle()
     val communities by viewModel.communities.collectAsStateWithLifecycle(initialValue = emptyList())
     val themeMode by viewModel.themeModeFlow.collectAsStateWithLifecycle()
+
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowSnackbar -> onShowSnackbar(event.message)
+            }
+        }
+    }
 
     ProfileContent(
         user = user,
@@ -113,24 +125,24 @@ fun ProfileContent(
     onNavigateToCommunityDetail: (Int) -> Unit,
     onNavigateToEditProfile: () -> Unit,
 ) {
-    var showLogoutDialog by remember { mutableStateOf(false) }
-    var showThemeDialog by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(value = false) }
+    var showThemeDialog by remember { mutableStateOf(value = false) }
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.title_profile), style = MaterialTheme.typography.titleLarge) },
+            TopAppBar(
+                title = { Text(stringResource(id = R.string.title_profile), fontWeight = FontWeight.Black) },
                 actions = {
                     IconButton(onClick = { showLogoutDialog = true }) {
                         Icon(
-                            Icons.AutoMirrored.Rounded.Logout,
-                            contentDescription = stringResource(R.string.btn_logout),
+                            imageVector = Icons.AutoMirrored.Rounded.Logout,
+                            contentDescription = stringResource(id = R.string.btn_logout),
                             tint = MaterialTheme.colorScheme.error
                         )
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.Transparent
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         },
@@ -146,7 +158,9 @@ fun ProfileContent(
             item {
                 ProfileHeader(
                     user = user,
-                    onAvatarClick = { onAvatarChange(null) }
+                    onAvatarClick = { 
+                        onAvatarChange(null) 
+                    }
                 )
             }
 
@@ -188,10 +202,10 @@ fun ProfileContent(
                                     title = stringResource(R.string.menu_become_organizer),
                                     onClick = onNavigateToOrganizerRegister
                                 )
-                            } else if (user?.role == UserRole.ORGANIZER && !user.isTrusted) {
+                            } else if ((user?.role == UserRole.ORGANIZER) && !user.isTrusted) {
                                 val statusText = when (user.trustedApplicationStatus) {
-                                    ApplicationStatus.PENDING -> stringResource(R.string.menu_verification_in_progress)
-                                    ApplicationStatus.REJECTED -> stringResource(R.string.btn_retry)
+                                    ApplicationStatus.PENDING -> stringResource(id = R.string.menu_verification_in_progress)
+                                    ApplicationStatus.REJECTED -> stringResource(id = R.string.btn_retry)
                                     else -> null
                                 }
                                 
@@ -253,17 +267,17 @@ fun ProfileContent(
 
     if (showLogoutDialog) {
         AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
-            title = { Text(stringResource(R.string.dialog_logout_title)) },
-            text = { Text(stringResource(R.string.dialog_logout_msg)) },
+            onDismissRequest = { /* Handle dismissal if needed */ },
+            title = { Text(stringResource(id = R.string.dialog_logout_title)) },
+            text = { Text(stringResource(id = R.string.dialog_logout_msg)) },
             confirmButton = {
                 TextButton(onClick = { 
                     showLogoutDialog = false
                     onLogoutClick() 
-                }) { Text(stringResource(R.string.btn_logout), color = MaterialTheme.colorScheme.error) }
+                }) { Text(stringResource(id = R.string.btn_logout), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) { Text(stringResource(R.string.btn_cancel)) }
+                TextButton(onClick = { showLogoutDialog = false }) { Text(stringResource(id = R.string.btn_cancel)) }
             }
         )
     }

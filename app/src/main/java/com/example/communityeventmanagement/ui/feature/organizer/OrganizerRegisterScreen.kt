@@ -33,17 +33,29 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.communityeventmanagement.R
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
+import com.example.communityeventmanagement.util.UiEvent
+import kotlinx.coroutines.flow.collectLatest
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun OrganizerRegisterScreen(
     onRegisterSuccess: (String) -> Unit,
     onNavigateBack: () -> Unit,
-    viewModel: OrganizerRegisterViewModel = hiltViewModel()
+    onShowSnackbar: (String) -> Unit,
+    viewModel: OrganizerRegisterViewModel = hiltViewModel(),
 ) {
     var organizerName by remember { mutableStateOf("") }
     var personInCharge by remember { mutableStateOf("") }
     var contact by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowSnackbar -> onShowSnackbar(event.message)
+            }
+        }
+    }
 
     OrganizerRegisterContent(
         organizerName = organizerName,
@@ -53,7 +65,6 @@ fun OrganizerRegisterScreen(
         errorMessage = viewModel.errorMessageResId?.let { stringResource(it) },
         onOrganizerNameChange = { 
             organizerName = it 
-            viewModel.clearErrors()
         },
         onPersonInChargeChange = { 
             personInCharge = it 

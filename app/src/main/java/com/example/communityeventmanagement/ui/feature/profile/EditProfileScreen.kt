@@ -1,7 +1,6 @@
 package com.example.communityeventmanagement.ui.feature.profile
 
 import android.annotation.SuppressLint
-import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,19 +34,30 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.communityeventmanagement.R
+import com.example.communityeventmanagement.util.UiEvent
+import kotlinx.coroutines.flow.collectLatest
 
 @SuppressLint("LocalContextGetResourceValueCall")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(
     onNavigateBack: () -> Unit,
-    viewModel: ProfileViewModel = hiltViewModel()
+    onShowSnackbar: (String) -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val user by viewModel.currentUser.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     var name by remember { mutableStateOf("") }
     var bio by remember { mutableStateOf("") }
+
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowSnackbar -> onShowSnackbar(event.message)
+            }
+        }
+    }
 
     LaunchedEffect(user) {
         user?.let {
@@ -99,7 +109,7 @@ fun EditProfileScreen(
             Button(
                 onClick = {
                     viewModel.updateProfile(name, bio) {
-                        Toast.makeText(context, context.getString(R.string.msg_profile_updated), Toast.LENGTH_SHORT).show()
+                        onShowSnackbar(context.getString(R.string.msg_profile_updated))
                         onNavigateBack()
                     }
                 },

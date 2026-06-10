@@ -46,14 +46,25 @@ import com.example.communityeventmanagement.domain.model.ForumMessage
 import com.example.communityeventmanagement.domain.model.User
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
+import com.example.communityeventmanagement.util.UiEvent
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun ForumScreen(
     currentUser: User?,
     onNavigateBack: () -> Unit,
-    viewModel: ForumViewModel = hiltViewModel()
+    onShowSnackbar: (String) -> Unit,
+    viewModel: ForumViewModel = hiltViewModel(),
 ) {
     val messages by viewModel.messages.collectAsStateWithLifecycle()
+
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowSnackbar -> onShowSnackbar(event.message)
+            }
+        }
+    }
     
     ForumContent(
         messages = messages,

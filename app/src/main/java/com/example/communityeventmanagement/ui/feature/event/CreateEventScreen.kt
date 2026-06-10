@@ -40,14 +40,27 @@ import com.example.communityeventmanagement.ui.components.DatePickerField
 import com.example.communityeventmanagement.ui.components.SuccessBottomSheet
 import com.example.communityeventmanagement.ui.components.TimePickerField
 import com.example.communityeventmanagement.util.ImagePickerBox
+import com.example.communityeventmanagement.util.UiEvent
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun CreateEventScreen(
     onNavigateBack: () -> Unit,
-    viewModel: CreateEventViewModel = hiltViewModel()
+    onSuccess: () -> Unit,
+    onShowSnackbar: (String) -> Unit,
+    viewModel: CreateEventViewModel = hiltViewModel(),
 ) {
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowSnackbar -> onShowSnackbar(event.message)
+            }
+        }
+    }
 
     CreateEventContent(
         title = viewModel.title,
@@ -101,7 +114,7 @@ fun CreateEventScreen(
             subtitle = stringResource(R.string.msg_event_created_body),
             onDismiss = {
                 viewModel.showSuccessSheet = false
-                onNavigateBack()
+                onSuccess()
             }
         )
     }
@@ -226,9 +239,13 @@ fun CreateEventContent(
                     label = stringResource(R.string.btn_choose_cover)
                 )
 
-                if (errorMessage != null) {
-                    Text(errorMessage, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                }
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
 
                 Spacer(Modifier.height(100.dp))
             }

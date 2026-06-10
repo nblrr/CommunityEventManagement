@@ -34,18 +34,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,21 +57,31 @@ import com.example.communityeventmanagement.domain.model.User
 import com.example.communityeventmanagement.domain.model.UserRole
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
+import com.example.communityeventmanagement.util.UiEvent
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun AdminPanelScreen(
     onNavigateBack: () -> Unit,
-    viewModel: AdminPanelViewModel = hiltViewModel()
+    onShowSnackbar: (String) -> Unit,
+    viewModel: AdminPanelViewModel = hiltViewModel(),
 ) {
     val users by viewModel.users.collectAsStateWithLifecycle()
     val pendingApplications by viewModel.pendingApplications.collectAsStateWithLifecycle()
     
-    val snackbarHostState = remember { SnackbarHostState() }
     val userMessage = viewModel.userMessage
+
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowSnackbar -> onShowSnackbar(event.message)
+            }
+        }
+    }
 
     LaunchedEffect(userMessage) {
         userMessage?.let {
-            snackbarHostState.showSnackbar(it)
+            onShowSnackbar(it)
             viewModel.clearMessage()
         }
     }
@@ -85,7 +92,6 @@ fun AdminPanelScreen(
         users = users,
         pendingApplications = pendingApplications,
         userToToggleBlock = viewModel.userToToggleBlock,
-        snackbarHostState = snackbarHostState,
         showAddAdminDialog = viewModel.showAddAdminDialog,
         newAdminName = viewModel.newAdminName,
         newAdminEmail = viewModel.newAdminEmail,
@@ -116,7 +122,6 @@ fun AdminPanelContent(
     users: List<User>,
     pendingApplications: List<TrustedApplication>,
     userToToggleBlock: User?,
-    snackbarHostState: SnackbarHostState,
     showAddAdminDialog: Boolean,
     newAdminName: String,
     newAdminEmail: String,
@@ -151,7 +156,6 @@ fun AdminPanelContent(
                 }
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             if (selectedTab == 0) {
                 FloatingActionButton(onClick = { onShowAddAdminDialogChanged(true) }) {
@@ -161,12 +165,12 @@ fun AdminPanelContent(
         }
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            TabRow(selectedTabIndex = selectedTab) {
+                    SecondaryTabRow(selectedTabIndex = selectedTab) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
                         selected = selectedTab == index,
                         onClick = { onTabSelected(index) },
-                        text = { Text(title) }
+                        text = { Text(title, fontWeight = FontWeight.Bold) }
                     )
                 }
             }
@@ -182,9 +186,10 @@ fun AdminPanelContent(
 
             if (selectedTab == 0) {
                 UserList(
-                    users = users.filter { it.name.contains(searchQuery, ignoreCase = true) || it.email.contains(searchQuery, ignoreCase = true) },
-                    onToggleBlock = onUserToToggleBlockChanged
-                )
+                    users = users.filter { it.name.contains(searchQuery, ignoreCase = true) || it.email.contains(searchQuery, ignoreCase = true) }
+                ) { user ->
+                    onUserToToggleBlockChanged(user)
+                }
             } else {
                 ApplicationList(
                     applications = pendingApplications,
@@ -286,8 +291,10 @@ fun AddAdminDialog(
 @Composable
 fun UserList(users: List<User>, onToggleBlock: (User) -> Unit) {
     LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        items(users) { user ->
-            UserItem(user = user, onToggleBlock = { onToggleBlock(user) })
+        items(items = users) { user ->
+            UserItem(user = user) { 
+                onToggleBlock(user) 
+            }
         }
     }
 }
@@ -372,13 +379,12 @@ fun ApplicationItem(application: TrustedApplication, onApprove: () -> Unit, onRe
 @Composable
 fun AdminPanelScreenPreview() {
     CommunityEventManagementTheme {
-        AdminPanelContent(
+            AdminPanelContent(
             searchQuery = "",
             selectedTab = 0,
             users = listOf(User("1", "Andi", "andi@mail.com")),
             pendingApplications = emptyList(),
             userToToggleBlock = null,
-            snackbarHostState = remember { SnackbarHostState() },
             showAddAdminDialog = false,
             newAdminName = "",
             newAdminEmail = "",

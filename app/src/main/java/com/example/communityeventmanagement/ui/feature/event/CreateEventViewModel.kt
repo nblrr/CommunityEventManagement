@@ -11,10 +11,13 @@ import com.example.communityeventmanagement.domain.usecase.event.CreateEvent
 import com.example.communityeventmanagement.domain.usecase.event.GetEventDetail
 import com.example.communityeventmanagement.domain.usecase.event.UpdateEvent
 import com.example.communityeventmanagement.util.Resource
+import com.example.communityeventmanagement.util.UiEvent
 import com.example.communityeventmanagement.util.toDateString
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.TimeZone
@@ -27,6 +30,9 @@ class CreateEventViewModel @Inject constructor(
     private val createEvent: CreateEvent,
     private val updateEvent: UpdateEvent
 ) : ViewModel() {
+
+    private val _uiEvent = Channel<UiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     val communityId: Int = checkNotNull(savedStateHandle["communityId"])
     private val eventId: Int? = savedStateHandle.get<Int>("eventId")?.takeIf { it != -1 }
@@ -126,12 +132,13 @@ class CreateEventViewModel @Inject constructor(
                     maxAttendees = maxAttendees.toIntOrNull() ?: 0,
                     coverImageUri = coverImageUri
                 )
-                when (updateEvent(communityId, updated)) {
+                when (val result = updateEvent(communityId, updated)) {
                     is Resource.Success -> {
                         showSuccessSheet = true
                     }
                     is Resource.Error -> {
                         errorMessageResId = com.example.communityeventmanagement.R.string.msg_no_data_found
+                        _uiEvent.send(UiEvent.ShowSnackbar(result.message))
                     }
                     is Resource.Loading -> {}
                 }
@@ -152,12 +159,13 @@ class CreateEventViewModel @Inject constructor(
                 registeredUserIds = emptyList()
             )
             
-            when (createEvent(communityId, newEvent)) {
+            when (val result = createEvent(communityId, newEvent)) {
                 is Resource.Success -> {
                     showSuccessSheet = true
                 }
                 is Resource.Error -> {
                     errorMessageResId = com.example.communityeventmanagement.R.string.msg_no_data_found
+                    _uiEvent.send(UiEvent.ShowSnackbar(result.message))
                 }
                 is Resource.Loading -> {}
             }

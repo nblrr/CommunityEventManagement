@@ -12,8 +12,11 @@ import com.example.communityeventmanagement.domain.usecase.event.GetRegisteredEv
 import com.example.communityeventmanagement.domain.usecase.event.JoinEvent
 import com.example.communityeventmanagement.domain.usecase.user.GetCurrentUser
 import com.example.communityeventmanagement.util.Resource
+import com.example.communityeventmanagement.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -34,6 +37,9 @@ class EventDetailViewModel @Inject constructor(
     private val eventId: Int = checkNotNull(savedStateHandle["eventId"])
     private val communityId: Int = checkNotNull(savedStateHandle["communityId"])
 
+    private val _uiEvent = Channel<UiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
+
     val event = getEventDetail(eventId, communityId).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -50,10 +56,24 @@ class EventDetailViewModel @Inject constructor(
         val userId = getCurrentUser().value?.id ?: return
         val isRegistered = registeredEventIds.value.contains(eventId)
         viewModelScope.launch {
-            if (isRegistered) {
+            val result = if (isRegistered) {
                 cancelEvent(eventId, communityId, userId)
             } else {
                 joinEvent(eventId, communityId, userId)
+            }
+            
+            when (result) {
+                is Resource.Success -> {
+                    if (isRegistered) {
+                        _uiEvent.send(UiEvent.ShowSnackbar("Berhasil membatalkan pendaftaran acara"))
+                    } else {
+                        _uiEvent.send(UiEvent.ShowSnackbar("Berhasil mendaftar ke acara"))
+                    }
+                }
+                is Resource.Error -> {
+                    _uiEvent.send(UiEvent.ShowSnackbar(result.message))
+                }
+                is Resource.Loading -> {}
             }
         }
     }
@@ -66,9 +86,14 @@ class EventDetailViewModel @Inject constructor(
 
     fun deleteEvent(onSuccess: () -> Unit) {
         viewModelScope.launch {
-            when (deleteEvent(communityId, eventId)) {
-                is Resource.Success -> onSuccess()
-                is Resource.Error -> { /* Handle error */ }
+            when (val result = deleteEvent(communityId, eventId)) {
+                is Resource.Success -> {
+                    _uiEvent.send(UiEvent.ShowSnackbar("Acara berhasil dihapus"))
+                    onSuccess()
+                }
+                is Resource.Error -> {
+                    _uiEvent.send(UiEvent.ShowSnackbar(result.message))
+                }
                 is Resource.Loading -> {}
             }
         }
@@ -77,7 +102,15 @@ class EventDetailViewModel @Inject constructor(
     fun submitRating(score: Int, comment: String) {
         val user = getCurrentUser().value ?: return
         viewModelScope.launch {
-            addEventRating(communityId, eventId, user.id, user.name, score, comment)
+            when (val result = addEventRating(communityId, eventId, user.id, user.name, score, comment)) {
+                is Resource.Success -> {
+                    _uiEvent.send(UiEvent.ShowSnackbar("Rating berhasil dikirim"))
+                }
+                is Resource.Error -> {
+                    _uiEvent.send(UiEvent.ShowSnackbar(result.message))
+                }
+                is Resource.Loading -> {}
+            }
         }
     }
 }

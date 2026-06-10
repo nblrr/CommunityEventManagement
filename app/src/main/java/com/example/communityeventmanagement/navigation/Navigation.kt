@@ -2,10 +2,14 @@ package com.example.communityeventmanagement.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavType
@@ -31,6 +35,7 @@ import com.example.communityeventmanagement.ui.feature.organizer.OrganizerRegist
 import com.example.communityeventmanagement.ui.feature.profile.EditProfileScreen
 import com.example.communityeventmanagement.ui.feature.profile.ProfileScreen
 import com.example.communityeventmanagement.ui.feature.profile.TrustedOrganizerApplyScreen
+import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
@@ -65,10 +70,18 @@ fun AppNavigation(
     viewModel: MainViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     
     val currentUser by viewModel.currentUser.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination?.route
+
+    val onShowSnackbar: (String) -> Unit = { message ->
+        scope.launch {
+            snackbarHostState.showSnackbar(message)
+        }
+    }
 
     // Handle blocking logic
     LaunchedEffect(currentUser) {
@@ -83,6 +96,7 @@ fun AppNavigation(
     val isTopLevel = currentDestination in listOf(Screen.Home.route, Screen.CommunityList.route, Screen.Profile.route)
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             if (isTopLevel) {
                 AppBottomBar(
@@ -136,6 +150,7 @@ fun AppNavigation(
                 LoginScreen(
                     onLoginSuccess = { _ ->
                         navController.popBackStack()
+                        onShowSnackbar("Berhasil masuk")
                     },
                     onNavigateToRegister = {
                         navController.navigate(Screen.Register.route) {
@@ -152,6 +167,7 @@ fun AppNavigation(
                         navController.navigate(Screen.Home.route) {
                             popUpTo(0) { inclusive = true }
                         }
+                        onShowSnackbar("Berhasil mendaftar")
                     },
                     onNavigateToLogin = {
                         navController.navigate(Screen.Login.route) {
@@ -172,13 +188,16 @@ fun AppNavigation(
                         navController.navigate(Screen.Home.route) {
                             popUpTo(0) { inclusive = true }
                         }
-                    }
+                        onShowSnackbar("Berhasil keluar")
+                    },
+                    onShowSnackbar = onShowSnackbar
                 )
             }
 
             composable(Screen.EditProfile.route) {
                 EditProfileScreen(
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onShowSnackbar = onShowSnackbar
                 )
             }
 
@@ -186,15 +205,21 @@ fun AppNavigation(
                 OrganizerRegisterScreen(
                     onRegisterSuccess = { _ ->
                         navController.popBackStack()
+                        onShowSnackbar("Pendaftaran penyelenggara berhasil")
                     },
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onShowSnackbar = onShowSnackbar
                 )
             }
 
             composable(Screen.TrustedOrganizerApply.route) {
                 TrustedOrganizerApplyScreen(
                     onNavigateBack = { navController.popBackStack() },
-                    onSuccess = { navController.popBackStack() }
+                    onSuccess = { 
+                        navController.popBackStack()
+                        onShowSnackbar("Permohonan berhasil dikirim")
+                    },
+                    onShowSnackbar = onShowSnackbar
                 )
             }
 
@@ -226,7 +251,8 @@ fun AppNavigation(
                         navController.navigate(Screen.EventDetail.createRoute(eventId, communityId))
                     },
                     onNavigateToLogin = { navController.navigate(Screen.Login.route) },
-                    onNavigateToEditCommunity = { id -> navController.navigate(Screen.CreateCommunity.createRoute(id)) }
+                    onNavigateToEditCommunity = { id -> navController.navigate(Screen.CreateCommunity.createRoute(id)) },
+                    onShowSnackbar = onShowSnackbar
                 )
             }
 
@@ -244,8 +270,10 @@ fun AppNavigation(
                         if (id == null) {
                             navController.navigate(Screen.CommunityDetail.createRoute(newId))
                         }
+                        onShowSnackbar(if (id == null) "Komunitas berhasil dibuat" else "Komunitas berhasil diperbarui")
                     },
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onShowSnackbar = onShowSnackbar
                 )
             }
 
@@ -258,9 +286,15 @@ fun AppNavigation(
                         defaultValue = -1 
                     }
                 )
-            ) {
+            ) { backStackEntry ->
+                val eventId = backStackEntry.arguments?.getInt("eventId").takeIf { it != -1 }
                 CreateEventScreen(
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onSuccess = {
+                        navController.popBackStack()
+                        onShowSnackbar(if (eventId == null) "Acara berhasil dibuat" else "Acara berhasil diperbarui")
+                    },
+                    onShowSnackbar = onShowSnackbar
                 )
             }
 
@@ -275,7 +309,8 @@ fun AppNavigation(
                     currentUser = currentUser,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToLogin = { navController.navigate(Screen.Login.route) },
-                    onNavigateToEditEvent = { eId, cId -> navController.navigate(Screen.CreateEvent.createRoute(cId, eId)) }
+                    onNavigateToEditEvent = { eId, cId -> navController.navigate(Screen.CreateEvent.createRoute(cId, eId)) },
+                    onShowSnackbar = onShowSnackbar
                 )
             }
 
@@ -285,7 +320,8 @@ fun AppNavigation(
             ) {
                 ForumScreen(
                     currentUser = currentUser,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onShowSnackbar = onShowSnackbar
                 )
             }
 
@@ -293,7 +329,10 @@ fun AppNavigation(
                 if (currentUser?.role != UserRole.ADMIN) {
                     LaunchedEffect(Unit) { navController.popBackStack() }
                 } else {
-                    AdminPanelScreen(onNavigateBack = { navController.popBackStack() })
+                    AdminPanelScreen(
+                        onNavigateBack = { navController.popBackStack() },
+                        onShowSnackbar = onShowSnackbar
+                    )
                 }
             }
         }

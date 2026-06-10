@@ -10,8 +10,11 @@ import com.example.communityeventmanagement.domain.usecase.community.JoinCommuni
 import com.example.communityeventmanagement.domain.usecase.event.GetRegisteredEventIds
 import com.example.communityeventmanagement.domain.usecase.user.GetCurrentUser
 import com.example.communityeventmanagement.util.Resource
+import com.example.communityeventmanagement.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,6 +32,9 @@ class CommunityDetailViewModel @Inject constructor(
 
     private val communityId: Int = checkNotNull(savedStateHandle["communityId"])
 
+    private val _uiEvent = Channel<UiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
+
     val community = getCommunityDetail(communityId).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -37,8 +43,21 @@ class CommunityDetailViewModel @Inject constructor(
     
     fun toggleJoin() {
         val userId = getCurrentUser().value?.id ?: return
+        val isJoined = joinedCommunityIds.value.contains(communityId)
         viewModelScope.launch {
-            joinCommunity(communityId, userId)
+            when (val result = joinCommunity(communityId, userId)) {
+                is Resource.Success -> {
+                    if (isJoined) {
+                        _uiEvent.send(UiEvent.ShowSnackbar("Berhasil keluar dari komunitas"))
+                    } else {
+                        _uiEvent.send(UiEvent.ShowSnackbar("Berhasil bergabung dengan komunitas"))
+                    }
+                }
+                is Resource.Error -> {
+                    _uiEvent.send(UiEvent.ShowSnackbar(result.message))
+                }
+                is Resource.Loading -> {}
+            }
         }
     }
     

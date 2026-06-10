@@ -43,6 +43,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,6 +70,8 @@ import com.example.communityeventmanagement.ui.components.FullScreenLoading
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
 import com.example.communityeventmanagement.util.CoverImage
+import com.example.communityeventmanagement.util.UiEvent
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun CommunityDetailScreen(
@@ -79,17 +82,26 @@ fun CommunityDetailScreen(
     onNavigateToEventDetail: (Int) -> Unit,
     onNavigateToLogin: () -> Unit,
     onNavigateToEditCommunity: (Int) -> Unit,
-    viewModel: CommunityDetailViewModel = hiltViewModel()
+    onShowSnackbar: (String) -> Unit,
+    viewModel: CommunityDetailViewModel = hiltViewModel(),
 ) {
     val community by viewModel.community.collectAsStateWithLifecycle()
     
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowSnackbar -> onShowSnackbar(event.message)
+            }
+        }
+    }
+
     if (community == null) {
         FullScreenLoading()
         return
     }
     val joinedIds by viewModel.joinedCommunityIds.collectAsStateWithLifecycle()
     val isJoined = joinedIds.contains(community!!.id)
-    val isOrganizer = currentUser?.id == community!!.organizerId || currentUser?.role == UserRole.ADMIN
+    val isOrganizer = (currentUser?.id == community!!.organizerId) || (currentUser?.role == UserRole.ADMIN)
 
     CommunityDetailContent(
         community = community!!,
@@ -104,7 +116,9 @@ fun CommunityDetailScreen(
         onNavigateToEventDetail = onNavigateToEventDetail,
         onNavigateToLogin = onNavigateToLogin,
         onEditCommunity = { onNavigateToEditCommunity(community!!.id) },
-        onDeleteCommunity = { viewModel.deleteCommunity(onNavigateBack) }
+        onDeleteCommunity = { 
+            viewModel.deleteCommunity(onNavigateBack) 
+        }
     )
 }
 
@@ -125,7 +139,7 @@ fun CommunityDetailContent(
     onEditCommunity: () -> Unit,
     onDeleteCommunity: () -> Unit,
 ) {
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(value = false) }
 
     Scaffold(
         topBar = {
@@ -272,19 +286,22 @@ fun CommunityDetailContent(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text(stringResource(R.string.dialog_delete_community_title)) },
-            text = { Text(stringResource(R.string.dialog_delete_community_msg)) },
+            title = { Text(stringResource(id = R.string.dialog_delete_community_title)) },
+            text = { Text(stringResource(id = R.string.dialog_delete_community_msg)) },
             confirmButton = {
-                TextButton(onClick = { 
-                    showDeleteDialog = false
-                    onDeleteCommunity() 
-                }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
-                    Text(stringResource(R.string.action_delete))
+                TextButton(
+                    onClick = { 
+                        showDeleteDialog = false
+                        onDeleteCommunity() 
+                    }, 
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text(stringResource(id = R.string.action_delete))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text(stringResource(R.string.btn_cancel))
+                    Text(stringResource(id = R.string.btn_cancel))
                 }
             }
         )

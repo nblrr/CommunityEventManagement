@@ -46,6 +46,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -74,6 +75,8 @@ import com.example.communityeventmanagement.ui.theme.CommunityEventManagementThe
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
 import com.example.communityeventmanagement.util.CoverImage
 import com.example.communityeventmanagement.util.DateUtils
+import com.example.communityeventmanagement.util.UiEvent
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun EventDetailScreen(
@@ -81,10 +84,19 @@ fun EventDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToLogin: () -> Unit,
     onNavigateToEditEvent: (Int, Int) -> Unit,
-    viewModel: EventDetailViewModel = hiltViewModel()
+    onShowSnackbar: (String) -> Unit,
+    viewModel: EventDetailViewModel = hiltViewModel(),
 ) {
     val event by viewModel.event.collectAsStateWithLifecycle()
     val community by viewModel.community.collectAsStateWithLifecycle()
+
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowSnackbar -> onShowSnackbar(event.message)
+            }
+        }
+    }
     
     if (event == null) {
         FullScreenLoading()
@@ -95,7 +107,7 @@ fun EventDetailScreen(
     val isRegistered = registeredIds.contains(event!!.id)
     val isOrganizer = currentUser?.id == community?.organizerId
     val isUpcoming = DateUtils.isUpcoming(event!!.date, event!!.time)
-    val isFull = event!!.maxAttendees > 0 && event!!.attendeeCount >= event!!.maxAttendees
+    val isFull = (event!!.maxAttendees > 0) && (event!!.attendeeCount >= event!!.maxAttendees)
 
     EventDetailContent(
         event = event!!,
@@ -110,7 +122,9 @@ fun EventDetailScreen(
         onNavigateToLogin = onNavigateToLogin,
         onEditEvent = { onNavigateToEditEvent(event!!.id, event!!.communityId) },
         onDeleteEvent = { viewModel.deleteEvent(onNavigateBack) },
-        onSubmitRating = { score, comment -> viewModel.submitRating(score, comment) }
+        onSubmitRating = { score, comment -> 
+            viewModel.submitRating(score, comment) 
+        }
     )
 }
 
@@ -131,8 +145,8 @@ fun EventDetailContent(
     onDeleteEvent: () -> Unit,
     onSubmitRating: (Int, String) -> Unit,
 ) {
-    var showRatingDialog by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showRatingDialog by remember { mutableStateOf(value = false) }
+    var showDeleteDialog by remember { mutableStateOf(value = false) }
 
     Scaffold(
         topBar = {
@@ -366,12 +380,12 @@ fun EventDetailContent(
                     },
                     enabled = comment.isNotBlank()
                 ) {
-                    Text(stringResource(R.string.btn_submit_rating))
+                    Text(stringResource(id = R.string.btn_submit_rating))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showRatingDialog = false }) {
-                    Text(stringResource(R.string.btn_cancel))
+                    Text(stringResource(id = R.string.btn_cancel))
                 }
             }
         )

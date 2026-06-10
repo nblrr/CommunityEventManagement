@@ -14,8 +14,11 @@ import com.example.communityeventmanagement.domain.usecase.admin.GetUsers
 import com.example.communityeventmanagement.domain.usecase.admin.RejectTrustedApplication
 import com.example.communityeventmanagement.domain.usecase.admin.ToggleUserBlock
 import com.example.communityeventmanagement.util.Resource
+import com.example.communityeventmanagement.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,6 +32,9 @@ class AdminPanelViewModel @Inject constructor(
     private val toggleUserBlock: ToggleUserBlock,
     private val addAdmin: AddAdmin
 ) : ViewModel() {
+
+    private val _uiEvent = Channel<UiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     var searchQuery by mutableStateOf("")
     var selectedTab by mutableIntStateOf(0)
@@ -56,14 +62,14 @@ class AdminPanelViewModel @Inject constructor(
     fun approveApplication(userId: String) {
         viewModelScope.launch {
             approveTrustedApplication.invoke(userId)
-            userMessage = "Application approved"
+            _uiEvent.send(UiEvent.ShowSnackbar("Permohonan disetujui"))
         }
     }
 
     fun rejectApplication(userId: String) {
         viewModelScope.launch {
             rejectTrustedApplication.invoke(userId)
-            userMessage = "Application rejected"
+            _uiEvent.send(UiEvent.ShowSnackbar("Permohonan ditolak"))
         }
     }
 
@@ -71,7 +77,9 @@ class AdminPanelViewModel @Inject constructor(
         viewModelScope.launch {
             val result = toggleUserBlock.invoke(userId)
             if (result is Resource.Error) {
-                userMessage = result.message
+                _uiEvent.send(UiEvent.ShowSnackbar(result.message))
+            } else if (result is Resource.Success) {
+                _uiEvent.send(UiEvent.ShowSnackbar("Status blokir pengguna diperbarui"))
             }
             userToToggleBlock = null
         }
@@ -79,7 +87,7 @@ class AdminPanelViewModel @Inject constructor(
 
     fun onAddAdmin() {
         if (newAdminName.isBlank() || newAdminEmail.isBlank() || newAdminPassword.isBlank()) {
-            userMessage = "Please fill all fields"
+            viewModelScope.launch { _uiEvent.send(UiEvent.ShowSnackbar("Harap isi semua bidang")) }
             return
         }
         viewModelScope.launch {
@@ -88,12 +96,12 @@ class AdminPanelViewModel @Inject constructor(
             isAddingAdmin = false
             when (result) {
                 is Resource.Success -> {
-                    userMessage = "Admin added successfully"
+                    _uiEvent.send(UiEvent.ShowSnackbar("Admin berhasil ditambahkan"))
                     showAddAdminDialog = false
                     resetAddAdminFields()
                 }
                 is Resource.Error -> {
-                    userMessage = result.message
+                    _uiEvent.send(UiEvent.ShowSnackbar(result.message))
                 }
                 else -> {}
             }

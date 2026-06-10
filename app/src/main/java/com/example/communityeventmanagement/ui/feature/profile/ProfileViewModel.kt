@@ -12,9 +12,12 @@ import com.example.communityeventmanagement.domain.usecase.user.GetCurrentUser
 import com.example.communityeventmanagement.domain.usecase.user.UpdateAvatar
 import com.example.communityeventmanagement.domain.usecase.user.UpdateProfile
 import com.example.communityeventmanagement.util.Resource
+import com.example.communityeventmanagement.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -30,6 +33,9 @@ class ProfileViewModel @Inject constructor(
     userRepository: UserRepository
 ) : ViewModel() {
 
+    private val _uiEvent = Channel<UiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
+
     val themeModeFlow: StateFlow<ThemeMode> = userRepository.themeMode
 
     val currentUser: StateFlow<User?> = getCurrentUser().stateIn(
@@ -41,7 +47,11 @@ class ProfileViewModel @Inject constructor(
 
     fun updateAvatar(uri: String?) {
         viewModelScope.launch {
-            updateAvatar.invoke(uri)
+            when (val result = updateAvatar.invoke(uri)) {
+                is Resource.Success -> _uiEvent.send(UiEvent.ShowSnackbar("Avatar berhasil diperbarui"))
+                is Resource.Error -> _uiEvent.send(UiEvent.ShowSnackbar(result.message))
+                is Resource.Loading -> {}
+            }
         }
     }
 

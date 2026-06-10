@@ -21,6 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -32,13 +33,23 @@ import com.example.communityeventmanagement.ui.components.CategoryDropdown
 import com.example.communityeventmanagement.ui.theme.CommunityEventManagementTheme
 import com.example.communityeventmanagement.ui.theme.ThemePreviews
 import com.example.communityeventmanagement.util.ImagePickerBox
+import com.example.communityeventmanagement.util.UiEvent
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun CreateCommunityScreen(
     onSuccess: (Int) -> Unit,
     onNavigateBack: () -> Unit,
-    viewModel: CreateCommunityViewModel = hiltViewModel()
+    onShowSnackbar: (String) -> Unit,
+    viewModel: CreateCommunityViewModel = hiltViewModel(),
 ) {
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowSnackbar -> onShowSnackbar(event.message)
+            }
+        }
+    }
     CreateCommunityContent(
         name = viewModel.name,
         category = viewModel.category,
@@ -113,7 +124,7 @@ fun CreateCommunityContent(
             )
             
             CategoryDropdown(
-                label = stringResource(R.string.category),
+                label = stringResource(id = R.string.category),
                 selectedCategoryId = category,
                 options = AppCategories,
                 onOptionSelected = onCategoryChange,

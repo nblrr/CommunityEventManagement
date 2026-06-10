@@ -9,7 +9,10 @@ import com.example.communityeventmanagement.domain.model.Organizer
 import com.example.communityeventmanagement.domain.usecase.user.GetCurrentUser
 import com.example.communityeventmanagement.domain.usecase.user.RegisterOrganizer
 import com.example.communityeventmanagement.util.Resource
+import com.example.communityeventmanagement.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,6 +21,9 @@ class OrganizerRegisterViewModel @Inject constructor(
     private val getCurrentUser: GetCurrentUser,
     private val registerOrganizer: RegisterOrganizer
 ) : ViewModel() {
+
+    private val _uiEvent = Channel<UiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     var errorMessageResId by mutableStateOf<Int?>(null)
 

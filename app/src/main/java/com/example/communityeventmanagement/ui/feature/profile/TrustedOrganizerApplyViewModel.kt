@@ -9,8 +9,11 @@ import com.example.communityeventmanagement.domain.usecase.community.GetCommunit
 import com.example.communityeventmanagement.domain.usecase.user.GetCurrentUser
 import com.example.communityeventmanagement.domain.usecase.user.SubmitTrustedApplication
 import com.example.communityeventmanagement.util.Resource
+import com.example.communityeventmanagement.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -20,6 +23,9 @@ class TrustedOrganizerApplyViewModel @Inject constructor(
     private val getCommunities: GetCommunities,
     private val submitTrustedApplication: SubmitTrustedApplication,
 ) : ViewModel() {
+
+    private val _uiEvent = Channel<UiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     var reason by mutableStateOf("")
     var experience by mutableStateOf("")

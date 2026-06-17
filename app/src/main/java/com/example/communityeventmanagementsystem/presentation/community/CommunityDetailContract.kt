@@ -15,6 +15,7 @@ class CommunityDetailContract {
         data class LoadDetail(val id: Long) : Event()
         object JoinCommunity : Event()
         object LeaveCommunity : Event()
+        data class ShowErrorMessage(val message: String) : Event()
     }
 
     sealed class Effect {

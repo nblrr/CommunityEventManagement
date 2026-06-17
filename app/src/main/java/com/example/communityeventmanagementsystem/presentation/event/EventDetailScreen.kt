@@ -24,9 +24,12 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.example.communityeventmanagementsystem.presentation.components.ProfileAvatar
 import com.example.communityeventmanagementsystem.domain.model.Event as DomainEvent
 import com.example.communityeventmanagementsystem.ui.theme.*
 
@@ -202,14 +205,10 @@ fun OrganizerSection(event: DomainEvent) {
             .fillMaxWidth()
             .padding(bottom = Dimens.SpacingMd)
     ) {
-        AsyncImage(
-            model = event.organizerImageUrl ?: "https://lh3.googleusercontent.com/aida-public/AB6AXuDXzYJxfBHMg5nORM-L_m2ehnpEY317yqoJXYyREIe9GOLVo-rDRXa-y2pLpNdGioT2Tc_62nZRXw-ro69F1xRoMVDQqn9yVICyBTDgtj65nmLu3j8b5G0DTQ3Dm-2wRe5A0pqUM3tE_cTew1qqUs2bT0xpq5-7DXoQ_GhAvtXyzCi1cJ5OZMRQ8LAvZHl_3knfhC4nDrZhW_FH3dAxxcLjura0JZUP6tDBkTHfJM9mJImW39NnKK4hWg_JPaYm7GCcxqdmrg04tu6X",
-            contentDescription = "Organizer",
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .border(1.dp, OutlineVariant.copy(alpha = 0.5f), CircleShape),
-            contentScale = ContentScale.Crop
+        ProfileAvatar(
+            imageUrl = event.organizerImageUrl,
+            name = event.organizerName ?: "Admin",
+            modifier = Modifier.size(40.dp)
         )
         Spacer(modifier = Modifier.width(Dimens.SpacingSm))
         Column {
@@ -356,6 +355,14 @@ fun EventDetailBottomBar(
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
+    val isPastEvent = try {
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val eventDate = LocalDate.parse(event.eventDate, formatter)
+        eventDate.isBefore(LocalDate.now())
+    } catch (e: Exception) {
+        false
+    }
+
     Surface(
         color = SurfaceContainerLowest.copy(alpha = 0.95f),
         shadowElevation = 8.dp,
@@ -383,12 +390,15 @@ fun EventDetailBottomBar(
                     .shadow(4.dp, Shapes.Full),
                 shape = Shapes.Full,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isRegistered) SurfaceVariant else Primary,
-                    contentColor = if (isRegistered) OnSurfaceVariant else OnPrimary
+                    containerColor = if (isRegistered || isPastEvent) SurfaceVariant else Primary,
+                    contentColor = if (isRegistered || isPastEvent) OnSurfaceVariant else OnPrimary
                 ),
-                enabled = !isRegistering
+                enabled = !isRegistering && !isPastEvent
             ) {
-                Text(if (isRegistered) "Batal Daftar" else "Daftar Sekarang", style = LabelMd)
+                Text(
+                    text = if (isPastEvent) "Event Telah Selesai" else if (isRegistered) "Batal Daftar" else "Daftar Sekarang",
+                    style = LabelMd
+                )
             }
         }
     }

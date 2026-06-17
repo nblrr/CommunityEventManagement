@@ -9,6 +9,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Mood
 import androidx.compose.material3.*
@@ -25,9 +27,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.example.communityeventmanagementsystem.presentation.components.ProfileAvatar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
-import com.example.communityeventmanagementsystem.domain.model.ForumMessage
 import com.example.communityeventmanagementsystem.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -169,7 +171,7 @@ fun ForumTopBar(messageCount: Int, onNavigateBack: () -> Unit) {
         },
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Primary)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Primary)
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = Surface.copy(alpha = 0.8f))
@@ -183,15 +185,12 @@ fun IncomingMessage(name: String, nameColor: Color, avatarUrl: String, message: 
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.Top
     ) {
-        AsyncImage(
-            model = avatarUrl,
-            contentDescription = "Avatar",
+        ProfileAvatar(
+            imageUrl = null, // Backend doesn't provide avatarUrl in ForumMessage model yet
+            name = name,
             modifier = Modifier
                 .padding(end = Dimens.SpacingSm, top = Dimens.SpacingXs)
                 .size(40.dp)
-                .clip(CircleShape)
-                .border(2.dp, SurfaceVariant, CircleShape),
-            contentScale = ContentScale.Crop
         )
         Column(modifier = Modifier.weight(0.8f, fill = false)) {
             Text(text = name, style = BodySm.copy(fontSize = 12.sp, fontWeight = FontWeight.Bold), color = nameColor, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
@@ -274,7 +273,7 @@ fun ForumChatInput(
                     .size(40.dp)
                     .background(Primary, CircleShape)
             ) {
-                Icon(Icons.Default.Send, contentDescription = "Send", tint = OnPrimary, modifier = Modifier.size(20.dp))
+                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send", tint = OnPrimary, modifier = Modifier.size(20.dp))
             }
         }
     }

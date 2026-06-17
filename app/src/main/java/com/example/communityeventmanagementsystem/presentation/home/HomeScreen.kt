@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.example.communityeventmanagementsystem.presentation.components.ProfileAvatar
 import com.example.communityeventmanagementsystem.presentation.components.SkeletonHome
 import com.example.communityeventmanagementsystem.domain.model.Category
 import com.example.communityeventmanagementsystem.domain.model.Community
@@ -54,10 +55,16 @@ fun HomeScreen(
         viewModel.handleEvent(HomeContract.Event.LoadHomeData)
     }
 
+    val hasAnyData = state.categories.isNotEmpty() || 
+                     state.upcomingEvents.isNotEmpty() || 
+                     state.recommendedEvents.isNotEmpty() || 
+                     state.myCommunities.isNotEmpty()
+
     Scaffold(
         topBar = { 
             HomeTopBar(
                 userName = state.userName,
+                userAvatar = state.userAvatar,
                 onProfileClick = onNavigateToProfile,
                 onNotificationsClick = onNavigateToNotifications
             ) 
@@ -79,9 +86,9 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            if (state.isLoading && state.categories.isEmpty()) {
+            if (state.isLoading && !hasAnyData) {
                 SkeletonHome()
-            } else if (state.error != null && state.categories.isEmpty()) {
+            } else if (state.error != null && !hasAnyData) {
                 Box(
                     modifier = Modifier.fillMaxSize().padding(Dimens.ContainerPadding),
                     contentAlignment = Alignment.Center
@@ -237,6 +244,7 @@ fun HomeScreen(
 @Composable
 fun HomeTopBar(
     userName: String?,
+    userAvatar: String?,
     onProfileClick: () -> Unit,
     onNotificationsClick: () -> Unit
 ) {
@@ -253,20 +261,14 @@ fun HomeTopBar(
             }
         },
         navigationIcon = {
-            Box(
+            ProfileAvatar(
+                imageUrl = userAvatar,
+                name = userName ?: "User",
                 modifier = Modifier
                     .padding(start = Dimens.ContainerPadding)
                     .size(40.dp)
-                    .clip(CircleShape)
                     .clickable { onProfileClick() }
-            ) {
-                AsyncImage(
-                    model = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&h=80",
-                    contentDescription = "User profile",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            }
+            )
         },
         actions = {
             IconButton(onClick = onNotificationsClick) {

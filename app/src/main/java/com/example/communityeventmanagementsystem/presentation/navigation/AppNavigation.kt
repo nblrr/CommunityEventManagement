@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -17,6 +18,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+
+import com.example.communityeventmanagementsystem.presentation.main.MainViewModel
 
 import com.example.communityeventmanagementsystem.presentation.admin.AdminDashboardScreen
 import com.example.communityeventmanagementsystem.presentation.auth.LoginScreen
@@ -39,10 +42,19 @@ import com.example.communityeventmanagementsystem.presentation.event.SearchAndFi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    viewModel: MainViewModel = hiltViewModel()
+) {
+    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    if (isLoggedIn == null) return
+
+    val startDestination = remember(isLoggedIn) {
+        if (isLoggedIn == true) Screen.Home.route else Screen.Login.route
+    }
 
     val showBottomBar = currentRoute in listOf(
         Screen.Home.route,
@@ -64,7 +76,7 @@ fun AppNavigation() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Login.route,
+            startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Login.route) {
@@ -136,7 +148,10 @@ fun AppNavigation() {
                 route = Screen.CommunityDetail.ROUTE,
                 arguments = listOf(navArgument("id") { type = NavType.LongType })
             ) {
-                CommunityDetailScreen(onNavigateBack = { navController.navigateUp() })
+                CommunityDetailScreen(
+                    onNavigateBack = { navController.navigateUp() },
+                    onNavigateToForum = { id -> navController.navigate(Screen.CommunityForum(id).route) }
+                )
             }
             composable(
                 route = Screen.CommunityForum.ROUTE,

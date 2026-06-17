@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.communityeventmanagementsystem.domain.model.User
+import com.example.communityeventmanagementsystem.presentation.components.ProfileAvatar
 import com.example.communityeventmanagementsystem.presentation.components.AppButton
 import com.example.communityeventmanagementsystem.presentation.components.AppError
 import com.example.communityeventmanagementsystem.presentation.components.AppTextField
@@ -146,32 +147,14 @@ fun EditProfileScreen(
                                     )
                                 }
                         ) {
-                            Box(
+                            ProfileAvatar(
+                                imageUrl = user.avatarUrl,
+                                name = user.name,
                                 modifier = Modifier
                                     .size(120.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.primaryContainer)
                                     .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (user.avatarUrl != null) {
-                                    AsyncImage(
-                                        model = user.avatarUrl,
-                                        contentDescription = "Avatar",
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .clip(CircleShape)
-                                    )
-                                } else {
-                                    Icon(
-                                        imageVector = Icons.Default.Person,
-                                        contentDescription = "Avatar Placeholder",
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(60.dp)
-                                    )
-                                }
-                            }
+                                textStyle = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold)
+                            )
                             
                             // Edit Badge
                             Box(

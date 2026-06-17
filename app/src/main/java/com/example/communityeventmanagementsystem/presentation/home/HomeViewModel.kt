@@ -31,7 +31,7 @@ class HomeViewModel @Inject constructor(
                 if (!json.isNullOrBlank()) {
                     try {
                         val user = gson.fromJson(json, com.example.communityeventmanagementsystem.data.remote.dto.UserDto::class.java)
-                        setState { copy(userName = user.name) }
+                        setState { copy(userName = user.name, userAvatar = user.avatarUrl) }
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -73,6 +73,11 @@ class HomeViewModel @Inject constructor(
             val recommendedEventsResult = recommendedEventsDeferred.await()
             val myCommunitiesResult = myCommunitiesDeferred.await()
 
+            val allFailed = categoriesResult is NetworkResult.Error &&
+                    upcomingEventsResult is NetworkResult.Error &&
+                    recommendedEventsResult is NetworkResult.Error &&
+                    myCommunitiesResult is NetworkResult.Error
+
             setState {
                 copy(
                     isLoading = false,
@@ -80,7 +85,7 @@ class HomeViewModel @Inject constructor(
                     upcomingEvents = if (upcomingEventsResult is NetworkResult.Success) upcomingEventsResult.data else upcomingEvents,
                     recommendedEvents = if (recommendedEventsResult is NetworkResult.Success) recommendedEventsResult.data else recommendedEvents,
                     myCommunities = if (myCommunitiesResult is NetworkResult.Success) myCommunitiesResult.data else myCommunities,
-                    error = if (!hasData) {
+                    error = if (allFailed && !hasData) {
                         (categoriesResult as? NetworkResult.Error)?.message
                             ?: (upcomingEventsResult as? NetworkResult.Error)?.message
                             ?: (recommendedEventsResult as? NetworkResult.Error)?.message

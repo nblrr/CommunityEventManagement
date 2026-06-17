@@ -34,6 +34,7 @@ class CommunityDetailViewModel @Inject constructor(
             is CommunityDetailContract.Event.LoadDetail -> loadDetail(event.id, forceRefresh = false)
             is CommunityDetailContract.Event.JoinCommunity -> join()
             is CommunityDetailContract.Event.LeaveCommunity -> leave()
+            is CommunityDetailContract.Event.ShowErrorMessage -> setState { copy(error = event.message) }
         }
     }
 

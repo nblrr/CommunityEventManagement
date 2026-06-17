@@ -1,14 +1,11 @@
 package com.example.communityeventmanagementsystem.presentation.event
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,7 +26,6 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import com.example.communityeventmanagementsystem.presentation.components.SkeletonEventCard
-import com.example.communityeventmanagementsystem.domain.model.Event as DomainEvent
 import com.example.communityeventmanagementsystem.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,7 +71,7 @@ fun EventListScreen(
                 navigationIcon = {
                     if (state.categoryId != null && state.categoryId != -1L) {
                         IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Primary)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Primary)
                         }
                     }
                 },

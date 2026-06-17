@@ -25,7 +25,7 @@ sealed class BottomBarDestination(
 ) {
     object Home : BottomBarDestination(Screen.Home.route, "Home", Icons.Filled.Home)
     object Communities : BottomBarDestination(Screen.CommunityList.route, "Komunitas", Icons.Filled.Group)
-    object Events : BottomBarDestination(Screen.EventList.route, "Events", Icons.Filled.CalendarToday)
+    object Events : BottomBarDestination(Screen.EventList.route, "Event", Icons.Filled.CalendarToday)
     object Notifications : BottomBarDestination(Screen.Notifications.route, "Notifikasi", Icons.Filled.Notifications)
     object Profile : BottomBarDestination(Screen.Profile.route, "Profile", Icons.Filled.Person)
 }
@@ -39,7 +39,6 @@ fun BottomNavigationBar(
         BottomBarDestination.Home,
         BottomBarDestination.Communities,
         BottomBarDestination.Events,
-        BottomBarDestination.Notifications,
         BottomBarDestination.Profile
     )
 

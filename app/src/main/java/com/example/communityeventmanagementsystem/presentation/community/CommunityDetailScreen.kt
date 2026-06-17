@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.communityeventmanagementsystem.presentation.components.ProfileAvatar
 import com.example.communityeventmanagementsystem.ui.theme.*
 
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -41,6 +42,7 @@ import com.example.communityeventmanagementsystem.domain.model.Community
 @Composable
 fun CommunityDetailScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToForum: (Long) -> Unit,
     viewModel: CommunityDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -106,9 +108,11 @@ fun CommunityDetailScreen(
                             CommunityDetailDescription(community)
                             CommunityDetailOrganizer(community)
                             CommunityDetailForumAction(onClick = {
-                                // Navigate to forum: we will define a navigation action later, or just let it navigate in AppNavigation
-                                // Wait, the screen can't directly trigger navigation, but in this dummy/mock we can just leave it or pass a callback.
-                                // Let's just navigate in a future flow or pass it as an argument if needed.
+                                if (state.isJoined) {
+                                    onNavigateToForum(community.id)
+                                } else {
+                                    viewModel.handleEvent(CommunityDetailContract.Event.ShowErrorMessage("Silakan gabung komunitas terlebih dahulu untuk mengakses forum."))
+                                }
                             })
                             CommunityDetailEvents(community)
                         }
@@ -140,15 +144,12 @@ fun CommunityDetailTopBar(onNavigateBack: () -> Unit) {
             IconButton(onClick = {}) {
                 Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = OnSurfaceVariant)
             }
-            AsyncImage(
-                model = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&h=80",
-                contentDescription = "User profile photo",
+            ProfileAvatar(
+                imageUrl = null, // Using null for now as we don't have current user data here
+                name = "User",
                 modifier = Modifier
                     .padding(end = Dimens.ContainerPadding)
                     .size(32.dp)
-                    .clip(CircleShape)
-                    .border(1.dp, OutlineVariant, CircleShape),
-                contentScale = ContentScale.Crop
             )
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = Surface.copy(alpha = 0.8f))
@@ -268,19 +269,11 @@ fun CommunityDetailOrganizer(community: Community) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingMd)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(PrimaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = (community.organizerName ?: "Organizer").take(2).uppercase(),
-                    style = BodyLg.copy(fontWeight = FontWeight.Bold),
-                    color = OnPrimaryContainer
-                )
-            }
+            ProfileAvatar(
+                imageUrl = null, // Backend doesn't provide organizerImageUrl yet in Community model
+                name = community.organizerName ?: "Admin",
+                modifier = Modifier.size(48.dp)
+            )
             Column {
                 Text("Organizer", style = BodySm, color = Outline)
                 Text(community.organizerName ?: "Admin Komunitas", style = BodyLg.copy(fontWeight = FontWeight.SemiBold), color = OnSurface)

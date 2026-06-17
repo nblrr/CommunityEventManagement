@@ -1,12 +1,12 @@
 package com.example.communityeventmanagementsystem.presentation.profile
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -15,15 +15,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.example.communityeventmanagementsystem.presentation.components.ProfileAvatar
 import com.example.communityeventmanagementsystem.domain.model.User
 import com.example.communityeventmanagementsystem.ui.theme.*
 
@@ -48,6 +47,7 @@ fun ProfileScreen(
         viewModel.effect.collect { effect ->
             when (effect) {
                 is ProfileContract.Effect.NavigateToLogin -> onLogoutSuccess()
+                else -> {}
             }
         }
     }
@@ -97,7 +97,7 @@ fun ProfileScreen(
                             ProfileInfoSection(user)
                         }
                         item {
-                            StatsGridSection()
+                            StatsGridSection(user)
                         }
                         item {
                             MenuListSection(
@@ -143,24 +143,12 @@ fun ProfileInfoSection(user: User) {
         modifier = Modifier.fillMaxWidth().padding(horizontal = Dimens.ContainerPadding)
     ) {
         Box(modifier = Modifier.padding(bottom = Dimens.SpacingMd)) {
-            Box(
-                modifier = Modifier
-                    .size(96.dp)
-                    .clip(CircleShape)
-                    .background(PrimaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                if (!user.avatarUrl.isNullOrBlank()) {
-                    AsyncImage(
-                        model = user.avatarUrl,
-                        contentDescription = "Avatar",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Text(user.name.take(1).uppercase(), style = HeadlineXl, color = OnPrimaryContainer)
-                }
-            }
+            ProfileAvatar(
+                imageUrl = user.avatarUrl,
+                name = user.name,
+                modifier = Modifier.size(96.dp),
+                textStyle = HeadlineXl
+            )
         }
         Text(user.name, style = HeadlineLgMobile, color = OnSurface, modifier = Modifier.padding(bottom = Dimens.SpacingXs))
         Text(user.email, style = BodyMd, color = OnSurfaceVariant, modifier = Modifier.padding(bottom = Dimens.SpacingSm))
@@ -174,15 +162,15 @@ fun ProfileInfoSection(user: User) {
 }
 
 @Composable
-fun StatsGridSection() {
+fun StatsGridSection(user: User) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = Dimens.ContainerPadding, vertical = Dimens.SpacingXl),
         horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingMd)
     ) {
-        StatBox(icon = Icons.Default.Groups, count = "3", label = "Komunitas", modifier = Modifier.weight(1f))
-        StatBox(icon = Icons.Default.CalendarToday, count = "5", label = "Event", modifier = Modifier.weight(1f))
+        StatBox(icon = Icons.Default.Groups, count = user.communitiesCount.toString(), label = "Komunitas", modifier = Modifier.weight(1f))
+        StatBox(icon = Icons.Default.CalendarToday, count = user.eventsCount.toString(), label = "Event", modifier = Modifier.weight(1f))
     }
 }
 
@@ -239,7 +227,7 @@ fun MenuListSection(
         }
         
         Spacer(modifier = Modifier.height(Dimens.SpacingSm))
-        MenuItem(icon = Icons.Default.Logout, label = "Logout", onClick = onLogoutClick)
+        MenuItem(icon = Icons.AutoMirrored.Filled.Logout, label = "Logout", onClick = onLogoutClick)
     }
 }
 

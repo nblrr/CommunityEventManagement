@@ -8,6 +8,7 @@ class HomeContract {
     data class State(
         val isLoading: Boolean = false,
         val userName: String? = null,
+        val userAvatar: String? = null,
         val categories: List<Category> = emptyList(),
         val upcomingEvents: List<DomainEvent> = emptyList(),
         val recommendedEvents: List<DomainEvent> = emptyList(),

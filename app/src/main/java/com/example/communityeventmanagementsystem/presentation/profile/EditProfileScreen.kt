@@ -15,24 +15,19 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
-import com.example.communityeventmanagementsystem.domain.model.User
 import com.example.communityeventmanagementsystem.presentation.components.ProfileAvatar
 import com.example.communityeventmanagementsystem.presentation.components.AppButton
 import com.example.communityeventmanagementsystem.presentation.components.AppError
 import com.example.communityeventmanagementsystem.presentation.components.AppTextField
-import com.example.communityeventmanagementsystem.presentation.components.ButtonVariant
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -95,7 +90,7 @@ fun EditProfileScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = { Text("Edit Profile", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
@@ -116,6 +111,7 @@ fun EditProfileScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(padding)
+                .imePadding()
         ) {
             if (state.isLoading && state.user == null) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

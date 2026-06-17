@@ -40,9 +40,9 @@ fun CommunityListScreen(
     val communitiesItems = state.communities.collectAsLazyPagingItems()
     var searchQuery by remember { mutableStateOf("") }
     
-    val categories = listOf("Semua", "Teknologi", "Fotografi", "Olahraga", "Seni & Budaya")
-    val categoryIds = listOf(null, 1L, 2L, 3L, 4L) // Map name to standard IDs or categoryId
-    var selectedCategoryIndex by remember { mutableIntStateOf(0) }
+    val displayCategories = remember(state.categories) {
+        listOf(com.example.communityeventmanagementsystem.domain.model.Category(id = -1L, name = "Semua", icon = null)) + state.categories
+    }
 
     LaunchedEffect(key1 = state.categoryId) {
         viewModel.handleEvent(CommunityListContract.Event.LoadCommunities(state.categoryId))
@@ -125,20 +125,19 @@ fun CommunityListScreen(
                     horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingSm),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    items(categories.size) { index ->
-                        val category = categories[index]
-                        val isSelected = selectedCategoryIndex == index
+                    items(displayCategories.size) { index ->
+                        val category = displayCategories[index]
+                        val isSelected = (state.categoryId == category.id) || (category.id == -1L && (state.categoryId == null))
                         Surface(
                             color = if (isSelected) Primary else SurfaceContainer,
                             shape = Shapes.Full,
                             border = if (!isSelected) androidx.compose.foundation.BorderStroke(1.dp, OutlineVariant) else null,
                             modifier = Modifier.clickable { 
-                                selectedCategoryIndex = index
-                                viewModel.handleEvent(CommunityListContract.Event.LoadCommunities(categoryIds[index]))
+                                viewModel.handleEvent(CommunityListContract.Event.LoadCommunities(category.id))
                             }
                         ) {
                             Text(
-                                text = category,
+                                text = category.name,
                                 style = LabelMd,
                                 color = if (isSelected) OnPrimary else OnSurface,
                                 modifier = Modifier.padding(horizontal = Dimens.SpacingMd, vertical = Dimens.SpacingSm)

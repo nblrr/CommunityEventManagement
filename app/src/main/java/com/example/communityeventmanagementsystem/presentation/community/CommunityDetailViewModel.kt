@@ -65,10 +65,13 @@ class CommunityDetailViewModel @Inject constructor(
             when (val result = joinCommunityUseCase(communityId)) {
                 is NetworkResult.Success -> {
                     setState { copy(isJoining = false, isJoined = true) }
-                    setEffect { CommunityDetailContract.Effect.ShowSuccessMessage }
+                    setEffect { CommunityDetailContract.Effect.ShowMessage("Berhasil bergabung dengan komunitas!") }
                     loadDetail(communityId, forceRefresh = true)
                 }
-                is NetworkResult.Error -> setState { copy(isJoining = false, error = result.message) }
+                is NetworkResult.Error -> {
+                    setState { copy(isJoining = false) }
+                    setEffect { CommunityDetailContract.Effect.ShowMessage(result.message) }
+                }
                 is NetworkResult.Loading -> {}
             }
         }
@@ -81,10 +84,13 @@ class CommunityDetailViewModel @Inject constructor(
             when (val result = leaveCommunityUseCase(communityId)) {
                 is NetworkResult.Success -> {
                     setState { copy(isJoining = false, isJoined = false) }
-                    setEffect { CommunityDetailContract.Effect.ShowSuccessMessage }
+                    setEffect { CommunityDetailContract.Effect.ShowMessage("Berhasil keluar dari komunitas.") }
                     loadDetail(communityId, forceRefresh = true)
                 }
-                is NetworkResult.Error -> setState { copy(isJoining = false, error = result.message) }
+                is NetworkResult.Error -> {
+                    setState { copy(isJoining = false) }
+                    setEffect { CommunityDetailContract.Effect.ShowMessage(result.message) }
+                }
                 is NetworkResult.Loading -> {}
             }
         }

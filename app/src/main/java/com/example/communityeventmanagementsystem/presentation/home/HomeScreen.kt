@@ -1,14 +1,12 @@
 package com.example.communityeventmanagementsystem.presentation.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -16,20 +14,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.communityeventmanagementsystem.presentation.components.ProfileAvatar
 import com.example.communityeventmanagementsystem.presentation.components.SkeletonHome
+import com.example.communityeventmanagementsystem.presentation.components.AppError
 import com.example.communityeventmanagementsystem.domain.model.Category
 import com.example.communityeventmanagementsystem.domain.model.Community
 import com.example.communityeventmanagementsystem.domain.model.Event
@@ -46,6 +41,7 @@ fun HomeScreen(
     onNavigateToCreateCommunity: () -> Unit = {},
     onNavigateToCreateEvent: () -> Unit = {},
     onNavigateToSearchAndFilter: () -> Unit = {},
+    onNavigateToLogin: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -53,6 +49,15 @@ fun HomeScreen(
 
     LaunchedEffect(Unit) {
         viewModel.handleEvent(HomeContract.Event.LoadHomeData)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is HomeContract.Effect.NavigateToLogin -> onNavigateToLogin()
+                else -> {}
+            }
+        }
     }
 
     val hasAnyData = state.categories.isNotEmpty() || 
@@ -89,26 +94,17 @@ fun HomeScreen(
             if (state.isLoading && !hasAnyData) {
                 SkeletonHome()
             } else if (state.error != null && !hasAnyData) {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(Dimens.ContainerPadding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = state.error ?: "Terjadi kesalahan loading data",
-                            style = BodyLg,
-                            color = Error,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(Dimens.SpacingMd))
-                        Button(
-                            onClick = { viewModel.handleEvent(HomeContract.Event.RefreshHomeData) },
-                            colors = ButtonDefaults.buttonColors(containerColor = Primary)
-                        ) {
-                            Text("Coba Lagi")
+                AppError(
+                    message = state.error ?: "Terjadi kesalahan loading data",
+                    errorCode = state.errorCode,
+                    onRetry = {
+                        if (state.errorCode == 401) {
+                            viewModel.handleEvent(HomeContract.Event.Logout)
+                        } else {
+                            viewModel.handleEvent(HomeContract.Event.RefreshHomeData)
                         }
                     }
-                }
+                )
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -248,17 +244,14 @@ fun HomeTopBar(
     onProfileClick: () -> Unit,
     onNotificationsClick: () -> Unit
 ) {
-    TopAppBar(
+    CenterAlignedTopAppBar(
         title = {
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = "EventHub",
-                    style = HeadlineMd,
-                    color = Primary,
-                    fontWeight = FontWeight.Black,
-                    modifier = Modifier.offset(x = (-24).dp)
-                )
-            }
+            Text(
+                text = "EventHub",
+                style = HeadlineMd,
+                color = Primary,
+                fontWeight = FontWeight.Black
+            )
         },
         navigationIcon = {
             ProfileAvatar(

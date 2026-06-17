@@ -4,6 +4,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.example.communityeventmanagementsystem.core.common.NetworkResult
+import com.example.communityeventmanagementsystem.core.network.ErrorHandler
 import com.example.communityeventmanagementsystem.data.mapper.toDomain
 import com.example.communityeventmanagementsystem.data.remote.api.CommunityApi
 import com.example.communityeventmanagementsystem.data.remote.paging.CommunityPagingSource
@@ -28,7 +29,7 @@ class CommunityRepositoryImpl @Inject constructor(
             val response = api.getCommunityDetail(id)
             NetworkResult.Success(response.toDomain())
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -37,7 +38,7 @@ class CommunityRepositoryImpl @Inject constructor(
             api.joinCommunity(id)
             NetworkResult.Success(Unit)
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -46,7 +47,7 @@ class CommunityRepositoryImpl @Inject constructor(
             api.leaveCommunity(id)
             NetworkResult.Success(Unit)
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 }

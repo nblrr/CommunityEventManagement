@@ -1,10 +1,6 @@
 package com.example.communityeventmanagementsystem.presentation.navigation
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -35,10 +31,9 @@ import com.example.communityeventmanagementsystem.presentation.organizer.Organiz
 import com.example.communityeventmanagementsystem.presentation.profile.EditProfileScreen
 import com.example.communityeventmanagementsystem.presentation.profile.ProfileScreen
 import com.example.communityeventmanagementsystem.presentation.trusted.TrustedAppScreen
-import com.example.communityeventmanagementsystem.presentation.community.CreateCommunityStep1Screen
+import com.example.communityeventmanagementsystem.presentation.community.CreateCommunityScreen
 import com.example.communityeventmanagementsystem.presentation.event.CreateEventScreen
 import com.example.communityeventmanagementsystem.presentation.event.SavedEventsScreen
-import com.example.communityeventmanagementsystem.presentation.event.SearchAndFilterScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -116,7 +111,12 @@ fun AppNavigation(
                     onNavigateToNotifications = { navController.navigate(Screen.Notifications.route) },
                     onNavigateToCreateCommunity = { navController.navigate(Screen.CreateCommunity.route) },
                     onNavigateToCreateEvent = { navController.navigate(Screen.CreateEvent.route) },
-                    onNavigateToSearchAndFilter = { navController.navigate(Screen.SearchAndFilter.route) }
+                    onNavigateToSearchAndFilter = { navController.navigate(Screen.EventList.createRoute(-1L)) },
+                    onNavigateToLogin = {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
                 )
             }
             composable(
@@ -140,8 +140,7 @@ fun AppNavigation(
             ) {
                 EventListScreen(
                     onNavigateBack = { navController.navigateUp() },
-                    onNavigateToEventDetail = { id -> navController.navigate(Screen.EventDetail(id).route) },
-                    onNavigateToSearchAndFilter = { navController.navigate(Screen.SearchAndFilter.route) }
+                    onNavigateToEventDetail = { id -> navController.navigate(Screen.EventDetail(id).route) }
                 )
             }
             composable(
@@ -163,7 +162,14 @@ fun AppNavigation(
                 route = Screen.EventDetail.ROUTE,
                 arguments = listOf(navArgument("id") { type = NavType.LongType })
             ) {
-                EventDetailScreen(onNavigateBack = { navController.navigateUp() })
+                EventDetailScreen(
+                    onNavigateBack = { navController.navigateUp() },
+                    onNavigateToLogin = {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
             }
             composable(Screen.Notifications.route) {
                 NotificationScreen(
@@ -180,7 +186,7 @@ fun AppNavigation(
                     onNavigateToAdminDashboard = { navController.navigate(Screen.AdminDashboard.route) },
                     onLogoutSuccess = {
                         navController.navigate(Screen.Login.route) {
-                            popUpTo(Screen.Home.route) { inclusive = true }
+                            popUpTo(0) { inclusive = true }
                         }
                     }
                 )
@@ -221,13 +227,13 @@ fun AppNavigation(
                 )
             }
             composable(Screen.SavedEvents.route) {
-                SavedEventsScreen(onNavigateBack = { navController.navigateUp() })
-            }
-            composable(Screen.SearchAndFilter.route) {
-                SearchAndFilterScreen(onNavigateBack = { navController.navigateUp() })
+                SavedEventsScreen(
+                    onNavigateBack = { navController.navigateUp() },
+                    onNavigateToEventDetail = { id -> navController.navigate(Screen.EventDetail(id).route) }
+                )
             }
             composable(Screen.CreateCommunity.route) {
-                CreateCommunityStep1Screen(onNavigateBack = { navController.navigateUp() })
+                CreateCommunityScreen(onNavigateBack = { navController.navigateUp() })
             }
             composable(Screen.CreateEvent.route) {
                 CreateEventScreen(onNavigateBack = { navController.navigateUp() })

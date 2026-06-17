@@ -33,12 +33,12 @@ import com.example.communityeventmanagementsystem.ui.theme.*
 fun EventListScreen(
     onNavigateBack: () -> Unit = {},
     onNavigateToEventDetail: (Long) -> Unit = {},
-    onNavigateToSearchAndFilter: () -> Unit = {},
     viewModel: EventListViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val eventsItems = state.events.collectAsLazyPagingItems()
     var searchQuery by remember { mutableStateOf("") }
+    var showFilterSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = state.categoryId) {
         viewModel.handleEvent(EventListContract.Event.LoadEvents(state.categoryId))
@@ -121,7 +121,7 @@ fun EventListScreen(
                         )
                     )
                     Button(
-                        onClick = onNavigateToSearchAndFilter,
+                        onClick = { showFilterSheet = true },
                         modifier = Modifier
                             .size(56.dp)
                             .shadow(4.dp, Shapes.Large),
@@ -182,6 +182,23 @@ fun EventListScreen(
                     }
                 }
             }
+        }
+    }
+
+    if (showFilterSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showFilterSheet = false },
+            containerColor = Surface
+        ) {
+            FilterSheetContent(
+                selectedCategoryId = state.categoryId,
+                categoriesList = state.categories,
+                onSelectCategory = { catId ->
+                    viewModel.handleEvent(EventListContract.Event.LoadEvents(catId))
+                    showFilterSheet = false
+                },
+                onDismiss = { showFilterSheet = false }
+            )
         }
     }
 }
@@ -268,5 +285,84 @@ fun VerticalEventCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun FilterSheetContent(
+    selectedCategoryId: Long?,
+    categoriesList: List<com.example.communityeventmanagementsystem.domain.model.Category>,
+    onSelectCategory: (Long?) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val categories = remember(categoriesList) {
+        listOf("All" to null) + categoriesList.map { it.name to it.id }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Dimens.ContainerPadding)
+            .padding(bottom = Dimens.SpacingXl)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = Dimens.SpacingLg),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Filters", style = HeadlineMd, color = OnSurface)
+            Text("Reset", style = LabelMd, color = Primary, modifier = Modifier.clickable { 
+                onSelectCategory(null)
+            })
+        }
+
+        FilterSection(title = "Categories") {
+            androidx.compose.foundation.lazy.LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(categories.size) { index ->
+                    val (name, id) = categories[index]
+                    val isSelected = (selectedCategoryId == id) || (id == null && (selectedCategoryId == null || selectedCategoryId == -1L))
+                    FilterChipCustom(name, isSelected) {
+                        onSelectCategory(id)
+                    }
+                }
+            }
+        }
+
+        Button(
+            onClick = onDismiss,
+            modifier = Modifier.fillMaxWidth().height(56.dp).padding(top = Dimens.SpacingMd),
+            shape = Shapes.Large,
+            colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = OnPrimary)
+        ) {
+            Text("Show Results", style = HeadlineMd.copy(fontSize = 18.sp))
+        }
+    }
+}
+
+@Composable
+fun FilterSection(title: String, content: @Composable () -> Unit) {
+    Column(modifier = Modifier.padding(bottom = Dimens.SpacingLg)) {
+        Text(title, style = LabelMd, color = Outline, modifier = Modifier.padding(bottom = Dimens.SpacingSm))
+        content()
+    }
+}
+
+@Composable
+fun FilterChipCustom(text: String, isSelected: Boolean, onClick: () -> Unit) {
+    Surface(
+        shape = Shapes.Full,
+        color = if (isSelected) Primary else Color.Transparent,
+        border = androidx.compose.foundation.BorderStroke(1.dp, if (isSelected) Primary else OutlineVariant),
+        modifier = Modifier.clickable { onClick() }
+    ) {
+        Text(
+            text = text,
+            style = LabelMd,
+            color = if (isSelected) OnPrimary else OnSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
     }
 }

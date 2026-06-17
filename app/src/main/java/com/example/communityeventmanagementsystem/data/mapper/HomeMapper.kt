@@ -19,7 +19,19 @@ fun CommunityDto.toDomain() = Community(
     organizerName = organizer?.name,
     eventsCount = eventsCount ?: 0
 )
-fun EventDto.toDomain() = Event(id, title, description, eventDate, attendeeCount, maxAttendees, status, coverImageUrl)
+fun EventDto.toDomain() = Event(
+    id = id,
+    title = title,
+    description = description,
+    eventDate = eventDate,
+    attendeeCount = attendeeCount,
+    maxAttendees = maxAttendees,
+    status = status,
+    coverImageUrl = coverImageUrl,
+    categoryId = categoryId,
+    categoryName = category?.name,
+    location = location ?: "Zoom Meeting"
+)
 
 fun com.example.communityeventmanagementsystem.data.remote.dto.EventDetailResponse.toDomain() = Event(
     id = id,

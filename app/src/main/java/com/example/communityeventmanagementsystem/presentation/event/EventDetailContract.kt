@@ -7,17 +7,20 @@ class EventDetailContract {
         val isLoading: Boolean = false,
         val event: DomainEvent? = null,
         val error: String? = null,
+        val errorCode: Int? = null,
         val isRegistering: Boolean = false,
         val isRegistered: Boolean = false
     )
 
     sealed class Event {
         data class LoadDetail(val id: Long) : Event()
-        object Register : Event()
-        object Unregister : Event()
+        data object Register : Event()
+        data object Unregister : Event()
+        data object Logout : Event()
     }
 
     sealed class Effect {
-        object ShowSuccessMessage : Effect()
+        data class ShowMessage(val message: String) : Effect()
+        data object NavigateToLogin : Effect()
     }
 }

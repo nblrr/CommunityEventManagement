@@ -36,10 +36,10 @@ class ProfileViewModel @Inject constructor(
     private fun loadProfile() {
         if (uiState.value.user != null && !uiState.value.isLoading) return
         viewModelScope.launch {
-            setState { copy(isLoading = true, error = null) }
+            setState { copy(isLoading = true, error = null, errorCode = null, isSessionExpired = false) }
             when (val result = getProfileUseCase()) {
                 is NetworkResult.Success -> setState { copy(isLoading = false, user = result.data) }
-                is NetworkResult.Error -> setState { copy(isLoading = false, error = result.message) }
+                is NetworkResult.Error -> setState { copy(isLoading = false, error = result.message, errorCode = result.code, isSessionExpired = result.code == 401) }
                 is NetworkResult.Loading -> setState { copy(isLoading = true) }
             }
         }
@@ -47,13 +47,13 @@ class ProfileViewModel @Inject constructor(
 
     private fun updateProfile(user: com.example.communityeventmanagementsystem.domain.model.User) {
         viewModelScope.launch {
-            setState { copy(isLoading = true, error = null) }
+            setState { copy(isLoading = true, error = null, errorCode = null, isSessionExpired = false) }
             when (val result = updateProfileUseCase(user)) {
                 is NetworkResult.Success -> {
                     setState { copy(isLoading = false, user = result.data) }
                     setEffect { ProfileContract.Effect.ProfileUpdated }
                 }
-                is NetworkResult.Error -> setState { copy(isLoading = false, error = result.message) }
+                is NetworkResult.Error -> setState { copy(isLoading = false, error = result.message, errorCode = result.code, isSessionExpired = result.code == 401) }
                 is NetworkResult.Loading -> setState { copy(isLoading = true) }
             }
         }
@@ -61,10 +61,10 @@ class ProfileViewModel @Inject constructor(
 
     private fun uploadAvatar(file: java.io.File) {
         viewModelScope.launch {
-            setState { copy(isLoading = true, error = null) }
+            setState { copy(isLoading = true, error = null, errorCode = null, isSessionExpired = false) }
             when (val result = uploadAvatarUseCase(file)) {
                 is NetworkResult.Success -> setState { copy(isLoading = false, user = result.data) }
-                is NetworkResult.Error -> setState { copy(isLoading = false, error = result.message) }
+                is NetworkResult.Error -> setState { copy(isLoading = false, error = result.message, errorCode = result.code, isSessionExpired = result.code == 401) }
                 is NetworkResult.Loading -> setState { copy(isLoading = true) }
             }
         }
@@ -72,10 +72,10 @@ class ProfileViewModel @Inject constructor(
 
     private fun becomeOrganizer() {
         viewModelScope.launch {
-            setState { copy(isLoading = true, error = null) }
+            setState { copy(isLoading = true, error = null, errorCode = null, isSessionExpired = false) }
             when (val result = becomeOrganizerUseCase()) {
                 is NetworkResult.Success -> setState { copy(isLoading = false, user = result.data) }
-                is NetworkResult.Error -> setState { copy(isLoading = false, error = result.message) }
+                is NetworkResult.Error -> setState { copy(isLoading = false, error = result.message, errorCode = result.code, isSessionExpired = result.code == 401) }
                 is NetworkResult.Loading -> setState { copy(isLoading = true) }
             }
         }

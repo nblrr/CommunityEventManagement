@@ -13,7 +13,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material3.*
@@ -30,23 +29,30 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.example.communityeventmanagementsystem.presentation.organizer.OrganizerContract
-import com.example.communityeventmanagementsystem.presentation.organizer.OrganizerViewModel
+import com.example.communityeventmanagementsystem.presentation.components.StandardTopAppBar
 import com.example.communityeventmanagementsystem.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateCommunityStep1Screen(
+fun CreateCommunityScreen(
     onNavigateBack: () -> Unit,
-    viewModel: OrganizerViewModel = hiltViewModel()
+    viewModel: CreateCommunityViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     var communityName by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("") }
     var categoryId by remember { mutableLongStateOf(1L) }
     var description by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    LaunchedEffect(state.categories) {
+        if (state.categories.isNotEmpty() && selectedCategory.isEmpty()) {
+            selectedCategory = state.categories.first().name
+            categoryId = state.categories.first().id
+        }
+    }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
@@ -56,14 +62,21 @@ fun CreateCommunityStep1Screen(
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
-            if (effect is OrganizerContract.Effect.ShowCreateCommunitySuccess) {
-                onNavigateBack()
+            when (effect) {
+                is CreateCommunityContract.Effect.NavigateBack -> onNavigateBack()
+                is CreateCommunityContract.Effect.ShowMessage -> snackbarHostState.showSnackbar(effect.message)
             }
         }
     }
 
     Scaffold(
-        topBar = { CreateCommunityTopBar(onNavigateBack) },
+        topBar = { 
+            StandardTopAppBar(
+                title = "Buat Komunitas",
+                onNavigateBack = onNavigateBack
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = Background
     ) { paddingValues ->
         Column(
@@ -83,7 +96,8 @@ fun CreateCommunityStep1Screen(
                     categoryId = id
                 },
                 description = description,
-                onDescriptionChange = { description = it }
+                onDescriptionChange = { description = it },
+                categories = state.categories
             )
             CommunityMediaSection(
                 selectedImageUri = selectedImageUri,
@@ -100,13 +114,12 @@ fun CreateCommunityStep1Screen(
 
             Button(
                 onClick = {
-                    if (communityName.isBlank() || description.isBlank()) return@Button
                     viewModel.handleEvent(
-                        OrganizerContract.Event.CreateCommunity(
+                        CreateCommunityContract.Event.CreateCommunity(
                             name = communityName,
                             description = description,
                             categoryId = categoryId,
-                            coverImageUrl = selectedImageUri?.toString()
+                            coverImageUri = selectedImageUri
                         )
                     )
                 },
@@ -133,37 +146,14 @@ fun CreateCommunityStep1Screen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateCommunityTopBar(onNavigateBack: () -> Unit) {
-    TopAppBar(
-        title = {
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = "Buat Komunitas",
-                    style = HeadlineMd,
-                    color = OnSurface,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.offset(x = (-24).dp) // adjust for back button
-                )
-            }
-        },
-        navigationIcon = {
-            IconButton(onClick = onNavigateBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = OnSurfaceVariant)
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = Surface.copy(alpha = 0.8f))
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
 fun CommunityInformationSection(
     communityName: String,
     onCommunityNameChange: (String) -> Unit,
     selectedCategory: String,
     onCategoryChange: (String, Long) -> Unit,
     description: String,
-    onDescriptionChange: (String) -> Unit
+    onDescriptionChange: (String) -> Unit,
+    categories: List<com.example.communityeventmanagementsystem.domain.model.Category>
 ) {
     Surface(
         shape = Shapes.ExtraLarge,
@@ -223,10 +213,15 @@ fun CommunityInformationSection(
                         expanded = expanded,
                         onDismissRequest = { expanded = false }
                     ) {
-                        DropdownMenuItem(text = { Text("Teknologi") }, onClick = { onCategoryChange("Teknologi", 1L); expanded = false })
-                        DropdownMenuItem(text = { Text("Seni & Kreativitas") }, onClick = { onCategoryChange("Seni & Kreativitas", 2L); expanded = false })
-                        DropdownMenuItem(text = { Text("Olahraga") }, onClick = { onCategoryChange("Olahraga", 3L); expanded = false })
-                        DropdownMenuItem(text = { Text("Pendidikan") }, onClick = { onCategoryChange("Pendidikan", 4L); expanded = false })
+                        categories.forEach { category ->
+                            DropdownMenuItem(
+                                text = { Text(category.name) },
+                                onClick = { 
+                                    onCategoryChange(category.name, category.id)
+                                    expanded = false 
+                                }
+                            )
+                        }
                     }
                 }
             }

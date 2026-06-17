@@ -8,7 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.HowToReg
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -40,6 +40,30 @@ fun RegisterScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var termsAccepted by remember { mutableStateOf(false) }
 
+    var fullNameError by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+
+    fun validateFullName(value: String) {
+        fullNameError = if (value.isBlank()) "Nama lengkap tidak boleh kosong" else null
+    }
+
+    fun validateEmail(value: String) {
+        emailError = when {
+            value.isBlank() -> "Email tidak boleh kosong"
+            !android.util.Patterns.EMAIL_ADDRESS.matcher(value).matches() -> "Format email tidak valid"
+            else -> null
+        }
+    }
+
+    fun validatePassword(value: String) {
+        passwordError = when {
+            value.isBlank() -> "Password tidak boleh kosong"
+            value.length < 8 -> "Password minimal 8 karakter"
+            else -> null
+        }
+    }
+
     LaunchedEffect(key1 = Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
@@ -54,6 +78,7 @@ fun RegisterScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Background)
+            .imePadding()
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -92,42 +117,63 @@ fun RegisterScreen(
 
                 // Form
                 Column(verticalArrangement = Arrangement.spacedBy(Dimens.SpacingMd), modifier = Modifier.fillMaxWidth()) {
-                    OutlinedTextField(
-                        value = fullName,
-                        onValueChange = { fullName = it },
-                        label = { Text("Full Name", style = LabelMd) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = Shapes.Medium,
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = SurfaceContainerLowest,
-                            focusedContainerColor = SurfaceContainerLowest,
-                            unfocusedBorderColor = OutlineVariant,
-                            focusedBorderColor = Primary
+                    Column {
+                        OutlinedTextField(
+                            value = fullName,
+                            onValueChange = { 
+                                fullName = it
+                                validateFullName(it)
+                            },
+                            label = { Text("Full Name", style = LabelMd) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = Shapes.Medium,
+                            singleLine = true,
+                            isError = fullNameError != null,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                unfocusedContainerColor = SurfaceContainerLowest,
+                                focusedContainerColor = SurfaceContainerLowest,
+                                unfocusedBorderColor = OutlineVariant,
+                                focusedBorderColor = Primary
+                            )
                         )
-                    )
+                        if (fullNameError != null) {
+                            Text(fullNameError!!, style = BodySm, color = Error, modifier = Modifier.padding(start = 4.dp, top = 2.dp))
+                        }
+                    }
 
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        label = { Text("Email Address", style = LabelMd) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = Shapes.Medium,
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = SurfaceContainerLowest,
-                            focusedContainerColor = SurfaceContainerLowest,
-                            unfocusedBorderColor = OutlineVariant,
-                            focusedBorderColor = Primary
+                    Column {
+                        OutlinedTextField(
+                            value = email,
+                            onValueChange = { 
+                                email = it
+                                validateEmail(it)
+                            },
+                            label = { Text("Email Address", style = LabelMd) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = Shapes.Medium,
+                            singleLine = true,
+                            isError = emailError != null,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                unfocusedContainerColor = SurfaceContainerLowest,
+                                focusedContainerColor = SurfaceContainerLowest,
+                                unfocusedBorderColor = OutlineVariant,
+                                focusedBorderColor = Primary
+                            )
                         )
-                    )
+                        if (emailError != null) {
+                            Text(emailError!!, style = BodySm, color = Error, modifier = Modifier.padding(start = 4.dp, top = 2.dp))
+                        }
+                    }
 
                     Column {
                         OutlinedTextField(
                             value = password,
-                            onValueChange = { password = it },
+                            onValueChange = { 
+                                password = it
+                                validatePassword(it)
+                            },
                             label = { Text("Password", style = LabelMd) },
                             trailingIcon = {
                                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -142,6 +188,7 @@ fun RegisterScreen(
                             modifier = Modifier.fillMaxWidth(),
                             shape = Shapes.Medium,
                             singleLine = true,
+                            isError = passwordError != null,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                             colors = OutlinedTextFieldDefaults.colors(
                                 unfocusedContainerColor = SurfaceContainerLowest,
@@ -150,7 +197,11 @@ fun RegisterScreen(
                                 focusedBorderColor = Primary
                             )
                         )
-                        Text("Must be at least 8 characters long.", style = BodySm.copy(fontSize = 12.sp), color = OnSurfaceVariant, modifier = Modifier.padding(top = 4.dp, start = 4.dp))
+                        if (passwordError != null) {
+                            Text(passwordError!!, style = BodySm, color = Error, modifier = Modifier.padding(start = 4.dp, top = 2.dp))
+                        } else {
+                            Text("Must be at least 8 characters long.", style = BodySm.copy(fontSize = 12.sp), color = OnSurfaceVariant, modifier = Modifier.padding(top = 4.dp, start = 4.dp))
+                        }
                     }
 
                     Row(
@@ -182,7 +233,11 @@ fun RegisterScreen(
 
                     Button(
                         onClick = {
-                            if (fullName.isNotBlank() && email.isNotBlank() && password.length >= 8 && termsAccepted) {
+                            validateFullName(fullName)
+                            validateEmail(email)
+                            validatePassword(password)
+                            
+                            if (fullNameError == null && emailError == null && passwordError == null && termsAccepted) {
                                 viewModel.setEvent(
                                     RegisterContract.Event.OnRegisterClicked(
                                         fullName, email, password, password
@@ -204,7 +259,7 @@ fun RegisterScreen(
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
                                 Text("Register", style = LabelMd)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Icon(Icons.Default.ArrowForward, contentDescription = null, modifier = Modifier.size(20.dp))
+                                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(20.dp))
                             }
                         }
                     }

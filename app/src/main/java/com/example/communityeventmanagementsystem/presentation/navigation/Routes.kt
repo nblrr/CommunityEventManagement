@@ -44,7 +44,6 @@ sealed class Screen(val route: String) {
     object CreateCommunity : Screen("create_community")
     object CreateEvent : Screen("create_event")
     object Profile : Screen("profile")
-    object SearchAndFilter : Screen("search_and_filter")
     object TrustedOrganizerApplication : Screen("trusted_organizer_application")
     object OrganizerRegistration : Screen("organizer_registration")
 }

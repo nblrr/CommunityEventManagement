@@ -40,6 +40,25 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+
+    fun validateEmail(value: String) {
+        emailError = when {
+            value.isBlank() -> "Email tidak boleh kosong"
+            !android.util.Patterns.EMAIL_ADDRESS.matcher(value).matches() -> "Format email tidak valid"
+            else -> null
+        }
+    }
+
+    fun validatePassword(value: String) {
+        passwordError = when {
+            value.isBlank() -> "Password tidak boleh kosong"
+            value.length < 6 -> "Password minimal 6 karakter"
+            else -> null
+        }
+    }
+
     LaunchedEffect(key1 = Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
@@ -54,6 +73,7 @@ fun LoginScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Surface)
+            .imePadding()
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -111,12 +131,16 @@ fun LoginScreen(
                             Text("Email", style = LabelMd, color = OnSurface)
                             OutlinedTextField(
                                 value = email,
-                                onValueChange = { email = it },
+                                onValueChange = { 
+                                    email = it
+                                    validateEmail(it)
+                                },
                                 placeholder = { Text("you@company.com", style = BodyMd, color = OutlineVariant) },
                                 leadingIcon = { Icon(Icons.Default.Mail, contentDescription = null, tint = Outline) },
                                 modifier = Modifier.fillMaxWidth().shadow(1.dp, Shapes.Large),
                                 shape = Shapes.Large,
                                 singleLine = true,
+                                isError = emailError != null,
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     unfocusedContainerColor = SurfaceContainerLowest,
@@ -125,6 +149,9 @@ fun LoginScreen(
                                     focusedBorderColor = Primary
                                 )
                             )
+                            if (emailError != null) {
+                                Text(emailError!!, style = BodySm, color = Error)
+                            }
                         }
 
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -133,7 +160,10 @@ fun LoginScreen(
                             }
                             OutlinedTextField(
                                 value = password,
-                                onValueChange = { password = it },
+                                onValueChange = { 
+                                    password = it
+                                    validatePassword(it)
+                                },
                                 placeholder = { Text("••••••••", style = BodyMd, color = OutlineVariant) },
                                 leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = Outline) },
                                 trailingIcon = {
@@ -149,6 +179,7 @@ fun LoginScreen(
                                 modifier = Modifier.fillMaxWidth().shadow(1.dp, Shapes.Large),
                                 shape = Shapes.Large,
                                 singleLine = true,
+                                isError = passwordError != null,
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     unfocusedContainerColor = SurfaceContainerLowest,
@@ -157,6 +188,9 @@ fun LoginScreen(
                                     focusedBorderColor = Primary
                                 )
                             )
+                            if (passwordError != null) {
+                                Text(passwordError!!, style = BodySm, color = Error)
+                            }
                         }
 
                         if (state.error != null) {
@@ -170,7 +204,10 @@ fun LoginScreen(
 
                         Button(
                             onClick = {
-                                if (email.isNotBlank() && password.isNotBlank()) {
+                                validateEmail(email)
+                                validatePassword(password)
+                                
+                                if (emailError == null && passwordError == null) {
                                     viewModel.setEvent(LoginContract.Event.OnLoginClicked(email, password))
                                 }
                             },

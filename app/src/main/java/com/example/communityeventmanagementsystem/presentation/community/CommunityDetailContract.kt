@@ -19,6 +19,6 @@ class CommunityDetailContract {
     }
 
     sealed class Effect {
-        object ShowSuccessMessage : Effect()
+        data class ShowMessage(val message: String) : Effect()
     }
 }

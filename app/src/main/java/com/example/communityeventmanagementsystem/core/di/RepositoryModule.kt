@@ -9,6 +9,7 @@ import com.example.communityeventmanagementsystem.data.repository.HomeRepository
 import com.example.communityeventmanagementsystem.data.repository.NotificationRepositoryImpl
 import com.example.communityeventmanagementsystem.data.repository.OrganizerRepositoryImpl
 import com.example.communityeventmanagementsystem.data.repository.ProfileRepositoryImpl
+import com.example.communityeventmanagementsystem.data.repository.MediaRepositoryImpl
 import com.example.communityeventmanagementsystem.data.repository.TrustedAppRepositoryImpl
 import com.example.communityeventmanagementsystem.domain.repository.AdminRepository
 import com.example.communityeventmanagementsystem.domain.repository.AuthRepository
@@ -19,6 +20,7 @@ import com.example.communityeventmanagementsystem.domain.repository.HomeReposito
 import com.example.communityeventmanagementsystem.domain.repository.NotificationRepository
 import com.example.communityeventmanagementsystem.domain.repository.OrganizerRepository
 import com.example.communityeventmanagementsystem.domain.repository.ProfileRepository
+import com.example.communityeventmanagementsystem.domain.repository.MediaRepository
 import com.example.communityeventmanagementsystem.domain.repository.TrustedAppRepository
 import dagger.Binds
 import dagger.Module
@@ -41,6 +43,12 @@ abstract class RepositoryModule {
     abstract fun bindProfileRepository(
         profileRepositoryImpl: ProfileRepositoryImpl
     ): ProfileRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindMediaRepository(
+        mediaRepositoryImpl: MediaRepositoryImpl
+    ): MediaRepository
 
     @Binds
     @Singleton

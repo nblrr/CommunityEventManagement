@@ -7,7 +7,9 @@ class ProfileContract {
     data class State(
         val isLoading: Boolean = false,
         val user: User? = null,
-        val error: String? = null
+        val error: String? = null,
+        val errorCode: Int? = null,
+        val isSessionExpired: Boolean = false
     )
 
     sealed class Event {

@@ -10,6 +10,7 @@ class EventListContract {
         val categoryId: Long? = null,
         val searchQuery: String = "",
         val events: Flow<PagingData<DomainEvent>> = emptyFlow(),
+        val categories: List<com.example.communityeventmanagementsystem.domain.model.Category> = emptyList(),
         val isInitialized: Boolean = false
     )
 

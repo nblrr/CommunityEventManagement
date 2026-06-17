@@ -1,6 +1,7 @@
 package com.example.communityeventmanagementsystem.data.repository
 
 import com.example.communityeventmanagementsystem.core.common.NetworkResult
+import com.example.communityeventmanagementsystem.core.network.ErrorHandler
 import com.example.communityeventmanagementsystem.data.mapper.toDomain
 import com.example.communityeventmanagementsystem.data.remote.api.HomeApi
 import com.example.communityeventmanagementsystem.domain.model.Category
@@ -18,7 +19,7 @@ class HomeRepositoryImpl @Inject constructor(
             val response = api.getCategories()
             NetworkResult.Success(response.map { it.toDomain() })
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -27,7 +28,7 @@ class HomeRepositoryImpl @Inject constructor(
             val response = api.getUpcomingEvents()
             NetworkResult.Success(response.map { it.toDomain() })
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -36,7 +37,7 @@ class HomeRepositoryImpl @Inject constructor(
             val response = api.getRecommendedEvents()
             NetworkResult.Success(response.map { it.toDomain() })
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -45,7 +46,7 @@ class HomeRepositoryImpl @Inject constructor(
             val response = api.getMyCommunities()
             NetworkResult.Success(response.data.map { it.toDomain() })
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 }

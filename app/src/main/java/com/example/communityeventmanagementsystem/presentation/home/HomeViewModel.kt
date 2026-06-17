@@ -46,11 +46,19 @@ class HomeViewModel @Inject constructor(
         when (event) {
             is HomeContract.Event.LoadHomeData -> loadHomeData(forceRefresh = false)
             is HomeContract.Event.RefreshHomeData -> loadHomeData(forceRefresh = true)
+            is HomeContract.Event.Logout -> logout()
             is HomeContract.Event.OnCategoryClicked -> setEffect { HomeContract.Effect.NavigateToCategory(event.categoryId) }
             is HomeContract.Event.OnEventClicked -> setEffect { HomeContract.Effect.NavigateToEventDetail(event.eventId) }
             is HomeContract.Event.OnCommunityClicked -> setEffect { HomeContract.Effect.NavigateToCommunityDetail(event.communityId) }
             is HomeContract.Event.OnProfileClicked -> setEffect { HomeContract.Effect.NavigateToProfile }
             is HomeContract.Event.OnNotificationClicked -> setEffect { HomeContract.Effect.NavigateToNotifications }
+        }
+    }
+
+    private fun logout() {
+        viewModelScope.launch {
+            sessionManager.logout()
+            setEffect { HomeContract.Effect.NavigateToLogin }
         }
     }
 
@@ -60,7 +68,7 @@ class HomeViewModel @Inject constructor(
         
         viewModelScope.launch {
             if (!hasData || forceRefresh) {
-                setState { copy(isLoading = true, error = null) }
+                setState { copy(isLoading = true, error = null, errorCode = null) }
             }
             
             val categoriesDeferred = async { getCategoriesUseCase() }
@@ -90,6 +98,12 @@ class HomeViewModel @Inject constructor(
                             ?: (upcomingEventsResult as? NetworkResult.Error)?.message
                             ?: (recommendedEventsResult as? NetworkResult.Error)?.message
                             ?: (myCommunitiesResult as? NetworkResult.Error)?.message
+                    } else null,
+                    errorCode = if (allFailed && !hasData) {
+                        (categoriesResult as? NetworkResult.Error)?.code
+                            ?: (upcomingEventsResult as? NetworkResult.Error)?.code
+                            ?: (recommendedEventsResult as? NetworkResult.Error)?.code
+                            ?: (myCommunitiesResult as? NetworkResult.Error)?.code
                     } else null
                 )
             }

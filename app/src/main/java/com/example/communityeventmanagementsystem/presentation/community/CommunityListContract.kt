@@ -10,6 +10,7 @@ class CommunityListContract {
         val categoryId: Long? = null,
         val searchQuery: String = "",
         val communities: Flow<PagingData<Community>> = emptyFlow(),
+        val categories: List<com.example.communityeventmanagementsystem.domain.model.Category> = emptyList(),
         val isInitialized: Boolean = false
     )
 

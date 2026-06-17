@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ProfileController extends Controller
 {
@@ -51,11 +53,22 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
-        // Store avatar file
-        $path = $request->file('avatar')->store('avatars', 'public');
+        // Store avatar file to Supabase via S3 driver
+        $file = $request->file('avatar');
+        $extension = $file->getClientOriginalExtension();
+        if (empty($extension)) {
+            $extension = 'jpg';
+        }
+        $filename = Str::uuid() . '.' . $extension;
+        $path = Storage::disk('s3')->putFileAs('avatars', $file, $filename);
+
+        // Construct standard public Supabase Storage URL
+        $supabaseUrl = rtrim(env('SUPABASE_URL', 'https://bxdvutvfrbmfcixpuefm.supabase.co'), '/');
+        $bucket = env('AWS_BUCKET', 'community-images');
+        $publicUrl = "{$supabaseUrl}/storage/v1/object/public/{$bucket}/{$path}";
 
         $user->update([
-            'avatar_url' => asset('storage/' . $path)
+            'avatar_url' => $publicUrl
         ]);
 
         return response()->json($user->fresh());

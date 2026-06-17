@@ -20,3 +20,21 @@ fun UserDto.toDomain(): User {
         eventsCount = eventsCount ?: 0
     )
 }
+
+fun User.toDto(): UserDto {
+    return UserDto(
+        id = id,
+        name = name,
+        email = email,
+        role = role,
+        isBlocked = isBlocked,
+        isTrusted = isTrusted,
+        avatarUrl = avatarUrl,
+        phoneNumber = phoneNumber,
+        gender = gender,
+        bio = bio,
+        birthDate = birthDate,
+        communitiesCount = communitiesCount,
+        eventsCount = eventsCount
+    )
+}

@@ -2,6 +2,7 @@ package com.example.communityeventmanagementsystem.data.repository
 
 import com.example.communityeventmanagementsystem.core.common.NetworkResult
 import com.example.communityeventmanagementsystem.core.datastore.DataStoreManager
+import com.example.communityeventmanagementsystem.core.network.ErrorHandler
 import com.example.communityeventmanagementsystem.data.mapper.toDomain
 import com.example.communityeventmanagementsystem.data.remote.api.AuthApi
 import com.example.communityeventmanagementsystem.data.remote.dto.LoginRequest
@@ -25,7 +26,7 @@ class AuthRepositoryImpl @Inject constructor(
             dataStoreManager.saveUserData(gson.toJson(response.user))
             NetworkResult.Success(response.user.toDomain())
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -37,11 +38,7 @@ class AuthRepositoryImpl @Inject constructor(
             dataStoreManager.saveUserData(gson.toJson(response.user))
             NetworkResult.Success(response.user.toDomain())
         } catch (e: Exception) {
-            e.printStackTrace()
-
-            NetworkResult.Error(
-                e.message ?: "An unknown error occurred"
-            )
+            ErrorHandler.handleException(e)
         }
     }
 

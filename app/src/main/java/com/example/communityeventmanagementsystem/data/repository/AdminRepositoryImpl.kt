@@ -1,6 +1,7 @@
 package com.example.communityeventmanagementsystem.data.repository
 
 import com.example.communityeventmanagementsystem.core.common.NetworkResult
+import com.example.communityeventmanagementsystem.core.network.ErrorHandler
 import com.example.communityeventmanagementsystem.data.mapper.toDomain
 import com.example.communityeventmanagementsystem.data.remote.api.AdminApi
 import com.example.communityeventmanagementsystem.domain.model.DashboardStats
@@ -28,7 +29,7 @@ class AdminRepositoryImpl @Inject constructor(
                 )
             )
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -37,7 +38,7 @@ class AdminRepositoryImpl @Inject constructor(
             val response = api.getUsers()
             NetworkResult.Success(response.data.map { it.toDomain() })
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -46,7 +47,7 @@ class AdminRepositoryImpl @Inject constructor(
             api.blockUser(id)
             NetworkResult.Success(Unit)
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -55,7 +56,7 @@ class AdminRepositoryImpl @Inject constructor(
             api.unblockUser(id)
             NetworkResult.Success(Unit)
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -64,7 +65,7 @@ class AdminRepositoryImpl @Inject constructor(
             val response = api.getTrustedApplications()
             NetworkResult.Success(response.data.map { it.toDomain() })
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -73,7 +74,7 @@ class AdminRepositoryImpl @Inject constructor(
             api.approveApplication(id)
             NetworkResult.Success(Unit)
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -82,7 +83,7 @@ class AdminRepositoryImpl @Inject constructor(
             api.rejectApplication(id, notes)
             NetworkResult.Success(Unit)
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 }

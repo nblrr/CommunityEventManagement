@@ -13,7 +13,7 @@ fun StandardTopAppBar(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    TopAppBar(
+    CenterAlignedTopAppBar(
         title = { Text(title) },
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {

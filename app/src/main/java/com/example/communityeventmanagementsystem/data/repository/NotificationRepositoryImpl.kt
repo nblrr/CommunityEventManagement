@@ -1,6 +1,7 @@
 package com.example.communityeventmanagementsystem.data.repository
 
 import com.example.communityeventmanagementsystem.core.common.NetworkResult
+import com.example.communityeventmanagementsystem.core.network.ErrorHandler
 import com.example.communityeventmanagementsystem.data.mapper.toDomain
 import com.example.communityeventmanagementsystem.data.remote.api.NotificationApi
 import com.example.communityeventmanagementsystem.domain.model.Notification
@@ -16,7 +17,7 @@ class NotificationRepositoryImpl @Inject constructor(
             val response = api.getNotifications()
             NetworkResult.Success(response.data.map { it.toDomain() })
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -25,7 +26,7 @@ class NotificationRepositoryImpl @Inject constructor(
             api.markAsRead(id)
             NetworkResult.Success(Unit)
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 }

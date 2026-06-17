@@ -1,26 +1,22 @@
 package com.example.communityeventmanagementsystem.presentation.event
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.communityeventmanagementsystem.presentation.components.ProfileAvatar
+import com.example.communityeventmanagementsystem.presentation.components.AppError
 import com.example.communityeventmanagementsystem.domain.model.Event as DomainEvent
 import com.example.communityeventmanagementsystem.ui.theme.*
 
@@ -37,9 +34,19 @@ import com.example.communityeventmanagementsystem.ui.theme.*
 @Composable
 fun EventDetailScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToLogin: () -> Unit = {},
     viewModel: EventDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is EventDetailContract.Effect.NavigateToLogin -> onNavigateToLogin()
+                else -> {}
+            }
+        }
+    }
 
     Scaffold(
         topBar = { EventDetailTopBar(onNavigateBack) },
@@ -69,26 +76,17 @@ fun EventDetailScreen(
                     CircularProgressIndicator(color = Primary)
                 }
             } else if (state.error != null) {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(Dimens.ContainerPadding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = state.error ?: "Terjadi kesalahan loading detail event",
-                            style = BodyLg,
-                            color = Error,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(Dimens.SpacingMd))
-                        Button(
-                            onClick = { viewModel.handleEvent(EventDetailContract.Event.LoadDetail(state.event?.id ?: 0L)) },
-                            colors = ButtonDefaults.buttonColors(containerColor = Primary)
-                        ) {
-                            Text("Coba Lagi")
+                AppError(
+                    message = state.error ?: "Terjadi kesalahan loading detail event",
+                    errorCode = state.errorCode,
+                    onRetry = {
+                        if (state.errorCode == 401) {
+                            viewModel.handleEvent(EventDetailContract.Event.Logout)
+                        } else {
+                            viewModel.handleEvent(EventDetailContract.Event.LoadDetail(state.event?.id ?: 0L))
                         }
                     }
-                }
+                )
             } else {
                 state.event?.let { event ->
                     Column(
@@ -120,19 +118,17 @@ fun EventDetailScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventDetailTopBar(onNavigateBack: () -> Unit) {
-    TopAppBar(
+    CenterAlignedTopAppBar(
         title = {
             Text(
                 text = "Detail Event",
                 style = HeadlineMd,
-                color = OnSurface,
-                modifier = Modifier.fillMaxWidth().padding(end = 40.dp),
-                textAlign = TextAlign.Center
+                color = OnSurface
             )
         },
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = OnSurface)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = OnSurface)
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = SurfaceContainerLowest.copy(alpha = 0.95f))

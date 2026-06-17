@@ -1,6 +1,7 @@
 package com.example.communityeventmanagementsystem.data.repository
 
 import com.example.communityeventmanagementsystem.core.common.NetworkResult
+import com.example.communityeventmanagementsystem.core.network.ErrorHandler
 import com.example.communityeventmanagementsystem.data.mapper.toDomain
 import com.example.communityeventmanagementsystem.data.remote.api.OrganizerApi
 import com.example.communityeventmanagementsystem.data.remote.dto.CommunityDto
@@ -21,7 +22,7 @@ class OrganizerRepositoryImpl @Inject constructor(
             val response = api.getMyCommunities()
             NetworkResult.Success(response.data.map { it.toDomain() })
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -30,7 +31,7 @@ class OrganizerRepositoryImpl @Inject constructor(
             val response = api.getMyEvents()
             NetworkResult.Success(response.data.map { it.toDomain() })
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -45,7 +46,7 @@ class OrganizerRepositoryImpl @Inject constructor(
             val response = api.createCommunity(request)
             NetworkResult.Success(response.toDomain())
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -63,7 +64,7 @@ class OrganizerRepositoryImpl @Inject constructor(
             val response = api.updateCommunity(id, dto)
             NetworkResult.Success(response.toDomain())
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -72,7 +73,7 @@ class OrganizerRepositoryImpl @Inject constructor(
             api.deleteCommunity(id)
             NetworkResult.Success(Unit)
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -93,7 +94,7 @@ class OrganizerRepositoryImpl @Inject constructor(
             val response = api.createEvent(request)
             NetworkResult.Success(response.toDomain())
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -113,7 +114,7 @@ class OrganizerRepositoryImpl @Inject constructor(
             val response = api.updateEvent(id, dto)
             NetworkResult.Success(response.toDomain())
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -122,7 +123,7 @@ class OrganizerRepositoryImpl @Inject constructor(
             api.deleteEvent(id)
             NetworkResult.Success(Unit)
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 }

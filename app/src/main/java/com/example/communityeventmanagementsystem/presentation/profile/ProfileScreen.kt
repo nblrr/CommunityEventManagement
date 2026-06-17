@@ -1,10 +1,8 @@
 package com.example.communityeventmanagementsystem.presentation.profile
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
@@ -14,15 +12,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
 import com.example.communityeventmanagementsystem.presentation.components.ProfileAvatar
+import com.example.communityeventmanagementsystem.presentation.components.AppError
 import com.example.communityeventmanagementsystem.domain.model.User
 import com.example.communityeventmanagementsystem.ui.theme.*
 
@@ -66,26 +61,17 @@ fun ProfileScreen(
                     CircularProgressIndicator(color = Primary)
                 }
             } else if (state.error != null && state.user == null) {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(Dimens.ContainerPadding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = state.error ?: "Gagal memuat profil",
-                            style = BodyLg,
-                            color = Error,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(Dimens.SpacingMd))
-                        Button(
-                            onClick = { viewModel.handleEvent(ProfileContract.Event.LoadProfile) },
-                            colors = ButtonDefaults.buttonColors(containerColor = Primary)
-                        ) {
-                            Text("Coba Lagi")
+                AppError(
+                    message = state.error ?: "Gagal memuat profil",
+                    errorCode = state.errorCode,
+                    onRetry = {
+                        if (state.errorCode == 401 || state.isSessionExpired) {
+                            viewModel.handleEvent(ProfileContract.Event.Logout)
+                        } else {
+                            viewModel.handleEvent(ProfileContract.Event.LoadProfile)
                         }
                     }
-                }
+                )
             } else {
                 state.user?.let { user ->
                     LazyColumn(
@@ -123,7 +109,7 @@ fun ProfileScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileTopBar() {
-    TopAppBar(
+    CenterAlignedTopAppBar(
         title = {
             Text(
                 text = "Profil Pengguna",

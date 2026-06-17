@@ -30,5 +30,7 @@ data class EventDto(
     @SerializedName("attendee_count") val attendeeCount: Int,
     @SerializedName("max_attendees") val maxAttendees: Int,
     val status: String,
-    @SerializedName("cover_image_url") val coverImageUrl: String?
+    @SerializedName("cover_image_url") val coverImageUrl: String?,
+    @SerializedName("category_id") val categoryId: Long = 1L,
+    val category: CategoryDto? = null
 )

@@ -11,6 +11,7 @@ import com.example.communityeventmanagementsystem.data.remote.api.HomeApi
 import com.example.communityeventmanagementsystem.data.remote.api.NotificationApi
 import com.example.communityeventmanagementsystem.data.remote.api.OrganizerApi
 import com.example.communityeventmanagementsystem.data.remote.api.ProfileApi
+import com.example.communityeventmanagementsystem.data.remote.api.MediaApi
 import com.example.communityeventmanagementsystem.data.remote.api.TrustedAppApi
 import com.google.gson.Gson
 import dagger.Module
@@ -79,6 +80,12 @@ object NetworkModule {
     @Singleton
     fun provideProfileApi(retrofit: Retrofit): ProfileApi {
         return retrofit.create(ProfileApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMediaApi(retrofit: Retrofit): MediaApi {
+        return retrofit.create(MediaApi::class.java)
     }
 
     @Provides

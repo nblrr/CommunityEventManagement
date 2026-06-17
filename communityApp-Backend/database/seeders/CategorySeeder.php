@@ -19,6 +19,10 @@ class CategorySeeder extends Seeder
             ['name' => 'Music', 'icon' => 'music_note'],
             ['name' => 'Education & Science', 'icon' => 'school'],
             ['name' => 'Business & Finance', 'icon' => 'trending_up'],
+            ['name' => 'Gaming', 'icon' => 'sports_esports'],
+            ['name' => 'Photography', 'icon' => 'photo_camera'],
+            ['name' => 'Environment', 'icon' => 'eco'],
+            ['name' => 'Health & Wellness', 'icon' => 'favorite'],
         ];
 
         foreach ($categories as $category) {

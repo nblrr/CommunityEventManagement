@@ -12,6 +12,8 @@ use App\Http\Controllers\Api\ForumController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\TrustedApplicationController;
 use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\SearchController;
+use App\Http\Controllers\Api\MediaUploadController;
 
 // ============================================================
 // PUBLIC ROUTES (tanpa auth)
@@ -35,9 +37,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [ProfileController::class, 'profile']);
     Route::put('/profile', [ProfileController::class, 'updateProfile']);
     Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar']);
+    Route::post('/upload', [MediaUploadController::class, 'upload']);
 
     // -------------------- CATEGORIES --------------------
     Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/search', [SearchController::class, 'search']);
 
     // -------------------- COMMUNITIES --------------------
     Route::get('/my-communities', [CommunityController::class, 'myCommunities']);

@@ -1,6 +1,7 @@
 package com.example.communityeventmanagementsystem.data.repository
 
 import com.example.communityeventmanagementsystem.core.common.NetworkResult
+import com.example.communityeventmanagementsystem.core.network.ErrorHandler
 import com.example.communityeventmanagementsystem.data.mapper.toDomain
 import com.example.communityeventmanagementsystem.data.remote.api.ForumApi
 import com.example.communityeventmanagementsystem.data.remote.dto.SendMessageRequest
@@ -17,7 +18,7 @@ class ForumRepositoryImpl @Inject constructor(
             val response = api.getMessages(communityId)
             NetworkResult.Success(response.data.map { it.toDomain() })
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -26,7 +27,7 @@ class ForumRepositoryImpl @Inject constructor(
             val response = api.sendMessage(communityId, SendMessageRequest(message))
             NetworkResult.Success(response.toDomain())
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 }

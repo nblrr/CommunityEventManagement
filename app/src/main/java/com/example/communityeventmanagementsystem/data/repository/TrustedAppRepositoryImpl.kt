@@ -1,11 +1,13 @@
 package com.example.communityeventmanagementsystem.data.repository
 
 import com.example.communityeventmanagementsystem.core.common.NetworkResult
+import com.example.communityeventmanagementsystem.core.network.ErrorHandler
 import com.example.communityeventmanagementsystem.data.mapper.toDomain
 import com.example.communityeventmanagementsystem.data.remote.api.TrustedAppApi
 import com.example.communityeventmanagementsystem.data.remote.dto.SubmitTrustedAppRequest
 import com.example.communityeventmanagementsystem.domain.model.TrustedApplication
 import com.example.communityeventmanagementsystem.domain.repository.TrustedAppRepository
+import retrofit2.HttpException
 import javax.inject.Inject
 
 class TrustedAppRepositoryImpl @Inject constructor(
@@ -16,14 +18,12 @@ class TrustedAppRepositoryImpl @Inject constructor(
         return try {
             val response = api.getMyApplication()
             NetworkResult.Success(response?.toDomain())
-        } catch (e: retrofit2.HttpException) {
-            if (e.code() == 404) {
+        } catch (e: Exception) {
+            if (e is HttpException && e.code() == 404) {
                 NetworkResult.Success(null)
             } else {
-                NetworkResult.Error(e.message ?: "An HTTP error occurred")
+                ErrorHandler.handleException(e)
             }
-        } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
         }
     }
 
@@ -32,7 +32,7 @@ class TrustedAppRepositoryImpl @Inject constructor(
             val response = api.submitApplication(SubmitTrustedAppRequest(communityName, reason, experience))
             NetworkResult.Success(response.toDomain())
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 }

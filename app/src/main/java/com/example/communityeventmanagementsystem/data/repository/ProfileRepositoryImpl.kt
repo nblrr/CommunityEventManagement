@@ -2,9 +2,10 @@ package com.example.communityeventmanagementsystem.data.repository
 
 import com.example.communityeventmanagementsystem.core.common.NetworkResult
 import com.example.communityeventmanagementsystem.core.datastore.DataStoreManager
+import com.example.communityeventmanagementsystem.core.network.ErrorHandler
 import com.example.communityeventmanagementsystem.data.mapper.toDomain
+import com.example.communityeventmanagementsystem.data.mapper.toDto
 import com.example.communityeventmanagementsystem.data.remote.api.ProfileApi
-import com.example.communityeventmanagementsystem.data.remote.dto.UserDto
 import com.example.communityeventmanagementsystem.domain.model.User
 import com.example.communityeventmanagementsystem.domain.repository.ProfileRepository
 import com.google.gson.Gson
@@ -24,34 +25,19 @@ class ProfileRepositoryImpl @Inject constructor(
         return try {
             val response = api.getProfile()
             dataStoreManager.saveUserData(gson.toJson(response))
-            dataStoreManager.saveRole(response.role)
             NetworkResult.Success(response.toDomain())
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
     override suspend fun updateProfile(user: User): NetworkResult<User> {
         return try {
-            val userDto = UserDto(
-                id = user.id,
-                name = user.name,
-                email = user.email,
-                role = user.role,
-                isBlocked = user.isBlocked,
-                isTrusted = user.isTrusted,
-                avatarUrl = user.avatarUrl,
-                phoneNumber = user.phoneNumber,
-                gender = user.gender,
-                bio = user.bio,
-                birthDate = user.birthDate
-            )
-            val response = api.updateProfile(userDto)
+            val response = api.updateProfile(user.toDto())
             dataStoreManager.saveUserData(gson.toJson(response))
-            dataStoreManager.saveRole(response.role)
             NetworkResult.Success(response.toDomain())
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
@@ -61,21 +47,20 @@ class ProfileRepositoryImpl @Inject constructor(
             val body = MultipartBody.Part.createFormData("avatar", file.name, requestFile)
             val response = api.uploadAvatar(body)
             dataStoreManager.saveUserData(gson.toJson(response))
-            dataStoreManager.saveRole(response.role)
             NetworkResult.Success(response.toDomain())
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 
     override suspend fun becomeOrganizer(): NetworkResult<User> {
         return try {
             val response = api.becomeOrganizer()
+            dataStoreManager.saveRole("ORGANIZER")
             dataStoreManager.saveUserData(gson.toJson(response.user))
-            dataStoreManager.saveRole(response.user.role)
             NetworkResult.Success(response.user.toDomain())
         } catch (e: Exception) {
-            NetworkResult.Error(e.message ?: "An unknown error occurred")
+            ErrorHandler.handleException(e)
         }
     }
 }

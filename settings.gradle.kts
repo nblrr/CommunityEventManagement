@@ -1,4 +1,3 @@
-@file:Suppress("UnstableApiUsage")
 pluginManagement {
     repositories {
         google {
@@ -23,5 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Community Event Management"
+rootProject.name = "Community Event Management System"
 include(":app")
+ 

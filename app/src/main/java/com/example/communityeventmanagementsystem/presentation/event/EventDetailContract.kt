@@ -9,13 +9,15 @@ class EventDetailContract {
         val error: String? = null,
         val errorCode: Int? = null,
         val isRegistering: Boolean = false,
-        val isRegistered: Boolean = false
+        val isRegistered: Boolean = false,
+        val isCommunityMember: Boolean = false
     )
 
     sealed class Event {
         data class LoadDetail(val id: Long) : Event()
         data object Register : Event()
         data object Unregister : Event()
+        data object JoinCommunity : Event()
         data object Logout : Event()
     }
 

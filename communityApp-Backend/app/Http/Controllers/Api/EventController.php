@@ -96,7 +96,7 @@ class EventController extends Controller
     public function recommendedEvents(Request $request)
     {
         $user = $request->user();
-        
+
         $categoryIds = EventRegistration::where('user_id', $user->id)
             ->join('events', 'event_registrations.event_id', '=', 'events.id')
             ->pluck('events.category_id')
@@ -244,6 +244,13 @@ class EventController extends Controller
     public function register(Event $event)
     {
         $userId = auth()->id();
+
+        // Check if user is a member of the parent community
+        if (!$event->community->members()->where('user_id', $userId)->exists()) {
+            return response()->json([
+                'message' => 'Anda harus bergabung ke komunitas ini terlebih dahulu sebelum mendaftar event.'
+            ], 403);
+        }
 
         // Check if registration exists
         $existing = EventRegistration::where('event_id', $event->id)

@@ -68,7 +68,7 @@ class AdminViewModel @Inject constructor(
                     isRefreshing = false,
                     stats = if (statsRes is NetworkResult.Success) statsRes.data else stats,
                     users = if (usersRes is NetworkResult.Success) usersRes.data else users,
-                    pendingApps = if (appsRes is NetworkResult.Success) appsRes.data.filter { it.status == "pending" } else pendingApps,
+                    pendingApps = if (appsRes is NetworkResult.Success) appsRes.data.filter { it.status.equals("PENDING", ignoreCase = true) } else pendingApps,
                     error = (statsRes as? NetworkResult.Error)?.message
                 )
             }

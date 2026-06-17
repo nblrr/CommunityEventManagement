@@ -13,6 +13,7 @@ class HomeContract {
         val upcomingEvents: List<DomainEvent> = emptyList(),
         val recommendedEvents: List<DomainEvent> = emptyList(),
         val myCommunities: List<Community> = emptyList(),
+        val userRole: String? = null,
         val error: String? = null,
         val errorCode: Int? = null
     )

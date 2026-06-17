@@ -56,8 +56,10 @@ fun EventDetailScreen(
                     event = event,
                     isRegistered = state.isRegistered,
                     isRegistering = state.isRegistering,
+                    isCommunityMember = state.isCommunityMember,
                     onRegisterClick = { viewModel.handleEvent(EventDetailContract.Event.Register) },
-                    onUnregisterClick = { viewModel.handleEvent(EventDetailContract.Event.Unregister) }
+                    onUnregisterClick = { viewModel.handleEvent(EventDetailContract.Event.Unregister) },
+                    onJoinCommunityClick = { viewModel.handleEvent(EventDetailContract.Event.JoinCommunity) }
                 )
             }
         },
@@ -348,8 +350,10 @@ fun EventDetailBottomBar(
     event: DomainEvent,
     isRegistered: Boolean,
     isRegistering: Boolean,
+    isCommunityMember: Boolean,
     onRegisterClick: () -> Unit,
-    onUnregisterClick: () -> Unit
+    onUnregisterClick: () -> Unit,
+    onJoinCommunityClick: () -> Unit
 ) {
     val isPastEvent = try {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
@@ -379,7 +383,13 @@ fun EventDetailBottomBar(
                 }
             }
             Button(
-                onClick = { if (isRegistered) onUnregisterClick() else onRegisterClick() },
+                onClick = { 
+                    if (isCommunityMember) {
+                        if (isRegistered) onUnregisterClick() else onRegisterClick()
+                    } else {
+                        onJoinCommunityClick()
+                    }
+                },
                 modifier = Modifier
                     .widthIn(min = 160.dp)
                     .height(48.dp)
@@ -392,7 +402,15 @@ fun EventDetailBottomBar(
                 enabled = !isRegistering && !isPastEvent
             ) {
                 Text(
-                    text = if (isPastEvent) "Event Telah Selesai" else if (isRegistered) "Batal Daftar" else "Daftar Sekarang",
+                    text = if (isPastEvent) {
+                        "Event Telah Selesai"
+                    } else if (!isCommunityMember) {
+                        "Gabung Komunitas"
+                    } else if (isRegistered) {
+                        "Batal Daftar"
+                    } else {
+                        "Daftar Sekarang"
+                    },
                     style = LabelMd
                 )
             }

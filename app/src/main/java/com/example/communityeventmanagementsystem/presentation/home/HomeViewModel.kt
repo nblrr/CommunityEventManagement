@@ -31,7 +31,7 @@ class HomeViewModel @Inject constructor(
                 if (!json.isNullOrBlank()) {
                     try {
                         val user = gson.fromJson(json, com.example.communityeventmanagementsystem.data.remote.dto.UserDto::class.java)
-                        setState { copy(userName = user.name, userAvatar = user.avatarUrl) }
+                        setState { copy(userName = user.name, userAvatar = user.avatarUrl, userRole = user.role) }
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }

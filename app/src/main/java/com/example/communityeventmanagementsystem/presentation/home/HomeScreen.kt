@@ -75,13 +75,15 @@ fun HomeScreen(
             ) 
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNavigateToCreateEvent,
-                containerColor = Primary,
-                contentColor = OnPrimary,
-                shape = Shapes.ExtraLarge
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Event")
+            if (state.userRole == "ORGANIZER" || state.userRole == "ADMIN") {
+                FloatingActionButton(
+                    onClick = onNavigateToCreateEvent,
+                    containerColor = Primary,
+                    contentColor = OnPrimary,
+                    shape = Shapes.ExtraLarge
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add Event")
+                }
             }
         },
         containerColor = Background

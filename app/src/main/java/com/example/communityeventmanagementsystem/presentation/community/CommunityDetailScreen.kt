@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -135,7 +136,7 @@ fun CommunityDetailTopBar(onNavigateBack: () -> Unit) {
     TopAppBar(
         title = {
             Text(
-                text = "EventHub",
+                text = "Communitix",
                 style = HeadlineMd,
                 color = Primary,
                 fontWeight = FontWeight.Black
@@ -201,7 +202,9 @@ fun CommunityDetailHero(community: Community) {
             Text(
                 text = community.name,
                 style = HeadlineLgMobile,
-                color = Color.White
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }

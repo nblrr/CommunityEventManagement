@@ -63,7 +63,7 @@ fun CommunityListScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "EventHub",
+                        text = "Communitix",
                         style = HeadlineMd,
                         color = Primary,
                         fontWeight = FontWeight.Bold

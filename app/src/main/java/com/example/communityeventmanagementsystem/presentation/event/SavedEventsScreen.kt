@@ -152,7 +152,7 @@ fun SavedEventsTopBar(onNavigateBack: () -> Unit) {
     TopAppBar(
         title = {
             Text(
-                text = "EventHub",
+                text = "Communitix",
                 style = HeadlineMd,
                 color = Primary,
                 fontWeight = FontWeight.Black

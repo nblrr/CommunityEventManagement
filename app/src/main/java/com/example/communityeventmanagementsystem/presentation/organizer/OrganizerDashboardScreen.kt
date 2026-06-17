@@ -261,7 +261,7 @@ fun ManagedEventCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.LocationOn, contentDescription = null, modifier = Modifier.size(16.dp), tint = OnSurfaceVariant)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(event.location, style = BodySm, color = OnSurfaceVariant)
+                    Text(event.location, style = BodySm, color = OnSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(

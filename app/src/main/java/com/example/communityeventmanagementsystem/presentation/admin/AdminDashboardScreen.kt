@@ -135,7 +135,7 @@ fun AdminDashboardTopBar(onNavigateBack: () -> Unit) {
     TopAppBar(
         title = {
             Text(
-                text = "EventHub Admin",
+                text = "Communitix Admin",
                 style = HeadlineMd,
                 color = Primary
             )
@@ -357,12 +357,12 @@ fun AdminDashboardAppCard(
                             .border(2.dp, SurfaceContainerHigh, CircleShape),
                         contentScale = ContentScale.Crop
                     )
-                    Column {
-                        Text(text = name, style = HeadlineMd.copy(fontSize = 18.sp), color = OnSurface)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(text = name, style = HeadlineMd.copy(fontSize = 18.sp), color = OnSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Groups, contentDescription = null, modifier = Modifier.size(14.dp), tint = OnSurfaceVariant)
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text(text = community, style = BodySm, color = OnSurfaceVariant)
+                            Text(text = community, style = BodySm, color = OnSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
                 }

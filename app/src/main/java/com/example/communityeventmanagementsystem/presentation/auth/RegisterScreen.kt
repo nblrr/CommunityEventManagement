@@ -113,7 +113,7 @@ fun RegisterScreen(
                     )
                 }
                 Text("Create Account", style = HeadlineLgMobile, color = OnSurface, modifier = Modifier.padding(bottom = Dimens.SpacingXs))
-                Text("Join EventHub and connect with your community.", style = BodyMd, color = OnSurfaceVariant, modifier = Modifier.padding(bottom = Dimens.SpacingXl), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                Text("Join Communitix and connect with your community.", style = BodyMd, color = OnSurfaceVariant, modifier = Modifier.padding(bottom = Dimens.SpacingXl), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
 
                 // Form
                 Column(verticalArrangement = Arrangement.spacedBy(Dimens.SpacingMd), modifier = Modifier.fillMaxWidth()) {

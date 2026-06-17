@@ -249,7 +249,7 @@ fun HomeTopBar(
     CenterAlignedTopAppBar(
         title = {
             Text(
-                text = "EventHub",
+                text = "Communitix",
                 style = HeadlineMd,
                 color = Primary,
                 fontWeight = FontWeight.Black
@@ -344,7 +344,7 @@ fun RecommendedLargeCard(event: Event, onClick: () -> Unit) {
                         Text(event.location, style = LabelMd, color = InverseOnSurface)
                     }
                 }
-                Text(event.title, style = HeadlineLgMobile, color = SurfaceContainerLowest, modifier = Modifier.padding(bottom = 8.dp))
+                Text(event.title, style = HeadlineLgMobile, color = SurfaceContainerLowest, modifier = Modifier.padding(bottom = 8.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
     }
@@ -418,7 +418,7 @@ fun UpcomingEventItem(event: Event, onClick: () -> Unit) {
                         Text(event.eventTime, style = BodySm, color = OnSurfaceVariant)
                     }
                 }
-                Text(event.title, style = BodyLg.copy(fontWeight = FontWeight.SemiBold), color = OnSurface, modifier = Modifier.padding(bottom = 4.dp))
+                Text(event.title, style = BodyLg.copy(fontWeight = FontWeight.SemiBold), color = OnSurface, modifier = Modifier.padding(bottom = 4.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(event.description ?: "", style = BodySm, color = OnSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(bottom = 12.dp))
                 HorizontalDivider(color = SurfaceContainerHigh)
                 Row(
@@ -426,10 +426,10 @@ fun UpcomingEventItem(event: Event, onClick: () -> Unit) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Default.LocationOn, contentDescription = null, tint = OnSurfaceVariant, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(event.location, style = BodySm, color = OnSurfaceVariant)
+                        Text(event.location, style = BodySm, color = OnSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     Surface(
                         color = Primary.copy(alpha = 0.1f),

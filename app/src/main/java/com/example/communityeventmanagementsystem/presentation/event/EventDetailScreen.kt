@@ -190,7 +190,9 @@ fun EventHeader(event: DomainEvent) {
         Text(
             text = event.title,
             style = HeadlineLgMobile,
-            color = OnSurface
+            color = OnSurface,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

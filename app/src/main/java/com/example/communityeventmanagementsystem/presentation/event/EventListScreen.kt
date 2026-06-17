@@ -60,7 +60,7 @@ fun EventListScreen(
                 title = {
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = "EventHub",
+                            text = "Communitix",
                             style = HeadlineMd,
                             color = Primary,
                             fontWeight = FontWeight.Bold,

@@ -54,7 +54,7 @@ fun LoginScreen(
     fun validatePassword(value: String) {
         passwordError = when {
             value.isBlank() -> "Password tidak boleh kosong"
-            value.length < 6 -> "Password minimal 6 karakter"
+            value.length < 8 -> "Password minimal 8 karakter"
             else -> null
         }
     }
@@ -122,7 +122,7 @@ fun LoginScreen(
                         modifier = Modifier.fillMaxWidth().padding(bottom = Dimens.SpacingXl),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("CommunityEvent", style = HeadlineLg, color = Primary, modifier = Modifier.padding(bottom = 8.dp))
+                        Text("Communitix", style = HeadlineLg, color = Primary, modifier = Modifier.padding(bottom = 8.dp))
                         Text("Welcome back. Let's get managing.", style = BodyMd, color = OnSurfaceVariant)
                     }
 

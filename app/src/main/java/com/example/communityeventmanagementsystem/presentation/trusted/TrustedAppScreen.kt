@@ -1,27 +1,21 @@
 package com.example.communityeventmanagementsystem.presentation.trusted
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
 import com.example.communityeventmanagementsystem.domain.model.TrustedApplication
 import com.example.communityeventmanagementsystem.ui.theme.*
 
@@ -174,7 +168,7 @@ fun ApplicationStatusCard(application: TrustedApplication) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Application Status", style = HeadlineMd, color = OnSurface)
+                Text("Application Status", style = HeadlineMd, color = OnSurface, modifier = Modifier.weight(1f))
                 Surface(
                     color = statusColor.copy(alpha = 0.15f),
                     shape = Shapes.Full
@@ -183,7 +177,8 @@ fun ApplicationStatusCard(application: TrustedApplication) {
                         text = application.status.uppercase(),
                         style = LabelMd.copy(fontWeight = FontWeight.Bold),
                         color = statusColor,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        maxLines = 1
                     )
                 }
             }
@@ -313,7 +308,7 @@ fun TrustedAppForm(
             ) {
                 Text("Submit Application", style = LabelMd.copy(fontWeight = FontWeight.Bold))
                 Spacer(modifier = Modifier.width(Dimens.SpacingSm))
-                Icon(Icons.Default.Send, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
             }
         }
     }

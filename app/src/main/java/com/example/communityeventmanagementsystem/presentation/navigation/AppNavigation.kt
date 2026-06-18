@@ -149,7 +149,10 @@ fun AppNavigation(
             ) {
                 CommunityDetailScreen(
                     onNavigateBack = { navController.navigateUp() },
-                    onNavigateToForum = { id -> navController.navigate(Screen.CommunityForum(id).route) }
+                    onNavigateToForum = { id -> navController.navigate(Screen.CommunityForum(id).route) },
+                    onNavigateToCreateEvent = { commId -> 
+                        navController.navigate(Screen.CreateEvent.route + "?communityId=$commId")
+                    }
                 )
             }
             composable(
@@ -235,8 +238,18 @@ fun AppNavigation(
             composable(Screen.CreateCommunity.route) {
                 CreateCommunityScreen(onNavigateBack = { navController.navigateUp() })
             }
-            composable(Screen.CreateEvent.route) {
-                CreateEventScreen(onNavigateBack = { navController.navigateUp() })
+            composable(
+                route = Screen.CreateEvent.route + "?communityId={communityId}",
+                arguments = listOf(navArgument("communityId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                })
+            ) { backStackEntry ->
+                val communityId = backStackEntry.arguments?.getLong("communityId")?.takeIf { it != -1L }
+                CreateEventScreen(
+                    onNavigateBack = { navController.navigateUp() },
+                    communityIdPrefill = communityId
+                )
             }
         }
     }

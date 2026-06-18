@@ -8,6 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -213,7 +214,18 @@ fun OrganizerSection(event: DomainEvent) {
         Spacer(modifier = Modifier.width(Dimens.SpacingSm))
         Column {
             Text("Organized by", style = BodySm, color = Outline)
-            Text(event.organizerName ?: "Admin Komunitas", style = LabelMd, color = OnSurface)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(event.organizerName ?: "Admin Komunitas", style = LabelMd, color = OnSurface)
+                if (event.isOrganizerTrusted) {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Default.Verified,
+                        contentDescription = "Verified",
+                        tint = Primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
         }
     }
     HorizontalDivider(color = OutlineVariant.copy(alpha = 0.3f))

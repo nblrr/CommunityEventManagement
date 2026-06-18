@@ -29,6 +29,9 @@ import com.example.communityeventmanagementsystem.presentation.components.AppBut
 import com.example.communityeventmanagementsystem.presentation.components.AppError
 import com.example.communityeventmanagementsystem.presentation.components.AppTextField
 import java.io.File
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +43,15 @@ fun EditProfileScreen(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
+    
+    var showDatePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState(
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                return utcTimeMillis <= System.currentTimeMillis()
+            }
+        }
+    )
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
@@ -68,6 +80,32 @@ fun EditProfileScreen(
                 birthDate = user.birthDate ?: ""
                 hasInitialized = true
             }
+        }
+    }
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val date = Instant.ofEpochMilli(millis)
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate()
+                        birthDate = date.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                    }
+                    showDatePicker = false
+                }) {
+                    Text("Pilih")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Batal")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
         }
     }
 
@@ -213,12 +251,20 @@ fun EditProfileScreen(
                                 modifier = Modifier.fillMaxWidth()
                             )
 
-                            AppTextField(
-                                value = birthDate,
-                                onValueChange = { birthDate = it },
-                                label = "Tanggal Lahir (YYYY-MM-DD)",
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                            Box(modifier = Modifier.fillMaxWidth()) {
+                                AppTextField(
+                                    value = birthDate,
+                                    onValueChange = { },
+                                    label = "Tanggal Lahir",
+                                    modifier = Modifier.fillMaxWidth(),
+                                    placeholder = "Pilih tanggal lahir"
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .matchParentSize()
+                                        .clickable { showDatePicker = true }
+                                )
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(32.dp))

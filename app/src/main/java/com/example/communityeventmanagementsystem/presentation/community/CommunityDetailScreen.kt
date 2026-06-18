@@ -12,6 +12,10 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,10 +42,12 @@ import com.example.communityeventmanagementsystem.domain.model.Community
 fun CommunityDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToForum: (Long) -> Unit,
+    onNavigateToCreateEvent: (Long) -> Unit = {},
     viewModel: CommunityDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = Unit) {
         viewModel.effect.collect { effect ->
@@ -49,14 +55,70 @@ fun CommunityDetailScreen(
                 is CommunityDetailContract.Effect.ShowMessage -> {
                     snackbarHostState.showSnackbar(effect.message)
                 }
+                is CommunityDetailContract.Effect.NavigateBack -> {
+                    onNavigateBack()
+                }
             }
         }
     }
 
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text("Hapus Komunitas", color = OnSurface) },
+            text = { Text("Apakah Anda yakin ingin menghapus komunitas ini? Semua event dan data terkait akan ikut terhapus.", color = OnSurfaceVariant) },
+            containerColor = SurfaceContainerLowest,
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.handleEvent(CommunityDetailContract.Event.DeleteCommunity)
+                        showDeleteConfirmation = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Error)
+                ) {
+                    Text("Hapus")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation = false }) {
+                    Text("Batal", color = Primary)
+                }
+            }
+        )
+    }
+
     Scaffold(
-        topBar = { CommunityDetailTopBar(onNavigateBack) },
+        topBar = { 
+            CommunityDetailTopBar(
+                isCreator = state.isCreator,
+                onNavigateBack = onNavigateBack,
+                onEditClick = { /* TODO: Implement Edit */ },
+                onDeleteClick = { showDeleteConfirmation = true }
+            ) 
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Background
+        containerColor = Background,
+        floatingActionButton = {
+            if (state.isCreator) {
+                FloatingActionButton(
+                    onClick = { 
+                        state.community?.id?.let { onNavigateToCreateEvent(it) }
+                    },
+                    containerColor = Primary,
+                    contentColor = OnPrimary,
+                    shape = Shapes.Large
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Add Event", style = LabelMd)
+                    }
+                }
+            }
+        }
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -132,7 +194,12 @@ fun CommunityDetailScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CommunityDetailTopBar(onNavigateBack: () -> Unit) {
+fun CommunityDetailTopBar(
+    onNavigateBack: () -> Unit,
+    isCreator: Boolean = false,
+    onEditClick: () -> Unit = {},
+    onDeleteClick: () -> Unit = {}
+) {
     TopAppBar(
         title = {
             Text(
@@ -148,6 +215,14 @@ fun CommunityDetailTopBar(onNavigateBack: () -> Unit) {
             }
         },
         actions = {
+            if (isCreator) {
+                IconButton(onClick = onEditClick) {
+                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = OnSurfaceVariant)
+                }
+                IconButton(onClick = onDeleteClick) {
+                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Error)
+                }
+            }
             IconButton(onClick = {}) {
                 Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = OnSurfaceVariant)
             }
@@ -285,7 +360,22 @@ fun CommunityDetailOrganizer(community: Community) {
             )
             Column {
                 Text("Organizer", style = BodySm, color = Outline)
-                Text(community.organizerName ?: "Admin Komunitas", style = BodyLg.copy(fontWeight = FontWeight.SemiBold), color = OnSurface)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        community.organizerName ?: "Admin Komunitas",
+                        style = BodyLg.copy(fontWeight = FontWeight.SemiBold),
+                        color = OnSurface
+                    )
+                    if (community.isOrganizerTrusted) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            imageVector = Icons.Default.Verified,
+                            contentDescription = "Verified",
+                            tint = Primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
             }
         }
     }

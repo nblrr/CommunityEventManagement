@@ -2,14 +2,13 @@ package com.example.communityeventmanagementsystem.presentation.admin
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -98,15 +97,22 @@ fun AdminDashboardScreen(
             if (state.showRejectDialog) {
                 AlertDialog(
                     onDismissRequest = { viewModel.handleEvent(AdminContract.Event.OnDismissRejectDialog) },
-                    title = { Text("Reject Application") },
+                    title = { Text("Reject Application", color = OnSurface) },
+                    containerColor = SurfaceContainerLowest,
                     text = {
                         Column {
-                            Text("Provide feedback notes for rejection:")
+                            Text("Provide feedback notes for rejection:", color = OnSurfaceVariant)
                             Spacer(modifier = Modifier.height(8.dp))
                             OutlinedTextField(
                                 value = state.rejectNotes,
                                 onValueChange = { viewModel.handleEvent(AdminContract.Event.OnRejectNotesChanged(it)) },
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedContainerColor = SurfaceBright,
+                                    unfocusedContainerColor = SurfaceBright,
+                                    focusedTextColor = OnSurface,
+                                    unfocusedTextColor = OnSurface
+                                )
                             )
                         }
                     },
@@ -120,7 +126,7 @@ fun AdminDashboardScreen(
                     },
                     dismissButton = {
                         TextButton(onClick = { viewModel.handleEvent(AdminContract.Event.OnDismissRejectDialog) }) {
-                            Text("Cancel")
+                            Text("Cancel", color = Primary)
                         }
                     }
                 )
@@ -142,7 +148,7 @@ fun AdminDashboardTopBar(onNavigateBack: () -> Unit) {
         },
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Primary)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Primary)
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -390,13 +396,17 @@ fun AdminDashboardAppCard(
                     Text(
                         text = "Reason: \"$description\"",
                         style = BodySm,
-                        color = OnSurfaceVariant
+                        color = OnSurfaceVariant,
+                        maxLines = 5,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Experience: \"$experience\"",
                         style = BodySm,
-                        color = OnSurfaceVariant
+                        color = OnSurfaceVariant,
+                        maxLines = 5,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

@@ -136,7 +136,18 @@ fun ProfileInfoSection(user: User) {
                 textStyle = HeadlineXl
             )
         }
-        Text(user.name, style = HeadlineLgMobile, color = OnSurface, modifier = Modifier.padding(bottom = Dimens.SpacingXs))
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = Dimens.SpacingXs)) {
+            Text(user.name, style = HeadlineLgMobile, color = OnSurface)
+            if (user.isTrusted) {
+                Spacer(modifier = Modifier.width(4.dp))
+                Icon(
+                    imageVector = Icons.Default.Verified,
+                    contentDescription = "Verified",
+                    tint = Primary,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
         Text(user.email, style = BodyMd, color = OnSurfaceVariant, modifier = Modifier.padding(bottom = Dimens.SpacingSm))
         Surface(
             color = PrimaryContainer,

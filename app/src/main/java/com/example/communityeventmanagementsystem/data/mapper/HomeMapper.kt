@@ -17,6 +17,8 @@ fun CommunityDto.toDomain() = Community(
     categoryName = category?.name,
     categoryId = categoryId,
     organizerName = organizer?.name,
+    organizerId = organizerId,
+    isOrganizerTrusted = organizer?.isTrusted ?: false,
     eventsCount = eventsCount ?: 0
 )
 fun EventDto.toDomain() = Event(
@@ -49,6 +51,8 @@ fun com.example.communityeventmanagementsystem.data.remote.dto.EventDetailRespon
     isOnline = isOnline,
     categoryName = categoryName,
     organizerName = organizerName,
+    organizerId = organizerId,
+    isOrganizerTrusted = isOrganizerTrusted,
     organizerImageUrl = organizerImageUrl,
     rating = rating ?: 0.0f,
     reviewCount = reviewCount ?: 0,

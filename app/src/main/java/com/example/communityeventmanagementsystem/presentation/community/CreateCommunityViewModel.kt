@@ -5,6 +5,7 @@ import com.example.communityeventmanagementsystem.core.common.NetworkResult
 import com.example.communityeventmanagementsystem.core.ui.BaseViewModel
 import com.example.communityeventmanagementsystem.domain.model.Community
 import com.example.communityeventmanagementsystem.domain.usecase.organizer.CreateCommunityUseCase
+import com.example.communityeventmanagementsystem.domain.usecase.community.JoinCommunityUseCase
 import com.example.communityeventmanagementsystem.domain.usecase.home.GetCategoriesUseCase
 import com.example.communityeventmanagementsystem.domain.usecase.media.UploadImageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,6 +15,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateCommunityViewModel @Inject constructor(
     private val createCommunityUseCase: CreateCommunityUseCase,
+    private val joinCommunityUseCase: JoinCommunityUseCase,
     private val getCategoriesUseCase: GetCategoriesUseCase,
     private val uploadImageUseCase: UploadImageUseCase
 ) : BaseViewModel<CreateCommunityContract.State, CreateCommunityContract.Event, CreateCommunityContract.Effect>() {
@@ -69,6 +71,10 @@ class CreateCommunityViewModel @Inject constructor(
             )
             when (val result = createCommunityUseCase(community)) {
                 is NetworkResult.Success -> {
+                    // Auto-join after creation
+                    val createdCommunity = result.data
+                    joinCommunityUseCase(createdCommunity.id)
+
                     setState { copy(isLoading = false) }
                     setEffect { CreateCommunityContract.Effect.ShowMessage("Berhasil membuat komunitas!") }
                     setEffect { CreateCommunityContract.Effect.NavigateBack }

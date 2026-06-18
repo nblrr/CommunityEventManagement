@@ -20,6 +20,8 @@ data class EventDetailResponse(
     // NEW fields from Stitch UI
     @SerializedName("category_name") val categoryName: String? = null,
     @SerializedName("organizer_name") val organizerName: String? = null,
+    @SerializedName("organizer_id") val organizerId: Long = 0L,
+    @SerializedName("is_organizer_trusted") val isOrganizerTrusted: Boolean = false,
     @SerializedName("organizer_image_url") val organizerImageUrl: String? = null,
     @SerializedName("rating") val rating: Float? = null,
     @SerializedName("review_count") val reviewCount: Int? = null,

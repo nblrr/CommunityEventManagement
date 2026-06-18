@@ -25,11 +25,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.communityeventmanagementsystem.presentation.components.StandardTopAppBar
 import com.example.communityeventmanagementsystem.presentation.community.CommunityMediaSection
 import com.example.communityeventmanagementsystem.ui.theme.*
+import java.time.Instant
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateEventScreen(
     onNavigateBack: () -> Unit,
+    communityIdPrefill: Long? = null,
     viewModel: CreateEventViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -45,6 +50,23 @@ fun CreateEventScreen(
     var locationType by remember { mutableStateOf("offline") }
     var locationDetail by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+    
+    val datePickerState = rememberDatePickerState(
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                return utcTimeMillis >= System.currentTimeMillis() - 86400000 // Allow today
+            }
+        }
+    )
+    
+    val timePickerState = rememberTimePickerState(
+        initialHour = 12,
+        initialMinute = 0,
+        is24Hour = true
+    )
 
     LaunchedEffect(state.categories) {
         if (state.categories.isNotEmpty() && selectedCategory.isEmpty()) {
@@ -68,6 +90,55 @@ fun CreateEventScreen(
         }
     }
 
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val date = Instant.ofEpochMilli(millis)
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate()
+                        eventDate = date.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                    }
+                    showDatePicker = false
+                }) {
+                    Text("Pilih")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Batal")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    if (showTimePicker) {
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    val time = LocalTime.of(timePickerState.hour, timePickerState.minute)
+                    eventTime = time.format(DateTimeFormatter.ofPattern("HH:mm"))
+                    showTimePicker = false
+                }) {
+                    Text("Pilih")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) {
+                    Text("Batal")
+                }
+            },
+            text = {
+                TimePicker(state = timePickerState)
+            }
+        )
+    }
+
     Scaffold(
         topBar = { 
             StandardTopAppBar(
@@ -88,7 +159,7 @@ fun CreateEventScreen(
             verticalArrangement = Arrangement.spacedBy(Dimens.SpacingLg)
         ) {
             Column {
-                Text("Buat Event Baru", style = HeadlineXl, color = OnSurface)
+                Text("Buat Event Baru", style = HeadlineLgMobile, color = OnSurface)
                 Text("Lengkapi detail untuk mempublikasikan acara komunitas Anda.", style = BodyMd, color = OnSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
             }
 
@@ -109,9 +180,9 @@ fun CreateEventScreen(
 
             TimeLocationSection(
                 eventDate = eventDate,
-                onDateChange = { eventDate = it },
+                onDateClick = { showDatePicker = true },
                 eventTime = eventTime,
-                onTimeChange = { eventTime = it },
+                onTimeClick = { showTimePicker = true },
                 locationType = locationType,
                 onLocationTypeChange = { locationType = it },
                 locationDetail = locationDetail,
@@ -135,7 +206,7 @@ fun CreateEventScreen(
                 onClick = {
                     viewModel.handleEvent(
                         CreateEventContract.Event.CreateEvent(
-                            communityId = 1L, 
+                            communityId = communityIdPrefill ?: 1L, 
                             categoryId = categoryId,
                             title = eventName,
                             description = description,
@@ -301,9 +372,9 @@ fun BasicInfoSection(
 @Composable
 fun TimeLocationSection(
     eventDate: String,
-    onDateChange: (String) -> Unit,
+    onDateClick: () -> Unit,
     eventTime: String,
-    onTimeChange: (String) -> Unit,
+    onTimeClick: () -> Unit,
     locationType: String,
     onLocationTypeChange: (String) -> Unit,
     locationDetail: String,
@@ -328,38 +399,44 @@ fun TimeLocationSection(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingLg)) {
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Dimens.SpacingSm)) {
                     Text("Tanggal", style = LabelMd, color = OnSurfaceVariant)
-                    OutlinedTextField(
-                        value = eventDate,
-                        onValueChange = onDateChange,
-                        placeholder = { Text("YYYY-MM-DD", style = BodyMd, color = Outline) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = Shapes.Large,
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = SurfaceContainerLow,
-                            focusedContainerColor = SurfaceContainerLow,
-                            unfocusedBorderColor = OutlineVariant,
-                            focusedBorderColor = Primary
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        OutlinedTextField(
+                            value = eventDate,
+                            onValueChange = { },
+                            placeholder = { Text("Pilih Tanggal", style = BodyMd, color = Outline) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = Shapes.Large,
+                            readOnly = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                unfocusedContainerColor = SurfaceContainerLow,
+                                focusedContainerColor = SurfaceContainerLow,
+                                unfocusedBorderColor = OutlineVariant,
+                                focusedBorderColor = Primary
+                            )
                         )
-                    )
+                        Box(modifier = Modifier.matchParentSize().clickable { onDateClick() })
+                    }
                 }
 
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Dimens.SpacingSm)) {
                     Text("Jam", style = LabelMd, color = OnSurfaceVariant)
-                    OutlinedTextField(
-                        value = eventTime,
-                        onValueChange = onTimeChange,
-                        placeholder = { Text("HH:MM", style = BodyMd, color = Outline) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = Shapes.Large,
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = SurfaceContainerLow,
-                            focusedContainerColor = SurfaceContainerLow,
-                            unfocusedBorderColor = OutlineVariant,
-                            focusedBorderColor = Primary
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        OutlinedTextField(
+                            value = eventTime,
+                            onValueChange = { },
+                            placeholder = { Text("Pilih Jam", style = BodyMd, color = Outline) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = Shapes.Large,
+                            readOnly = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                unfocusedContainerColor = SurfaceContainerLow,
+                                focusedContainerColor = SurfaceContainerLow,
+                                unfocusedBorderColor = OutlineVariant,
+                                focusedBorderColor = Primary
+                            )
                         )
-                    )
+                        Box(modifier = Modifier.matchParentSize().clickable { onTimeClick() })
+                    }
                 }
             }
 

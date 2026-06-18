@@ -8,17 +8,20 @@ class CommunityDetailContract {
         val community: Community? = null,
         val error: String? = null,
         val isJoining: Boolean = false,
-        val isJoined: Boolean = false
+        val isJoined: Boolean = false,
+        val isCreator: Boolean = false
     )
 
     sealed class Event {
         data class LoadDetail(val id: Long) : Event()
         object JoinCommunity : Event()
         object LeaveCommunity : Event()
+        object DeleteCommunity : Event()
         data class ShowErrorMessage(val message: String) : Event()
     }
 
     sealed class Effect {
         data class ShowMessage(val message: String) : Effect()
+        object NavigateBack : Effect()
     }
 }

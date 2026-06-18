@@ -211,15 +211,17 @@ fun CommunityInformationSection(
                     )
                     ExposedDropdownMenu(
                         expanded = expanded,
-                        onDismissRequest = { expanded = false }
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier.background(SurfaceContainerLowest)
                     ) {
                         categories.forEach { category ->
                             DropdownMenuItem(
-                                text = { Text(category.name) },
+                                text = { Text(category.name, color = OnSurface) },
                                 onClick = { 
                                     onCategoryChange(category.name, category.id)
                                     expanded = false 
-                                }
+                                },
+                                modifier = Modifier.background(SurfaceContainerLowest)
                             )
                         }
                     }

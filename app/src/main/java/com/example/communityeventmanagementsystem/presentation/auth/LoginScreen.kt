@@ -15,7 +15,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -137,7 +136,7 @@ fun LoginScreen(
                                 },
                                 placeholder = { Text("you@company.com", style = BodyMd, color = OutlineVariant) },
                                 leadingIcon = { Icon(Icons.Default.Mail, contentDescription = null, tint = Outline) },
-                                modifier = Modifier.fillMaxWidth().shadow(1.dp, Shapes.Large),
+                                modifier = Modifier.fillMaxWidth(),
                                 shape = Shapes.Large,
                                 singleLine = true,
                                 isError = emailError != null,
@@ -176,7 +175,7 @@ fun LoginScreen(
                                     }
                                 },
                                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                                modifier = Modifier.fillMaxWidth().shadow(1.dp, Shapes.Large),
+                                modifier = Modifier.fillMaxWidth(),
                                 shape = Shapes.Large,
                                 singleLine = true,
                                 isError = passwordError != null,

@@ -18,6 +18,10 @@ class CreateCommunityUseCase @Inject constructor(private val repository: Organiz
     suspend operator fun invoke(community: Community): NetworkResult<Community> = repository.createCommunity(community)
 }
 
+class DeleteCommunityUseCase @Inject constructor(private val repository: OrganizerRepository) {
+    suspend operator fun invoke(id: Long): NetworkResult<Unit> = repository.deleteCommunity(id)
+}
+
 class DeleteEventUseCase @Inject constructor(private val repository: OrganizerRepository) {
     suspend operator fun invoke(id: Long): NetworkResult<Unit> = repository.deleteEvent(id)
 }

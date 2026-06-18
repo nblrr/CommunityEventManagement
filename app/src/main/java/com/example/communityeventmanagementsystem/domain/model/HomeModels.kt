@@ -15,6 +15,8 @@ data class Community(
     val categoryName: String? = null,
     val categoryId: Long = 1L,
     val organizerName: String? = null,
+    val organizerId: Long = 0L,
+    val isOrganizerTrusted: Boolean = false,
     val eventsCount: Int = 0
 )
 
@@ -32,10 +34,11 @@ data class Event(
     val eventTime: String = "12:00",
     val location: String = "Zoom Meeting",
     val isOnline: Boolean = true,
-    
-    // TYPE A fields (Now integrated with API)
+
     val categoryName: String? = null,
     val organizerName: String? = null,
+    val organizerId: Long = 0L,
+    val isOrganizerTrusted: Boolean = false,
     val organizerImageUrl: String? = null,
     val rating: Float = 0.0f,
     val reviewCount: Int = 0,
@@ -43,13 +46,3 @@ data class Event(
     val locationName: String? = null,
     val price: Double = 0.0
 )
-
-// TYPE B — Computed locally from existing fields
-val Event.isFree: Boolean
-    get() = price == 0.0
-
-val Event.isFillingFast: Boolean
-    get() = maxAttendees > 0 && (attendeeCount.toFloat() / maxAttendees) > 0.8f
-
-val Event.isUpcoming: Boolean
-    get() = status == "upcoming"

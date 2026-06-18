@@ -20,8 +20,9 @@ class UserSeeder extends Seeder
         $organizerPassword = Hash::make('Organizer123!');
         $memberPassword = Hash::make('User123!');
 
-        // 1. Seed Admin
-        $admin = User::create([
+        // 1. Seed Super Admin (ID = 1, Email = admin@communityapp.com)
+        $superAdmin = User::create([
+            'id' => 1,
             'name' => 'Super Admin',
             'email' => 'admin@communityapp.com',
             'password' => $adminPassword,
@@ -35,6 +36,10 @@ class UserSeeder extends Seeder
             'is_trusted' => true,
             'email_verified_at' => now(),
         ]);
+
+        if (\Illuminate\Support\Facades\DB::getDriverName() === 'pgsql') {
+            \Illuminate\Support\Facades\DB::statement("SELECT setval(pg_get_serial_sequence('users', 'id'), (SELECT MAX(id) FROM users))");
+        }
 
         // Lists for Indonesian name generation
         $maleFirstNames = ['Budi', 'Joko', 'Andi', 'Ahmad', 'Rian', 'Hendra', 'Eko', 'Agus', 'Taufik', 'Aris', 'Dedi', 'Rudi', 'Fajar', 'Bambang', 'Wawan', 'Surya', 'Hadi', 'Guntur', 'Riki', 'Dian', 'Reza', 'Kevin', 'Aditya', 'Fikri', 'Rahmat', 'Anwar', 'Indra', 'Yudi', 'Ferry', 'Bagus'];
@@ -86,13 +91,32 @@ class UserSeeder extends Seeder
             ];
         };
 
-        // 2. Seed 20 Organizers
+        // 2. Seed 5 Admins
+        for ($i = 1; $i <= 5; $i++) {
+            $adminProfile = $generateProfile();
+            User::create([
+                'name' => "Admin " . $i,
+                'email' => "admin{$i}@communityapp.com",
+                'password' => $adminPassword,
+                'phone_number' => $adminProfile['phone_number'],
+                'birth_date' => $adminProfile['birth_date'],
+                'gender' => $adminProfile['gender'],
+                'bio' => 'Administrator platform Community Event Management System.',
+                'avatar_url' => "https://api.dicebear.com/7.x/adventurer/svg?seed=admin{$i}",
+                'role' => 'ADMIN',
+                'is_blocked' => false,
+                'is_trusted' => true,
+                'email_verified_at' => now(),
+            ]);
+        }
+
+        // 3. Seed 30 Organizers
         $organizers = [];
         
-        // Organizer 1 (Fixed)
+        // Organizer 1 (Fixed Demo Account)
         $org1Profile = $generateProfile('MALE');
         $organizers[] = User::create([
-            'name' => 'Eko Prasetyo', // Clean Indonesian name
+            'name' => 'Eko Prasetyo',
             'email' => 'organizer1@communityapp.com',
             'password' => $organizerPassword,
             'phone_number' => $org1Profile['phone_number'],
@@ -102,18 +126,18 @@ class UserSeeder extends Seeder
             'avatar_url' => 'https://api.dicebear.com/7.x/adventurer/svg?seed=organizer1',
             'role' => 'ORGANIZER',
             'is_blocked' => false,
-            'is_trusted' => true, // Trusted
+            'is_trusted' => true, // Trusted (Approved)
             'email_verified_at' => now(),
         ]);
 
-        // Organizers 2 to 20
-        for ($i = 2; $i <= 20; $i++) {
+        // Organizers 2 to 30
+        for ($i = 2; $i <= 30; $i++) {
             $profile = $generateProfile();
             
-            // 40% Trusted, 60% Pending. Out of 20: 8 Trusted, 12 Pending.
-            // Organizer 1 to 8 are Trusted (is_trusted = true)
-            // Organizer 9 to 20 are Pending (is_trusted = false)
-            $isTrusted = ($i <= 8); 
+            // Trusted organizers: 1 to 10
+            // Pending organizers: 11 to 20
+            // Normal organizers: 21 to 30
+            $isTrusted = ($i <= 10); 
 
             $organizers[] = User::create([
                 'name' => $profile['name'],
@@ -131,49 +155,63 @@ class UserSeeder extends Seeder
             ]);
         }
 
-        // Seed TrustedApplications for each organizer
+        // Community names for organizer trusted applications (aligned with the 30 communities)
+        $communityNames = [
+            1 => 'Android Developers Hub',
+            2 => 'Web Development Circle',
+            3 => 'Cyber Security Society',
+            4 => 'Solo Runners Club',
+            5 => 'Basketball Community',
+            6 => 'Badminton Society',
+            7 => 'Indonesia Digital Artists',
+            8 => 'UI/UX Jakarta Collective',
+            9 => 'Creative Sketchers Club',
+            10 => 'Bandung Indie Music',
+            11 => 'Jakarta Acoustic Jam',
+            12 => 'Solo Classical Symphony',
+            13 => 'Indonesia Space Science Community',
+            14 => 'Klub Debat Bahasa Inggris',
+            15 => 'National Science Society',
+            16 => 'Indonesian Startup Founders Hub',
+            17 => 'Investor Saham Pemula',
+            18 => 'Young Entrepreneurs Circle',
+            19 => 'Esports Community',
+            20 => 'Valorant Indonesia',
+            21 => 'Mobile Legends Community',
+            22 => 'Street Photography Solo',
+            23 => 'Photography Club',
+            24 => 'Cinematography Indonesia',
+            25 => 'Green Earth Indonesia',
+            26 => 'Zero Waste Jakarta',
+            27 => 'Nature Conservation Club',
+            28 => 'Yogyakarta Yoga & Mindfulness',
+            29 => 'Klub Nutrisi & Hidup Sehat',
+            30 => 'Mental Health Alliance'
+        ];
+
+        // Seed TrustedApplications for organizers based on role:
+        // 10 Trusted: APPROVED status
+        // 10 Pending: PENDING status
+        // 10 Normal: 5 REJECTED status, 5 No Application
         foreach ($organizers as $index => $org) {
             $num = $index + 1;
-            $isTrusted = ($num <= 8);
-            
-            $communityNames = [
-                1 => 'Surabaya Developer Community',
-                2 => 'AI Research Indonesia',
-                3 => 'Bandung Running Club',
-                4 => 'Jakarta Badminton Lovers',
-                5 => 'Indonesia Digital Artists',
-                6 => 'UI/UX Jakarta Collective',
-                7 => 'Bandung Indie Music',
-                8 => 'Jakarta Acoustic Jam',
-                9 => 'Indonesia Space Science Community',
-                10 => 'Klub Debat Bahasa Inggris',
-                11 => 'Indonesian Startup Founders Hub',
-                12 => 'Investor Saham Pemula',
-                13 => 'Mobile Legends Indonesia Association',
-                14 => 'Gamer PC Jakarta',
-                15 => 'Street Photography Jakarta',
-                16 => 'Mobile Photography Indonesia',
-                17 => 'Green Earth Indonesia',
-                18 => 'Zero Waste Jakarta',
-                19 => 'Yogyakarta Yoga & Mindfulness',
-                20 => 'Klub Nutrisi & Hidup Sehat'
-            ];
-
             $communityName = $communityNames[$num] ?? 'Komunitas Keren ' . $num;
-
-            if ($isTrusted) {
+            
+            if ($num <= 10) {
+                // Trusted (Approved)
                 TrustedApplication::create([
                     'user_id' => $org->id,
                     'community_name' => $communityName,
                     'reason' => 'Saya ingin membangun komunitas ' . $communityName . ' yang profesional untuk bertukar wawasan dan kolaborasi aktif.',
                     'experience' => 'Berpengalaman mengelola event komunitas offline dan online selama lebih dari 5 tahun.',
                     'status' => 'APPROVED',
-                    'reviewed_by' => $admin->id,
+                    'reviewed_by' => $superAdmin->id,
                     'admin_notes' => 'Disetujui. Pengalaman mumpuni dan visi komunitas sangat terarah.',
                     'applied_at' => Carbon::now()->subDays(30),
                     'reviewed_at' => Carbon::now()->subDays(29),
                 ]);
-            } else {
+            } elseif ($num <= 20) {
+                // Pending application
                 TrustedApplication::create([
                     'user_id' => $org->id,
                     'community_name' => $communityName,
@@ -185,15 +223,29 @@ class UserSeeder extends Seeder
                     'applied_at' => Carbon::now()->subDays(5),
                     'reviewed_at' => null,
                 ]);
+            } elseif ($num <= 25) {
+                // Normal Organizer with a Rejected Application
+                TrustedApplication::create([
+                    'user_id' => $org->id,
+                    'community_name' => $communityName,
+                    'reason' => 'Pengajuan komunitas ' . $communityName . ' agar diakui resmi oleh platform.',
+                    'experience' => 'Belum memiliki pengalaman mengelola komunitas sebelumnya.',
+                    'status' => 'REJECTED',
+                    'reviewed_by' => $superAdmin->id,
+                    'admin_notes' => 'Ditolak karena belum memiliki pengalaman manajerial komunitas yang cukup.',
+                    'applied_at' => Carbon::now()->subDays(15),
+                    'reviewed_at' => Carbon::now()->subDays(14),
+                ]);
             }
+            // Organizers 26 to 30 remain as normal organizers with NO application record.
         }
 
-        // 3. Seed 79 Members
+        // 4. Seed 164 Members (role = USER)
         
-        // Member 1 (Fixed)
+        // Member 1 (Fixed Demo Account)
         $mem1Profile = $generateProfile('MALE');
         User::create([
-            'name' => 'Budi Santoso', // Clean Indonesian name
+            'name' => 'Budi Santoso',
             'email' => 'user1@communityapp.com',
             'password' => $memberPassword,
             'phone_number' => $mem1Profile['phone_number'],
@@ -207,8 +259,8 @@ class UserSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
-        // Members 2 to 79
-        for ($i = 2; $i <= 79; $i++) {
+        // Members 2 to 164
+        for ($i = 2; $i <= 164; $i++) {
             $profile = $generateProfile();
             User::create([
                 'name' => $profile['name'],

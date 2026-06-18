@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\TrustedApplication;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class TrustedApplicationController extends Controller
 {
@@ -110,6 +111,8 @@ class TrustedApplicationController extends Controller
             'is_trusted' => true,
         ]);
 
+        Cache::forget('admin_dashboard_stats');
+
         return response()->json([
             'message'     => 'Pengajuan disetujui.',
             'application' => $trustedApplication->fresh()->load('user'),
@@ -143,6 +146,8 @@ class TrustedApplicationController extends Controller
             'admin_notes' => $adminNotes,
             'reviewed_at' => now(),
         ]);
+
+        Cache::forget('admin_dashboard_stats');
 
         return response()->json([
             'message'     => 'Pengajuan ditolak.',

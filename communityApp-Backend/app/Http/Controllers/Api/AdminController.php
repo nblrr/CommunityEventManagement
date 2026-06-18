@@ -20,7 +20,8 @@ class AdminController extends Controller
      */
     public function dashboard()
     {
-        $stats = Cache::remember('admin_dashboard_stats', 300, function () {
+        $ttl = config('performance.admin_stats_ttl');
+        $stats = Cache::remember('admin_dashboard_stats', $ttl, function () {
             return [
                 'total_users'        => User::count(),
                 'total_communities'  => Community::count(),
@@ -182,6 +183,8 @@ class AdminController extends Controller
 
         $user->update(['role' => $validated['role']]);
 
+        Cache::forget('admin_dashboard_stats');
+
         return response()->json([
             'message' => 'Role user berhasil diubah.',
             'user'    => $user->fresh(),
@@ -211,6 +214,8 @@ class AdminController extends Controller
         }
 
         $user->update(['is_trusted' => false]);
+
+        Cache::forget('admin_dashboard_stats');
 
         return response()->json([
             'message' => 'Status trusted berhasil dicabut.',
@@ -245,6 +250,8 @@ class AdminController extends Controller
         // Revoke all Sanctum tokens
         $user->tokens()->delete();
 
+        Cache::forget('admin_dashboard_stats');
+
         return response()->json([
             'message' => 'User berhasil diblokir.',
             'user'    => $user->fresh(),
@@ -274,6 +281,8 @@ class AdminController extends Controller
         }
 
         $user->update(['is_blocked' => false]);
+
+        Cache::forget('admin_dashboard_stats');
 
         return response()->json([
             'message' => 'User berhasil di-unblock.',

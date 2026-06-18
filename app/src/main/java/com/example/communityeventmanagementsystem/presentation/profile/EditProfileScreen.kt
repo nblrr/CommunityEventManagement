@@ -173,7 +173,9 @@ fun EditProfileScreen(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.setEvent(ProfileContract.Event.LoadProfile)
+        if (state.user == null) {
+            viewModel.setEvent(ProfileContract.Event.LoadProfile)
+        }
     }
 
     Scaffold(

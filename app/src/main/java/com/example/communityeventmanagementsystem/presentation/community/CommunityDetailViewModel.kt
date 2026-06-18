@@ -85,16 +85,30 @@ class CommunityDetailViewModel @Inject constructor(
 
     private fun join() {
         val communityId = uiState.value.community?.id ?: return
+        val oldState = uiState.value
         viewModelScope.launch {
-            setState { copy(isJoining = true) }
+            setState { 
+                copy(
+                    isJoining = true, 
+                    isJoined = true,
+                    community = community?.copy(memberCount = (community?.memberCount ?: 0) + 1)
+                ) 
+            }
             when (val result = joinCommunityUseCase(communityId)) {
                 is NetworkResult.Success -> {
-                    setState { copy(isJoining = false, isJoined = true) }
+                    setState { copy(isJoining = false) }
                     setEffect { CommunityDetailContract.Effect.ShowMessage("Berhasil bergabung dengan komunitas!") }
-                    loadDetail(communityId, forceRefresh = true)
+                    // Update the confirmed data without full reload if possible, 
+                    // or just keep the optimistic state and clear the loading flag.
                 }
                 is NetworkResult.Error -> {
-                    setState { copy(isJoining = false) }
+                    setState { 
+                        copy(
+                            isJoining = false, 
+                            isJoined = oldState.isJoined,
+                            community = oldState.community
+                        ) 
+                    }
                     setEffect { CommunityDetailContract.Effect.ShowMessage(result.message) }
                 }
                 is NetworkResult.Loading -> {}
@@ -104,16 +118,28 @@ class CommunityDetailViewModel @Inject constructor(
 
     private fun leave() {
         val communityId = uiState.value.community?.id ?: return
+        val oldState = uiState.value
         viewModelScope.launch {
-            setState { copy(isJoining = true) }
+            setState { 
+                copy(
+                    isJoining = true, 
+                    isJoined = false,
+                    community = community?.copy(memberCount = (community?.memberCount ?: 1).coerceAtLeast(1) - 1)
+                ) 
+            }
             when (val result = leaveCommunityUseCase(communityId)) {
                 is NetworkResult.Success -> {
-                    setState { copy(isJoining = false, isJoined = false) }
+                    setState { copy(isJoining = false) }
                     setEffect { CommunityDetailContract.Effect.ShowMessage("Berhasil keluar dari komunitas.") }
-                    loadDetail(communityId, forceRefresh = true)
                 }
                 is NetworkResult.Error -> {
-                    setState { copy(isJoining = false) }
+                    setState { 
+                        copy(
+                            isJoining = false, 
+                            isJoined = oldState.isJoined,
+                            community = oldState.community
+                        ) 
+                    }
                     setEffect { CommunityDetailContract.Effect.ShowMessage(result.message) }
                 }
                 is NetworkResult.Loading -> {}

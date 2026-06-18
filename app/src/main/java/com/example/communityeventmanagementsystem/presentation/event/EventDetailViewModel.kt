@@ -131,17 +131,16 @@ class EventDetailViewModel @Inject constructor(
 
     private fun joinCommunity() {
         val communityId = uiState.value.event?.communityId ?: return
-        val eventId = uiState.value.event?.id ?: return
+        val oldState = uiState.value
         viewModelScope.launch {
-            setState { copy(isRegistering = true) }
+            setState { copy(isRegistering = true, isCommunityMember = true) }
             when (val result = joinCommunityUseCase(communityId)) {
                 is NetworkResult.Success -> {
-                    setState { copy(isCommunityMember = true, isRegistering = false) }
+                    setState { copy(isRegistering = false) }
                     setEffect { EventDetailContract.Effect.ShowMessage("Berhasil bergabung dengan komunitas!") }
-                    loadDetail(eventId, forceRefresh = true)
                 }
                 is NetworkResult.Error -> {
-                    setState { copy(isRegistering = false) }
+                    setState { copy(isRegistering = false, isCommunityMember = oldState.isCommunityMember) }
                     setEffect { EventDetailContract.Effect.ShowMessage(result.message) }
                 }
                 is NetworkResult.Loading -> {}
@@ -151,16 +150,28 @@ class EventDetailViewModel @Inject constructor(
 
     private fun register() {
         val eventId = uiState.value.event?.id ?: return
+        val oldState = uiState.value
         viewModelScope.launch {
-            setState { copy(isRegistering = true) }
+            setState { 
+                copy(
+                    isRegistering = true, 
+                    isRegistered = true,
+                    event = event?.copy(attendeeCount = (event?.attendeeCount ?: 0) + 1)
+                ) 
+            }
             when (val result = registerToEventUseCase(eventId)) {
                 is NetworkResult.Success -> {
-                    setState { copy(isRegistering = false, isRegistered = true) }
+                    setState { copy(isRegistering = false) }
                     setEffect { EventDetailContract.Effect.ShowMessage("Berhasil mendaftar ke event!") }
-                    loadDetail(eventId, forceRefresh = true)
                 }
                 is NetworkResult.Error -> {
-                    setState { copy(isRegistering = false) }
+                    setState { 
+                        copy(
+                            isRegistering = false, 
+                            isRegistered = oldState.isRegistered,
+                            event = oldState.event
+                        ) 
+                    }
                     setEffect { EventDetailContract.Effect.ShowMessage(result.message) }
                 }
                 is NetworkResult.Loading -> {}
@@ -170,16 +181,28 @@ class EventDetailViewModel @Inject constructor(
 
     private fun unregister() {
         val eventId = uiState.value.event?.id ?: return
+        val oldState = uiState.value
         viewModelScope.launch {
-            setState { copy(isRegistering = true) }
+            setState { 
+                copy(
+                    isRegistering = true, 
+                    isRegistered = false,
+                    event = event?.copy(attendeeCount = (event?.attendeeCount ?: 1).coerceAtLeast(1) - 1)
+                ) 
+            }
             when (val result = unregisterFromEventUseCase(eventId)) {
                 is NetworkResult.Success -> {
-                    setState { copy(isRegistering = false, isRegistered = false) }
+                    setState { copy(isRegistering = false) }
                     setEffect { EventDetailContract.Effect.ShowMessage("Pendaftaran dibatalkan.") }
-                    loadDetail(eventId, forceRefresh = true)
                 }
                 is NetworkResult.Error -> {
-                    setState { copy(isRegistering = false) }
+                    setState { 
+                        copy(
+                            isRegistering = false, 
+                            isRegistered = oldState.isRegistered,
+                            event = oldState.event
+                        ) 
+                    }
                     setEffect { EventDetailContract.Effect.ShowMessage(result.message) }
                 }
                 is NetworkResult.Loading -> {}
@@ -189,16 +212,16 @@ class EventDetailViewModel @Inject constructor(
 
     private fun rate(rating: Int, comment: String) {
         val eventId = uiState.value.event?.id ?: return
+        val oldState = uiState.value
         viewModelScope.launch {
-            setState { copy(isSubmittingRating = true) }
+            setState { copy(isSubmittingRating = true, hasRated = true) }
             when (val result = rateEventUseCase(eventId, rating, comment)) {
                 is NetworkResult.Success -> {
-                    setState { copy(isSubmittingRating = false, hasRated = true) }
+                    setState { copy(isSubmittingRating = false) }
                     setEffect { EventDetailContract.Effect.ShowMessage("Terima kasih atas penilaian Anda!") }
-                    loadDetail(eventId, forceRefresh = true)
                 }
                 is NetworkResult.Error -> {
-                    setState { copy(isSubmittingRating = false) }
+                    setState { copy(isSubmittingRating = false, hasRated = oldState.hasRated) }
                     setEffect { EventDetailContract.Effect.ShowMessage(result.message) }
                 }
                 is NetworkResult.Loading -> {}

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventRegistration;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class EventController extends Controller
 {
@@ -16,7 +17,7 @@ class EventController extends Controller
     public function index(Request $request)
     {
         $query = Event::with([
-            'community',
+            'community.organizer',
             'category'
         ]);
 
@@ -119,9 +120,12 @@ class EventController extends Controller
      */
     public function upcomingEvents(Request $request)
     {
-        $now = now();
+        $ttl = config('performance.upcoming_events_ttl');
 
-        $events = Event::where(function($query) use ($now) {
+        $events = Cache::remember('upcoming_events', $ttl, function () {
+            $now = now();
+
+            return Event::where(function($query) use ($now) {
                 // Event hasn't started yet (event_date is in the future, OR event_date is today and event_time hasn't passed)
                 $query->where('event_date', '>', $now->toDateString())
                       ->orWhere(function($q) use ($now) {
@@ -134,6 +138,7 @@ class EventController extends Controller
             ->orderBy('event_time', 'asc')
             ->limit(10)
             ->get();
+        });
 
         return response()->json($events);
     }
@@ -227,6 +232,8 @@ class EventController extends Controller
             'cover_image_url' => $validated['cover_image_url'] ?? null,
         ]);
 
+        Cache::forget('upcoming_events');
+
         return response()->json($event->fresh(), 201);
     }
 
@@ -261,6 +268,8 @@ class EventController extends Controller
 
         $event->update($validated);
 
+        Cache::forget('upcoming_events');
+
         return response()->json($event->fresh());
     }
 
@@ -281,6 +290,8 @@ class EventController extends Controller
         }
 
         $event->delete();
+
+        Cache::forget('upcoming_events');
 
         return response()->json([
             'message' => 'Event deleted'

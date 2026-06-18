@@ -13,6 +13,7 @@ import javax.inject.Inject
 
 import com.example.communityeventmanagementsystem.domain.usecase.home.GetMyCommunitiesUseCase
 import androidx.lifecycle.SavedStateHandle
+import com.example.communityeventmanagementsystem.domain.model.ForumMessage
 
 @HiltViewModel
 class ForumViewModel @Inject constructor(
@@ -127,16 +128,42 @@ class ForumViewModel @Inject constructor(
         val message = uiState.value.currentMessage
         if (message.isBlank() || communityId == -1L) return
 
+        val tempId = -System.currentTimeMillis()
+        val tempMessage = ForumMessage(
+            id = tempId,
+            communityId = communityId,
+            senderId = uiState.value.currentUserId,
+            message = message,
+            senderName = "Anda", // Will be replaced by real name from session if available
+            senderAvatarUrl = null,
+            createdAt = java.time.OffsetDateTime.now().toString()
+        )
+
         viewModelScope.launch {
-            setState { copy(currentMessage = "") }
+            setState { 
+                copy(
+                    currentMessage = "",
+                    messages = messages + tempMessage
+                ) 
+            }
+            setEffect { ForumContract.Effect.ScrollToBottom }
+            
             when (val result = sendForumMessageUseCase(communityId, message)) {
                 is NetworkResult.Success -> {
-                    loadMessages()
-                    setEffect { ForumContract.Effect.ShowMessage("Postingan berhasil dibuat") }
+                    val confirmedMessage = result.data
+                    setState { 
+                        copy(
+                            messages = messages.map { if (it.id == tempId) confirmedMessage else it }
+                        ) 
+                    }
                 }
                 is NetworkResult.Error -> {
-                    // Restore message on failure so the user doesn't lose their typing
-                    setState { copy(currentMessage = message, error = result.message) }
+                    setState { 
+                        copy(
+                            currentMessage = message,
+                            messages = messages.filter { it.id != tempId }
+                        ) 
+                    }
                     setEffect { ForumContract.Effect.ShowMessage(result.message ?: "Gagal mengirim pesan") }
                 }
                 is NetworkResult.Loading -> {}

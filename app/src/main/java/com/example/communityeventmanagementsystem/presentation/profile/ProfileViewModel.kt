@@ -63,7 +63,10 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             setState { copy(isLoading = true, error = null, errorCode = null, isSessionExpired = false) }
             when (val result = uploadAvatarUseCase(file)) {
-                is NetworkResult.Success -> setState { copy(isLoading = false, user = result.data) }
+                is NetworkResult.Success -> {
+                    setState { copy(isLoading = false, user = result.data) }
+                    // No Effect needed, ProfileScreen will observe state change
+                }
                 is NetworkResult.Error -> setState { copy(isLoading = false, error = result.message, errorCode = result.code, isSessionExpired = result.code == 401) }
                 is NetworkResult.Loading -> setState { copy(isLoading = true) }
             }

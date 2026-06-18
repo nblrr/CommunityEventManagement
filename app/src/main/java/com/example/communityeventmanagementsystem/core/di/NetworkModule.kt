@@ -1,5 +1,6 @@
 package com.example.communityeventmanagementsystem.core.di
 
+import android.content.Context
 import com.example.communityeventmanagementsystem.BuildConfig
 import com.example.communityeventmanagementsystem.core.network.AuthInterceptor
 import com.example.communityeventmanagementsystem.data.remote.api.AdminApi
@@ -17,11 +18,14 @@ import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.File
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
@@ -32,6 +36,13 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideGson(): Gson = Gson()
+
+    @Provides
+    @Singleton
+    fun provideCache(@ApplicationContext context: Context): Cache {
+        val cacheSize = 50 * 1024 * 1024L // 50MB
+        return Cache(File(context.cacheDir, "http_cache"), cacheSize)
+    }
 
     @Provides
     @Singleton
@@ -49,11 +60,19 @@ object NetworkModule {
     @Singleton
     fun provideOkHttpClient(
         loggingInterceptor: HttpLoggingInterceptor,
-        authInterceptor: AuthInterceptor
+        authInterceptor: AuthInterceptor,
+        cache: Cache
     ): OkHttpClient {
         return OkHttpClient.Builder()
+            .cache(cache)
             .addInterceptor(loggingInterceptor)
             .addInterceptor(authInterceptor)
+            .addInterceptor { chain ->
+                var request = chain.request()
+                // Force cache for certain public endpoints if needed, 
+                // but usually we respect Cache-Control from server.
+                chain.proceed(request)
+            }
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)

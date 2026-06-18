@@ -1,6 +1,7 @@
 package com.example.communityeventmanagementsystem.presentation.community
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -198,6 +199,7 @@ fun CommunityDetailScreen(
                                 )
                                 CommunityDetailDescription(community)
                                 CommunityDetailOrganizer(community)
+                                CommunityDetailEvents(community = community, onEventClick = onNavigateToEventDetail)
                                 CommunityDetailForumAction(onClick = {
                                     if (state.isJoined) {
                                         onNavigateToForum(community.id)
@@ -205,7 +207,6 @@ fun CommunityDetailScreen(
                                         viewModel.handleEvent(CommunityDetailContract.Event.ShowErrorMessage("Silakan gabung komunitas terlebih dahulu untuk mengakses forum."))
                                     }
                                 })
-                                CommunityDetailEvents(community = community, onEventClick = onNavigateToEventDetail)
                             }
                         }
                     }
@@ -423,30 +424,51 @@ fun CommunityDetailOrganizer(community: Community) {
 
 @Composable
 fun CommunityDetailForumAction(onClick: () -> Unit) {
-    AppCard(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onClick,
-        containerColor = SurfaceContainerHigh,
-        contentPadding = 12.dp
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        color = Color.Transparent
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = Dimens.SpacingSm),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingMd)) {
-                Surface(
-                    modifier = Modifier.size(40.dp),
-                    shape = CircleShape,
-                    color = PrimaryFixed
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.Forum, contentDescription = null, tint = OnPrimaryFixed, modifier = Modifier.size(20.dp))
-                    }
-                }
-                Text("Forum Diskusi", style = TitleLg, color = OnSurface)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingMd)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Forum,
+                    contentDescription = null,
+                    tint = Primary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = "Forum Diskusi",
+                    style = LabelLg.copy(fontWeight = FontWeight.Bold),
+                    color = OnSurface
+                )
             }
-            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Outline, modifier = Modifier.size(20.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "Buka",
+                    style = BodySm,
+                    color = Primary
+                )
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = Primary,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         }
     }
 }
@@ -456,19 +478,12 @@ fun CommunityDetailEvents(community: Community, onEventClick: (Long) -> Unit) {
     Column {
         Text("Kegiatan Mendatang", style = HeadlineMd, color = OnSurface, modifier = Modifier.padding(bottom = Dimens.SpacingMd))
         if (community.events.isEmpty()) {
-            Surface(
-                shape = Shapes.ExtraLarge,
-                color = SurfaceContainerLowest,
-                border = androidx.compose.foundation.BorderStroke(1.dp, SurfaceVariant),
-                modifier = Modifier.fillMaxWidth().padding(vertical = Dimens.SpacingSm)
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxWidth().padding(Dimens.SpacingLg),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Tidak ada kegiatan mendatang.", style = BodyMd, color = OnSurfaceVariant)
-                }
-            }
+            Text(
+                text = "Belum ada event mendatang.",
+                style = BodyMd,
+                color = Outline,
+                modifier = Modifier.padding(vertical = Dimens.SpacingSm)
+            )
         } else {
             Column(
                 verticalArrangement = Arrangement.spacedBy(Dimens.SpacingMd)

@@ -16,7 +16,7 @@ import javax.inject.Inject
 class EventListViewModel @Inject constructor(
     private val getEventsUseCase: GetEventsUseCase,
     private val getCategoriesUseCase: GetCategoriesUseCase,
-    savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel<EventListContract.State, EventListContract.Event, EventListContract.Effect>() {
 
     private var searchJob: kotlinx.coroutines.Job? = null
@@ -24,8 +24,21 @@ class EventListViewModel @Inject constructor(
     init {
         val catId = savedStateHandle.get<Long>("categoryId")
         val categoryId = if (catId != null && catId != -1L) catId else null
+        val query = savedStateHandle.get<String>("searchQuery") ?: ""
+        val status = savedStateHandle.get<String>("status")
+        val sortBy = savedStateHandle.get<String>("sortBy")
+
+        setState {
+            copy(
+                categoryId = categoryId,
+                searchQuery = query,
+                status = status,
+                sortBy = sortBy
+            )
+        }
+
         loadCategories()
-        loadEvents(categoryId, "", null, null)
+        loadEvents(categoryId, query, status, sortBy)
     }
 
     override fun createInitialState(): EventListContract.State = EventListContract.State()
@@ -39,9 +52,14 @@ class EventListViewModel @Inject constructor(
             is EventListContract.Event.SearchEvents -> {
                 searchJob?.cancel()
                 setState { copy(searchQuery = event.query) }
-                searchJob = viewModelScope.launch {
-                    delay(500)
+                savedStateHandle["searchQuery"] = event.query
+                if (event.immediate) {
                     loadEvents(uiState.value.categoryId, event.query, uiState.value.status, uiState.value.sortBy)
+                } else {
+                    searchJob = viewModelScope.launch {
+                        delay(600)
+                        loadEvents(uiState.value.categoryId, event.query, uiState.value.status, uiState.value.sortBy)
+                    }
                 }
             }
             is EventListContract.Event.OnEventClicked -> setEffect { EventListContract.Effect.NavigateToEventDetail(event.eventId) }
@@ -67,6 +85,12 @@ class EventListViewModel @Inject constructor(
             uiState.value.sortBy == sortBy) {
             return
         }
+
+        savedStateHandle["categoryId"] = categoryId ?: -1L
+        savedStateHandle["searchQuery"] = query
+        savedStateHandle["status"] = status
+        savedStateHandle["sortBy"] = sortBy
+
         val eventsFlow = getEventsUseCase(categoryId, query, status, sortBy)
             .cachedIn(viewModelScope)
         

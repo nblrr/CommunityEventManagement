@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Event
@@ -48,6 +50,7 @@ fun CommunityListScreen(
     val communitiesItems = state.communities.collectAsLazyPagingItems()
     var showSortSheet by remember { mutableStateOf(false) }
     var isRefreshing by remember { mutableStateOf(false) }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     val displayCategories = remember(state.categories) {
         listOf(com.example.communityeventmanagementsystem.domain.model.Category(id = -1L, name = "Semua", icon = null)) + state.categories
@@ -137,6 +140,12 @@ fun CommunityListScreen(
                             shape = Shapes.Full,
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                            keyboardActions = KeyboardActions(
+                                onSearch = {
+                                    viewModel.handleEvent(CommunityListContract.Event.SearchCommunities(state.searchQuery, immediate = true))
+                                    keyboardController?.hide()
+                                }
+                            ),
                             colors = OutlinedTextFieldDefaults.colors(
                                 unfocusedContainerColor = SurfaceContainerLow,
                                 focusedContainerColor = SurfaceContainerLow,

@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.communityeventmanagementsystem.domain.model.Notification
 import com.example.communityeventmanagementsystem.presentation.components.AppCard
 import com.example.communityeventmanagementsystem.presentation.components.AppEmptyState
+import com.example.communityeventmanagementsystem.core.common.DateTimeUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -147,6 +148,12 @@ fun NotificationRowItem(
                     text = notification.message,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = DateTimeUtils.formatRelativeTime(notification.createdAt),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline
                 )
             }
 

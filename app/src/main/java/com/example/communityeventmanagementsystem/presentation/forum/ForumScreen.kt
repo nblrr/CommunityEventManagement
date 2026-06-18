@@ -4,6 +4,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -31,6 +33,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import com.example.communityeventmanagementsystem.presentation.components.AppEmptyState
 import com.example.communityeventmanagementsystem.ui.theme.*
+import com.example.communityeventmanagementsystem.core.common.DateTimeUtils
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,6 +74,7 @@ fun ForumScreen(
         topBar = { ForumTopBar(state.messages.size, onNavigateBack) },
         containerColor = Background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (state.isMember) {
                 ForumChatInput(
@@ -154,10 +158,11 @@ fun ForumScreen(
                         ) {
                             items(state.messages) { message ->
                                 val isOutgoing = message.senderId == state.currentUserId
+                                val formattedTime = DateTimeUtils.formatRelativeTime(message.createdAt)
                                 if (isOutgoing) {
                                     OutgoingMessage(
                                         message = message.message,
-                                        time = message.createdAt.substringAfter("T").take(5),
+                                        time = formattedTime,
                                         isRead = true,
                                         onLongClick = {
                                             messageToDeleteId = message.id
@@ -169,7 +174,7 @@ fun ForumScreen(
                                         nameColor = Primary,
                                         avatarUrl = message.senderAvatarUrl,
                                         message = message.message,
-                                        time = message.createdAt.substringAfter("T").take(5)
+                                        time = formattedTime
                                     )
                                 }
                             }
@@ -302,6 +307,7 @@ fun ForumChatInput(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .imePadding()
             .padding(horizontal = Dimens.ContainerPadding, vertical = Dimens.SpacingMd),
         shape = Shapes.Full,
         color = SurfaceBright.copy(alpha = 0.95f),

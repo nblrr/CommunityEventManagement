@@ -22,7 +22,7 @@ class EventListContract {
             val status: String? = null,
             val sortBy: String? = null
         ) : Event()
-        data class SearchEvents(val query: String) : Event()
+        data class SearchEvents(val query: String, val immediate: Boolean = false) : Event()
         data class OnEventClicked(val eventId: Long) : Event()
     }
 

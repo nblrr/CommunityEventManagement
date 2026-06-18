@@ -28,6 +28,7 @@ import com.example.communityeventmanagementsystem.presentation.components.AppEmp
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import com.example.communityeventmanagementsystem.domain.model.Event as DomainEvent
+import com.example.communityeventmanagementsystem.core.common.DateTimeUtils
 import com.example.communityeventmanagementsystem.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -310,13 +311,13 @@ fun EventInfoGrid(event: DomainEvent) {
     Column(verticalArrangement = Arrangement.spacedBy(Dimens.SpacingMd)) {
         InfoCard(
             icon = Icons.Default.CalendarMonth,
-            title = event.eventDate,
-            subtitle = event.eventTime
+            title = DateTimeUtils.formatEventDate(event.eventDate),
+            subtitle = DateTimeUtils.formatEventTime(event.eventTime, event.endTime)
         )
         InfoCard(
             icon = Icons.Default.LocationOn,
-            title = if (event.isOnline) "Online" else "Offline",
-            subtitle = event.location
+            title = DateTimeUtils.formatLocation(event.isOnline, event.location),
+            subtitle = ""
         )
         InfoCard(
             icon = Icons.Default.Groups,
@@ -387,7 +388,9 @@ fun InfoCard(
             } else {
                 Column {
                     Text(title, style = LabelMd, color = OnSurface)
-                    Text(subtitle, style = BodySm, color = OnSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    if (subtitle.isNotBlank()) {
+                        Text(subtitle, style = BodySm, color = OnSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    }
                 }
             }
         }

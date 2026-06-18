@@ -33,6 +33,7 @@ import java.io.File
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import com.example.communityeventmanagementsystem.core.common.DateTimeUtils
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
@@ -303,7 +304,7 @@ fun EditProfileScreen(
 
                             Box(modifier = Modifier.fillMaxWidth()) {
                                 AppTextField(
-                                    value = birthDate,
+                                    value = DateTimeUtils.formatBirthDate(birthDate),
                                     onValueChange = { },
                                     label = "Tanggal Lahir",
                                     modifier = Modifier.fillMaxWidth(),

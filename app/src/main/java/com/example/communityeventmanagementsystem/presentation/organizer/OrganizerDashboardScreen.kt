@@ -29,6 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.communityeventmanagementsystem.domain.model.Community
 import com.example.communityeventmanagementsystem.domain.model.Event
+import com.example.communityeventmanagementsystem.core.common.DateTimeUtils
 import com.example.communityeventmanagementsystem.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -261,7 +262,7 @@ fun ManagedEventCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.LocationOn, contentDescription = null, modifier = Modifier.size(16.dp), tint = OnSurfaceVariant)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(event.location, style = BodySm, color = OnSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(DateTimeUtils.formatLocation(event.isOnline, event.location), style = BodySm, color = OnSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
@@ -269,7 +270,7 @@ fun ManagedEventCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(event.eventDate, style = LabelMd.copy(fontSize = 12.sp), color = Primary)
+                    Text(DateTimeUtils.formatEventDateTime(event.eventDate, event.eventTime, event.endTime), style = LabelMd.copy(fontSize = 12.sp), color = Primary)
                     Surface(
                         color = Primary.copy(alpha = 0.1f),
                         shape = Shapes.Full

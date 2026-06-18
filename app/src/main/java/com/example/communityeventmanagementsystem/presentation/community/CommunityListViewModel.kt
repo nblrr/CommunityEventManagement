@@ -16,7 +16,7 @@ import javax.inject.Inject
 class CommunityListViewModel @Inject constructor(
     private val getCommunitiesUseCase: GetCommunitiesUseCase,
     private val getCategoriesUseCase: GetCategoriesUseCase,
-    savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel<CommunityListContract.State, CommunityListContract.Event, CommunityListContract.Effect>() {
 
     private var searchJob: kotlinx.coroutines.Job? = null
@@ -24,8 +24,19 @@ class CommunityListViewModel @Inject constructor(
     init {
         val catId = savedStateHandle.get<Long>("categoryId")
         val categoryId = if (catId != null && catId != -1L) catId else null
+        val query = savedStateHandle.get<String>("searchQuery") ?: ""
+        val sortBy = savedStateHandle.get<String>("sortBy")
+
+        setState {
+            copy(
+                categoryId = categoryId,
+                searchQuery = query,
+                sortBy = sortBy
+            )
+        }
+
         loadCategories()
-        loadCommunities(categoryId, "", null)
+        loadCommunities(categoryId, query, sortBy)
     }
 
     override fun createInitialState(): CommunityListContract.State = CommunityListContract.State()
@@ -39,9 +50,14 @@ class CommunityListViewModel @Inject constructor(
             is CommunityListContract.Event.SearchCommunities -> {
                 searchJob?.cancel()
                 setState { copy(searchQuery = event.query) }
-                searchJob = viewModelScope.launch {
-                    delay(500)
+                savedStateHandle["searchQuery"] = event.query
+                if (event.immediate) {
                     loadCommunities(uiState.value.categoryId, event.query, uiState.value.sortBy)
+                } else {
+                    searchJob = viewModelScope.launch {
+                        delay(600)
+                        loadCommunities(uiState.value.categoryId, event.query, uiState.value.sortBy)
+                    }
                 }
             }
             is CommunityListContract.Event.OnCommunityClicked -> setEffect { CommunityListContract.Effect.NavigateToCommunityDetail(event.communityId) }
@@ -66,6 +82,11 @@ class CommunityListViewModel @Inject constructor(
             uiState.value.sortBy == sortBy) {
             return
         }
+
+        savedStateHandle["categoryId"] = categoryId ?: -1L
+        savedStateHandle["searchQuery"] = query
+        savedStateHandle["sortBy"] = sortBy
+
         val communitiesFlow = getCommunitiesUseCase(categoryId, query, sortBy)
             .cachedIn(viewModelScope)
         

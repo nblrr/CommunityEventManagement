@@ -4,6 +4,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import com.example.communityeventmanagementsystem.core.common.DateTimeUtils
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -45,6 +48,7 @@ fun EventListScreen(
     val eventsItems = state.events.collectAsLazyPagingItems()
     var showFilterSheet by remember { mutableStateOf(false) }
     var isRefreshing by remember { mutableStateOf(false) }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     LaunchedEffect(eventsItems.loadState.refresh) {
         if (eventsItems.loadState.refresh !is LoadState.Loading) {
@@ -124,6 +128,12 @@ fun EventListScreen(
                             shape = Shapes.Large,
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                            keyboardActions = KeyboardActions(
+                                onSearch = {
+                                    viewModel.handleEvent(EventListContract.Event.SearchEvents(state.searchQuery, immediate = true))
+                                    keyboardController?.hide()
+                                }
+                            ),
                             colors = OutlinedTextFieldDefaults.colors(
                                 unfocusedContainerColor = SurfaceContainerLowest,
                                 focusedContainerColor = SurfaceContainerLowest,
@@ -181,8 +191,8 @@ fun EventListScreen(
                                 VerticalEventCard(
                                     title = event.title,
                                     category = event.categoryName ?: "KATEGORI",
-                                    location = event.location,
-                                    date = "${event.eventDate} • ${event.eventTime}",
+                                    location = DateTimeUtils.formatLocation(event.isOnline, event.location),
+                                    date = DateTimeUtils.formatEventDateTime(event.eventDate, event.eventTime, event.endTime),
                                     joined = "${event.attendeeCount}/${event.maxAttendees} Joined",
                                     categoryColor = PrimaryFixed,
                                     onCategoryColor = Primary,

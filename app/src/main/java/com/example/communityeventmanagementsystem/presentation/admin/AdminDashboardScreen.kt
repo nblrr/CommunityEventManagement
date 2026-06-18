@@ -29,6 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.communityeventmanagementsystem.domain.model.Community
 import com.example.communityeventmanagementsystem.domain.model.User
+import com.example.communityeventmanagementsystem.core.common.DateTimeUtils
 import com.example.communityeventmanagementsystem.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1153,7 +1154,7 @@ fun EventRowCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(12.dp), tint = OnSurfaceVariant)
                     Spacer(modifier = Modifier.width(2.dp))
-                    Text(event.eventDate, style = LabelMd.copy(fontSize = 10.sp), color = OnSurfaceVariant)
+                    Text(DateTimeUtils.formatEventDateTime(event.eventDate, event.eventTime, event.endTime), style = LabelMd.copy(fontSize = 10.sp), color = OnSurfaceVariant)
                     Spacer(modifier = Modifier.width(Dimens.SpacingSm))
                     Icon(Icons.Default.ConfirmationNumber, null, modifier = Modifier.size(12.dp), tint = OnSurfaceVariant)
                     Spacer(modifier = Modifier.width(2.dp))

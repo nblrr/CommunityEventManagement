@@ -6,10 +6,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.EventBusy
-import androidx.compose.material.icons.filled.Notifications
+
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -26,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.communityeventmanagementsystem.ui.theme.*
+import com.example.communityeventmanagementsystem.core.common.DateTimeUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -129,8 +131,8 @@ fun SavedEventsScreen(
                         VerticalEventCard(
                             title = event.title,
                             category = event.categoryName ?: "KATEGORI",
-                            location = event.location,
-                            date = "${event.eventDate} • ${event.eventTime}",
+                            location = DateTimeUtils.formatLocation(event.isOnline, event.location),
+                            date = DateTimeUtils.formatEventDateTime(event.eventDate, event.eventTime, event.endTime),
                             joined = "${event.attendeeCount}/${event.maxAttendees} Joined",
                             categoryColor = PrimaryFixed,
                             onCategoryColor = Primary,
@@ -149,7 +151,7 @@ fun SavedEventsScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavedEventsTopBar(onNavigateBack: () -> Unit) {
-    TopAppBar(
+    CenterAlignedTopAppBar(
         title = {
             Text(
                 text = "Communitix",
@@ -161,26 +163,6 @@ fun SavedEventsTopBar(onNavigateBack: () -> Unit) {
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Primary)
-            }
-        },
-        actions = {
-            IconButton(onClick = {}) {
-                Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = Primary)
-            }
-            Box(
-                modifier = Modifier
-                    .padding(end = Dimens.ContainerPadding)
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(SurfaceContainerHigh)
-                    .border(1.dp, OutlineVariant, CircleShape)
-            ) {
-                AsyncImage(
-                    model = "https://lh3.googleusercontent.com/aida-public/AB6AXuBw1umtkipxCUvHHjyuWNagYspL9y_n9z-mlCxthIRbNlMh2K7QNQP0XaUAkJ6FjFFwvezUgarY0gxSyUPsqrQK-qdggQJ0hKzHDdEbqURh4XzAOctOE4vWRgLdE83jRcRLOV50LjOJAIX_8i8hQU75FZCfPEckkhSYpl2VGGvo4Xxh71stwspjiUCGnH9yd2hrILUV6aK0sVXmieDAZETlqnw_fsQ9pwcMyDpNXfOD50-D6TfIsfql6yxFT2QVS5dtIlPCLK9kepUs",
-                    contentDescription = "User profile",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = Surface.copy(alpha = 0.8f))

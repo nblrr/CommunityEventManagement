@@ -20,7 +20,7 @@ class CommunityListContract {
             val categoryId: Long? = null,
             val sortBy: String? = null
         ) : Event()
-        data class SearchCommunities(val query: String) : Event()
+        data class SearchCommunities(val query: String, val immediate: Boolean = false) : Event()
         data class OnCommunityClicked(val communityId: Long) : Event()
     }
 

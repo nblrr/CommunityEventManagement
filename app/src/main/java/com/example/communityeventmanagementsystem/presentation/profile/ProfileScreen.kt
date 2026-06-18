@@ -213,12 +213,12 @@ fun MenuListSection(
             MenuItem(icon = Icons.Default.VerifiedUser, label = "Daftar Jadi Organizer", onClick = onBecomeOrganizerClick)
         }
         
-        if (user.role == "ORGANIZER") {
+        if (user.role == "ORGANIZER" || user.role == "SUPER_ADMIN") {
             MenuItem(icon = Icons.Default.Dashboard, label = "Dashboard Organizer", onClick = onOrganizerDashboardClick)
             MenuItem(icon = Icons.Default.WorkspacePremium, label = "Trusted Organizer Application", onClick = onTrustedAppClick)
         }
         
-        if (user.role == "ADMIN") {
+        if (user.role == "ADMIN" || user.role == "SUPER_ADMIN") {
             MenuItem(icon = Icons.Default.AdminPanelSettings, label = "Dashboard Admin", onClick = onAdminDashboardClick)
         }
         

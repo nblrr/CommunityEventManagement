@@ -28,6 +28,7 @@ import com.example.communityeventmanagementsystem.presentation.components.AppErr
 import com.example.communityeventmanagementsystem.domain.model.Category
 import com.example.communityeventmanagementsystem.domain.model.Community
 import com.example.communityeventmanagementsystem.domain.model.Event
+import com.example.communityeventmanagementsystem.core.common.DateTimeUtils
 import com.example.communityeventmanagementsystem.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -336,12 +337,12 @@ fun RecommendedLargeCard(event: Event, onClick: () -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.CalendarToday, contentDescription = null, tint = InverseOnSurface, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(event.eventDate, style = LabelMd, color = InverseOnSurface)
+                        Text(DateTimeUtils.formatEventDate(event.eventDate), style = LabelMd, color = InverseOnSurface)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.LocationOn, contentDescription = null, tint = InverseOnSurface, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(event.location, style = LabelMd, color = InverseOnSurface)
+                        Text(DateTimeUtils.formatLocation(event.isOnline, event.location), style = LabelMd, color = InverseOnSurface)
                     }
                 }
                 Text(event.title, style = HeadlineSm, color = SurfaceContainerLowest, modifier = Modifier.padding(bottom = 8.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -415,7 +416,7 @@ fun UpcomingEventItem(event: Event, onClick: () -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Schedule, contentDescription = null, tint = OnSurfaceVariant, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(event.eventTime, style = BodySm, color = OnSurfaceVariant)
+                        Text(DateTimeUtils.formatEventTime(event.eventTime, event.endTime), style = BodySm, color = OnSurfaceVariant)
                     }
                 }
                 Text(event.title, style = BodyLg.copy(fontWeight = FontWeight.SemiBold), color = OnSurface, modifier = Modifier.padding(bottom = 4.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -429,7 +430,7 @@ fun UpcomingEventItem(event: Event, onClick: () -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Default.LocationOn, contentDescription = null, tint = OnSurfaceVariant, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(event.location, style = BodySm, color = OnSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(DateTimeUtils.formatLocation(event.isOnline, event.location), style = BodySm, color = OnSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     Surface(
                         color = Primary.copy(alpha = 0.1f),

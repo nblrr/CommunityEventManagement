@@ -35,6 +35,14 @@ object ErrorHandler {
                     else -> "Terjadi kesalahan tak terduga. Silakan coba lagi."
                 }
 
+                if (message.contains("Exception", ignoreCase = true) ||
+                    message.contains("SQLSTATE", ignoreCase = true) ||
+                    message.contains("PDOException", ignoreCase = true) ||
+                    message.contains("database", ignoreCase = true) ||
+                    message.contains("query", ignoreCase = true)) {
+                    message = "Terjadi kesalahan internal pada server. Silakan coba lagi nanti."
+                }
+
                 if (e.code() == 401 && (serverMessage?.contains("password", ignoreCase = true) == true || 
                             serverMessage?.contains("email", ignoreCase = true) == true || 
                             serverMessage?.contains("salah", ignoreCase = true) == true)) {

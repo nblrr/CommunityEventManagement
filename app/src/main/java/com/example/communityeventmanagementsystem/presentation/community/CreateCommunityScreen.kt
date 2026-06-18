@@ -147,6 +147,7 @@ fun CreateCommunityScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = Dimens.ContainerPadding, vertical = Dimens.SpacingLg),
             verticalArrangement = Arrangement.spacedBy(Dimens.SpacingLg)

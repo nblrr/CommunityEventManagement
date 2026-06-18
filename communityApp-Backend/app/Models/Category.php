@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class Category extends Model
 {
@@ -10,6 +11,17 @@ class Category extends Model
         'name',
         'icon'
     ];
+
+    protected static function booted()
+    {
+        static::saved(function () {
+            Cache::forget('categories_list');
+        });
+
+        static::deleted(function () {
+            Cache::forget('categories_list');
+        });
+    }
 
     public function communities()
     {

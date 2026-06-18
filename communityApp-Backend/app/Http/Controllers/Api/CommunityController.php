@@ -184,6 +184,19 @@ class CommunityController extends Controller
 
         \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats');
 
+        // Notify community organizer
+        $user = auth()->user();
+        if ($community->organizer_id !== $user->id) {
+            \App\Models\Notification::send(
+                $community->organizer_id,
+                'Anggota Baru',
+                "{$user->name} telah bergabung ke komunitas Anda: {$community->name}.",
+                'COMMUNITY_JOIN',
+                $community->id,
+                'COMMUNITY'
+            );
+        }
+
         return response()->json([
             'message' => 'Joined',
             'community' => $community->fresh()

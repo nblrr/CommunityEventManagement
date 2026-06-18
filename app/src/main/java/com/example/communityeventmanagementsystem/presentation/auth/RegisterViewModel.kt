@@ -5,13 +5,16 @@ import com.example.communityeventmanagementsystem.core.common.NetworkResult
 import com.example.communityeventmanagementsystem.core.ui.BaseViewModel
 import com.example.communityeventmanagementsystem.data.remote.dto.RegisterRequest
 import com.example.communityeventmanagementsystem.domain.usecase.auth.RegisterUseCase
+import com.example.communityeventmanagementsystem.domain.repository.NotificationRepository
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val registerUseCase: RegisterUseCase
+    private val registerUseCase: RegisterUseCase,
+    private val notificationRepository: NotificationRepository
 ) : BaseViewModel<RegisterContract.State, RegisterContract.Event, RegisterContract.Effect>() {
 
     override fun createInitialState(): RegisterContract.State {
@@ -32,6 +35,13 @@ class RegisterViewModel @Inject constructor(
             val request = RegisterRequest(name, email, pass, passConfirm)
             when (val result = registerUseCase(request)) {
                 is NetworkResult.Success -> {
+                    FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            viewModelScope.launch {
+                                notificationRepository.updateFcmToken(task.result)
+                            }
+                        }
+                    }
                     setState { copy(isLoading = false, user = result.data) }
                     setEffect { RegisterContract.Effect.NavigationToHome }
                 }

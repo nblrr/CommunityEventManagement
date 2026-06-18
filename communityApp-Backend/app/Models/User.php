@@ -43,7 +43,8 @@ class User extends Authenticatable
         'avatar_url',
         'role',
         'is_blocked',
-        'is_trusted'
+        'is_trusted',
+        'fcm_token'
     ];
 
     protected $hidden = [

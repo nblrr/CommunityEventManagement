@@ -98,6 +98,7 @@ Route::middleware(['auth:sanctum', 'block.check'])->group(function () {
     // -------------------- NOTIFICATIONS --------------------
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/fcm-token', [NotificationController::class, 'updateFcmToken']);
 
     // -------------------- TRUSTED APPLICATIONS (User) --------------------
     Route::post('/trusted-applications', [TrustedApplicationController::class, 'store']);

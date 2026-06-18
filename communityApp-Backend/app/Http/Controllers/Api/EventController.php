@@ -234,6 +234,19 @@ class EventController extends Controller
 
         Cache::forget('upcoming_events');
 
+        // Notify community members about new event
+        $members = $community->members()->where('users.id', '!=', $user->id)->pluck('users.id');
+        foreach ($members as $memberId) {
+            \App\Models\Notification::send(
+                $memberId,
+                'Event Baru',
+                "Ada event baru di komunitas '{$community->name}': {$event->title}.",
+                'NEW_EVENT',
+                $event->id,
+                'EVENT'
+            );
+        }
+
         return response()->json($event->fresh(), 201);
     }
 
@@ -270,6 +283,22 @@ class EventController extends Controller
 
         Cache::forget('upcoming_events');
 
+        // Notify registered participants about update
+        $participants = $event->eventRegistrations()
+            ->whereIn('status', ['REGISTERED', 'ATTENDED'])
+            ->pluck('user_id');
+
+        foreach ($participants as $participantId) {
+            \App\Models\Notification::send(
+                $participantId,
+                'Pembaruan Event',
+                "Detail untuk event '{$event->title}' telah diperbarui.",
+                'EVENT_UPDATE',
+                $event->id,
+                'EVENT'
+            );
+        }
+
         return response()->json($event->fresh());
     }
 
@@ -287,6 +316,22 @@ class EventController extends Controller
             return response()->json([
                 'message' => 'Anda tidak memiliki izin untuk menghapus event ini.'
             ], 403);
+        }
+
+        // Fetch participants before deletion to notify them
+        $participants = $event->eventRegistrations()
+            ->whereIn('status', ['REGISTERED', 'ATTENDED'])
+            ->pluck('user_id');
+
+        foreach ($participants as $participantId) {
+            \App\Models\Notification::send(
+                $participantId,
+                'Event Dibatalkan',
+                "Perhatian: Event '{$event->title}' telah dibatalkan oleh organizer.",
+                'EVENT_CANCELLED',
+                null,
+                'EVENT'
+            );
         }
 
         $event->delete();
@@ -354,6 +399,18 @@ class EventController extends Controller
                     ->count()
             ]);
 
+            // Notify organizer
+            if ($event->community->organizer_id !== $user->id) {
+                \App\Models\Notification::send(
+                    $event->community->organizer_id,
+                    'Pendaftaran Event',
+                    "{$user->name} telah mendaftar ke event Anda: {$event->title}.",
+                    'EVENT_REGISTRATION',
+                    $event->id,
+                    'EVENT'
+                );
+            }
+
             return response()->json([
                 'message' => 'Registered',
                 'event'   => $event->fresh()
@@ -381,6 +438,18 @@ class EventController extends Controller
                 ->whereIn('status', ['REGISTERED', 'ATTENDED'])
                 ->count()
         ]);
+
+        // Notify organizer
+        if ($event->community->organizer_id !== $user->id) {
+            \App\Models\Notification::send(
+                $event->community->organizer_id,
+                'Pendaftaran Event',
+                "{$user->name} telah mendaftar ke event Anda: {$event->title}.",
+                'EVENT_REGISTRATION',
+                $event->id,
+                'EVENT'
+            );
+        }
 
         return response()->json([
             'message' => 'Registered',

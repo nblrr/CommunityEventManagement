@@ -51,6 +51,24 @@ class ForumController extends Controller
             'message'      => $validated['message']
         ]);
 
+        // Notify other community members
+        $members = $community->members()->where('users.id', '!=', $user->id)->pluck('users.id')->toArray();
+        if ($community->organizer_id !== $user->id && !in_array($community->organizer_id, $members)) {
+            $members[] = $community->organizer_id;
+        }
+
+        $preview = strlen($message->message) > 60 ? substr($message->message, 0, 60) . '...' : $message->message;
+        foreach ($members as $memberId) {
+            \App\Models\Notification::send(
+                $memberId,
+                $community->name,
+                "{$user->name}: {$preview}",
+                'FORUM_MESSAGE',
+                $community->id,
+                'COMMUNITY'
+            );
+        }
+
         return response()->json($message->load('sender'), 201);
     }
 

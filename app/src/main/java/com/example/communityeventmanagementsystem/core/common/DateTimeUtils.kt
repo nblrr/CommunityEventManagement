@@ -12,16 +12,12 @@ import java.util.Locale
 object DateTimeUtils {
     private val INDONESIAN_LOCALE = Locale("id", "ID")
 
-    // Formatter to output: 29 Jul 2026
     private val DATE_DISPLAY_FORMATTER = DateTimeFormatter.ofPattern("d MMM yyyy", INDONESIAN_LOCALE)
-    
-    // Formatter to output: 15 Mei 2000
+
     private val BIRTH_DATE_DISPLAY_FORMATTER = DateTimeFormatter.ofPattern("d MMMM yyyy", INDONESIAN_LOCALE)
 
-    // Formatter to parse ISO 8601 (e.g. 2026-06-18T17:15:30.000000Z or with offset/timezone)
     private val ISO_FORMATTER = DateTimeFormatter.ISO_DATE_TIME
 
-    // Parse date safely from string
     private fun parseLocalDate(dateStr: String?): LocalDate? {
         if (dateStr.isNullOrBlank()) return null
         return try {
@@ -39,7 +35,6 @@ object DateTimeUtils {
         }
     }
 
-    // Parse local date time safely
     private fun parseLocalDateTime(dateTimeStr: String?): LocalDateTime? {
         if (dateTimeStr.isNullOrBlank()) return null
         return try {
@@ -65,7 +60,6 @@ object DateTimeUtils {
         }
     }
 
-    // Parse local time safely
     private fun parseLocalTime(timeStr: String?): LocalTime? {
         if (timeStr.isNullOrBlank()) return null
         return try {

@@ -56,6 +56,16 @@ fun EventListScreen(
         }
     }
 
+    LaunchedEffect(key1 = Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is EventListContract.Effect.NavigateToEventDetail -> {
+                    onNavigateToEventDetail(effect.eventId)
+                }
+            }
+        }
+    }
+
     val displayCategories = remember(state.categories) {
         listOf(com.example.communityeventmanagementsystem.domain.model.Category(id = -1L, name = "Semua", icon = null)) + state.categories
     }

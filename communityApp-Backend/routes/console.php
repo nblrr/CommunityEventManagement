@@ -518,3 +518,41 @@ Artisan::command('db:validate', function () {
     $this->info("==================================================");
 
 })->purpose('Validate the seeded database against all system requirements and constraints in bulk');
+
+Artisan::command('event:send-reminders', function () {
+    $this->info("==================================================");
+    $this->info("SENDING EVENT REMINDERS (H-1)");
+    $this->info("==================================================");
+
+    $tomorrow = now()->addDay()->toDateString();
+    $this->line("Target Event Date: " . $tomorrow);
+
+    $registrations = \App\Models\EventRegistration::where('status', 'REGISTERED')
+        ->whereHas('event', function ($query) use ($tomorrow) {
+            $query->where('event_date', $tomorrow);
+        })
+        ->with(['event', 'user'])
+        ->get();
+
+    $this->line("Found registrations count: " . $registrations->count());
+
+    $count = 0;
+    foreach ($registrations as $reg) {
+        $eventTime = substr($reg->event->event_time, 0, 5);
+        \App\Models\Notification::send(
+            $reg->user_id,
+            'Pengingat Event Besok',
+            "Pengingat: Event '{$reg->event->title}' akan dimulai besok jam {$eventTime}.",
+            'EVENT_REMINDER',
+            $reg->event_id,
+            'EVENT'
+        );
+        $count++;
+    }
+
+    $this->info("Successfully sent {$count} event reminders!");
+    $this->info("==================================================");
+})->purpose('Send event reminders to registered participants 1 day before the event');
+
+// Schedule to run daily at 08:00 AM
+\Illuminate\Support\Facades\Schedule::command('event:send-reminders')->dailyAt('08:00');

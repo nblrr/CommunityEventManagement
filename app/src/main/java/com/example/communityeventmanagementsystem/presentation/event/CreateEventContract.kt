@@ -4,7 +4,8 @@ class CreateEventContract {
     data class State(
         val isLoading: Boolean = false,
         val error: String? = null,
-        val categories: List<com.example.communityeventmanagementsystem.domain.model.Category> = emptyList()
+        val categories: List<com.example.communityeventmanagementsystem.domain.model.Category> = emptyList(),
+        val managedCommunities: List<com.example.communityeventmanagementsystem.domain.model.Community> = emptyList()
     )
 
     sealed class Event {
@@ -15,6 +16,7 @@ class CreateEventContract {
             val description: String,
             val eventDate: String,
             val eventTime: String,
+            val endTime: String?,
             val location: String,
             val maxAttendees: Int,
             val isOnline: Boolean,

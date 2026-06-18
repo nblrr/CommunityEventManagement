@@ -61,7 +61,7 @@ fun SavedEventsScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(bottom = Dimens.SpacingXl)) {
-                Text("Saved Events", style = HeadlineXl, color = OnSurface, modifier = Modifier.padding(bottom = Dimens.SpacingXs))
+                Text("Saved Events", style = HeadlineSm, color = OnSurface, modifier = Modifier.padding(bottom = Dimens.SpacingXs))
                 Text("Keep track of the events you're interested in.", style = BodyLg, color = OnSurfaceVariant)
             }
 

@@ -11,6 +11,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -18,10 +19,11 @@ import androidx.compose.ui.unit.dp
 fun AppCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    elevation: Dp = 1.dp,
+    elevation: Dp = 2.dp,
     border: BorderStroke? = null,
     cornerRadius: Dp = 16.dp,
     contentPadding: Dp = 16.dp,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerLowest,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val cardModifier = if (onClick != null) {
@@ -33,11 +35,11 @@ fun AppCard(
     Card(
         shape = RoundedCornerShape(cornerRadius),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = containerColor,
             contentColor = MaterialTheme.colorScheme.onSurface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = elevation),
-        border = border ?: BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
+        border = border ?: BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
         modifier = cardModifier
     ) {
         Column(modifier = Modifier.padding(contentPadding)) {

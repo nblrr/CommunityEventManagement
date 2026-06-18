@@ -5,7 +5,6 @@ import com.example.communityeventmanagementsystem.core.network.ErrorHandler
 import com.example.communityeventmanagementsystem.data.mapper.toDomain
 import com.example.communityeventmanagementsystem.data.remote.api.OrganizerApi
 import com.example.communityeventmanagementsystem.data.remote.dto.CommunityDto
-import com.example.communityeventmanagementsystem.data.remote.dto.EventDto
 import com.example.communityeventmanagementsystem.data.remote.dto.CreateCommunityRequest
 import com.example.communityeventmanagementsystem.data.remote.dto.CreateEventRequest
 import com.example.communityeventmanagementsystem.domain.model.Community
@@ -86,6 +85,7 @@ class OrganizerRepositoryImpl @Inject constructor(
                 description = event.description ?: "",
                 eventDate = event.eventDate,
                 eventTime = event.eventTime, 
+                endTime = event.endTime,
                 location = event.location,
                 maxAttendees = event.maxAttendees,
                 isOnline = event.isOnline,
@@ -100,18 +100,20 @@ class OrganizerRepositoryImpl @Inject constructor(
 
     override suspend fun updateEvent(id: Long, event: Event): NetworkResult<Event> {
         return try {
-            val dto = EventDto(
-                id = id,
+            val request = CreateEventRequest(
+                communityId = event.communityId,
+                categoryId = event.categoryId,
                 title = event.title,
-                description = event.description,
+                description = event.description ?: "",
                 eventDate = event.eventDate,
-                location = null,
-                attendeeCount = event.attendeeCount,
+                eventTime = event.eventTime,
+                endTime = event.endTime,
+                location = event.location,
                 maxAttendees = event.maxAttendees,
-                status = event.status,
+                isOnline = event.isOnline,
                 coverImageUrl = event.coverImageUrl
             )
-            val response = api.updateEvent(id, dto)
+            val response = api.updateEvent(id, request)
             NetworkResult.Success(response.toDomain())
         } catch (e: Exception) {
             ErrorHandler.handleException(e)

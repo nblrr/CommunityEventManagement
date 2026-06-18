@@ -8,6 +8,7 @@ import com.example.communityeventmanagementsystem.domain.usecase.event.GetEventD
 import com.example.communityeventmanagementsystem.domain.usecase.event.GetMyRegisteredEventsUseCase
 import com.example.communityeventmanagementsystem.domain.usecase.event.RegisterToEventUseCase
 import com.example.communityeventmanagementsystem.domain.usecase.event.UnregisterFromEventUseCase
+import com.example.communityeventmanagementsystem.domain.usecase.event.RateEventUseCase
 import com.example.communityeventmanagementsystem.domain.usecase.community.JoinCommunityUseCase
 import com.example.communityeventmanagementsystem.domain.usecase.home.GetMyCommunitiesUseCase
 import com.example.communityeventmanagementsystem.core.session.SessionManager
@@ -21,6 +22,7 @@ class EventDetailViewModel @Inject constructor(
     private val registerToEventUseCase: RegisterToEventUseCase,
     private val unregisterFromEventUseCase: UnregisterFromEventUseCase,
     private val getMyRegisteredEventsUseCase: GetMyRegisteredEventsUseCase,
+    private val rateEventUseCase: RateEventUseCase,
     private val joinCommunityUseCase: JoinCommunityUseCase,
     private val getMyCommunitiesUseCase: GetMyCommunitiesUseCase,
     private val sessionManager: SessionManager,
@@ -42,6 +44,7 @@ class EventDetailViewModel @Inject constructor(
             is EventDetailContract.Event.Unregister -> unregister()
             is EventDetailContract.Event.JoinCommunity -> joinCommunity()
             is EventDetailContract.Event.Logout -> logout()
+            is EventDetailContract.Event.RateEvent -> rate(event.rating, event.comment)
         }
     }
 
@@ -129,6 +132,25 @@ class EventDetailViewModel @Inject constructor(
                 }
                 is NetworkResult.Error -> {
                     setState { copy(isRegistering = false) }
+                    setEffect { EventDetailContract.Effect.ShowMessage(result.message) }
+                }
+                is NetworkResult.Loading -> {}
+            }
+        }
+    }
+
+    private fun rate(rating: Int, comment: String) {
+        val eventId = uiState.value.event?.id ?: return
+        viewModelScope.launch {
+            setState { copy(isSubmittingRating = true) }
+            when (val result = rateEventUseCase(eventId, rating, comment)) {
+                is NetworkResult.Success -> {
+                    setState { copy(isSubmittingRating = false, hasRated = true) }
+                    setEffect { EventDetailContract.Effect.ShowMessage("Terima kasih atas penilaian Anda!") }
+                    loadDetail(eventId, forceRefresh = true)
+                }
+                is NetworkResult.Error -> {
+                    setState { copy(isSubmittingRating = false) }
                     setEffect { EventDetailContract.Effect.ShowMessage(result.message) }
                 }
                 is NetworkResult.Loading -> {}

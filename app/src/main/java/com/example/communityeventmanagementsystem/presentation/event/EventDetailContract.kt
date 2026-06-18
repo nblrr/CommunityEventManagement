@@ -10,7 +10,9 @@ class EventDetailContract {
         val errorCode: Int? = null,
         val isRegistering: Boolean = false,
         val isRegistered: Boolean = false,
-        val isCommunityMember: Boolean = false
+        val isCommunityMember: Boolean = false,
+        val isSubmittingRating: Boolean = false,
+        val hasRated: Boolean = false
     )
 
     sealed class Event {
@@ -19,6 +21,7 @@ class EventDetailContract {
         data object Unregister : Event()
         data object JoinCommunity : Event()
         data object Logout : Event()
+        data class RateEvent(val rating: Int, val comment: String) : Event()
     }
 
     sealed class Effect {

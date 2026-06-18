@@ -14,6 +14,7 @@ class CommunityDetailContract {
 
     sealed class Event {
         data class LoadDetail(val id: Long) : Event()
+        object RefreshDetail : Event()
         object JoinCommunity : Event()
         object LeaveCommunity : Event()
         object DeleteCommunity : Event()

@@ -27,3 +27,8 @@ class UnregisterFromEventUseCase @Inject constructor(private val repository: Eve
 class GetMyRegisteredEventsUseCase @Inject constructor(private val repository: EventRepository) {
     suspend operator fun invoke(page: Int = 1): NetworkResult<List<Event>> = repository.getMyEvents(page)
 }
+
+class RateEventUseCase @Inject constructor(private val repository: EventRepository) {
+    suspend operator fun invoke(id: Long, rating: Int, comment: String): NetworkResult<Unit> =
+        repository.rateEvent(id, rating, comment)
+}

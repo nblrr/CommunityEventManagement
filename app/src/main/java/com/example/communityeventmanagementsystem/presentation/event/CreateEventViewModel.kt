@@ -5,6 +5,7 @@ import com.example.communityeventmanagementsystem.core.common.NetworkResult
 import com.example.communityeventmanagementsystem.core.ui.BaseViewModel
 import com.example.communityeventmanagementsystem.domain.model.Event
 import com.example.communityeventmanagementsystem.domain.usecase.organizer.CreateEventUseCase
+import com.example.communityeventmanagementsystem.domain.usecase.organizer.GetMyManagedCommunitiesUseCase
 import com.example.communityeventmanagementsystem.domain.usecase.home.GetCategoriesUseCase
 import com.example.communityeventmanagementsystem.domain.usecase.media.UploadImageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,11 +16,13 @@ import javax.inject.Inject
 class CreateEventViewModel @Inject constructor(
     private val createEventUseCase: CreateEventUseCase,
     private val getCategoriesUseCase: GetCategoriesUseCase,
-    private val uploadImageUseCase: UploadImageUseCase
+    private val uploadImageUseCase: UploadImageUseCase,
+    private val getMyManagedCommunitiesUseCase: GetMyManagedCommunitiesUseCase
 ) : BaseViewModel<CreateEventContract.State, CreateEventContract.Event, CreateEventContract.Effect>() {
 
     init {
         loadCategories()
+        loadManagedCommunities()
     }
 
     override fun createInitialState(): CreateEventContract.State = CreateEventContract.State()
@@ -35,6 +38,17 @@ class CreateEventViewModel @Inject constructor(
             when (val result = getCategoriesUseCase()) {
                 is NetworkResult.Success -> {
                     setState { copy(categories = result.data) }
+                }
+                else -> {}
+            }
+        }
+    }
+
+    private fun loadManagedCommunities() {
+        viewModelScope.launch {
+            when (val result = getMyManagedCommunitiesUseCase()) {
+                is NetworkResult.Success -> {
+                    setState { copy(managedCommunities = result.data) }
                 }
                 else -> {}
             }
@@ -65,6 +79,7 @@ class CreateEventViewModel @Inject constructor(
                 description = event.description,
                 eventDate = event.eventDate,
                 eventTime = event.eventTime,
+                endTime = event.endTime,
                 location = event.location,
                 maxAttendees = event.maxAttendees,
                 isOnline = event.isOnline,
@@ -72,7 +87,8 @@ class CreateEventViewModel @Inject constructor(
                 coverImageUrl = uploadedUrl,
                 communityId = event.communityId,
                 categoryId = event.categoryId,
-                attendeeCount = 0
+                attendeeCount = 0,
+                organizerId = 0L
             )
             when (val result = createEventUseCase(eventDomain)) {
                 is NetworkResult.Success -> {

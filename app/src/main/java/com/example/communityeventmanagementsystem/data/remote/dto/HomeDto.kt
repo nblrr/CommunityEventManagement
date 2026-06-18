@@ -18,7 +18,8 @@ data class CommunityDto(
     @SerializedName("cover_image_url") val coverImageUrl: String? = null,
     val category: CategoryDto? = null,
     val organizer: UserDto? = null,
-    @SerializedName("events_count") val eventsCount: Int? = null
+    @SerializedName("events_count") val eventsCount: Int? = null,
+    val events: List<EventDto>? = null
 )
 
 data class EventDto(
@@ -29,8 +30,11 @@ data class EventDto(
     val location: String?,
     @SerializedName("attendee_count") val attendeeCount: Int,
     @SerializedName("max_attendees") val maxAttendees: Int,
-    val status: String,
+    @SerializedName("status", alternate = ["calculated_status"]) val status: String? = "UPCOMING",
     @SerializedName("cover_image_url") val coverImageUrl: String?,
     @SerializedName("category_id") val categoryId: Long = 1L,
-    val category: CategoryDto? = null
+    val category: CategoryDto? = null,
+    @SerializedName("event_time") val eventTime: String? = null,
+    @SerializedName("is_online") val isOnline: Boolean? = null,
+    @SerializedName("community_id") val communityId: Long? = null
 )

@@ -34,7 +34,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     private fun loadProfile() {
-        if (uiState.value.user != null && !uiState.value.isLoading) return
+        if (uiState.value.isLoading) return
         viewModelScope.launch {
             setState { copy(isLoading = true, error = null, errorCode = null, isSessionExpired = false) }
             when (val result = getProfileUseCase()) {

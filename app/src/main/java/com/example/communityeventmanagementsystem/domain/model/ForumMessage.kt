@@ -6,5 +6,6 @@ data class ForumMessage(
     val senderId: Long,
     val message: String,
     val senderName: String,
+    val senderAvatarUrl: String?,
     val createdAt: String
 )

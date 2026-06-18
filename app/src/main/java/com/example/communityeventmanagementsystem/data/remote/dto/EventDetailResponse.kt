@@ -9,7 +9,7 @@ data class EventDetailResponse(
     @SerializedName("event_date") val eventDate: String,
     @SerializedName("attendee_count") val attendeeCount: Int,
     @SerializedName("max_attendees") val maxAttendees: Int,
-    @SerializedName("status") val status: String,
+    @SerializedName("status", alternate = ["calculated_status"]) val status: String? = "UPCOMING",
     @SerializedName("cover_image_url") val coverImageUrl: String?,
     @SerializedName("community_id") val communityId: Long = 1L,
     @SerializedName("category_id") val categoryId: Long = 1L,

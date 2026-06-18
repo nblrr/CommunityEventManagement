@@ -27,6 +27,8 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import com.example.communityeventmanagementsystem.presentation.components.SkeletonCommunityCard
+import com.example.communityeventmanagementsystem.presentation.components.AppError
+import com.example.communityeventmanagementsystem.presentation.components.AppEmptyState
 import com.example.communityeventmanagementsystem.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -95,7 +97,7 @@ fun CommunityListScreen(
             verticalArrangement = Arrangement.spacedBy(Dimens.SpacingLg)
         ) {
             item {
-                Text("Komunitas", style = HeadlineLgMobile, color = OnSurface)
+                Text("Komunitas", style = HeadlineSm, color = OnSurface)
             }
 
             item {
@@ -153,15 +155,18 @@ fun CommunityListScreen(
                 }
             } else if (communitiesItems.loadState.refresh is LoadState.Error) {
                 item {
-                    Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                        Text("Gagal memuat komunitas.", color = Error, style = BodyLg)
-                    }
+                    AppError(
+                        message = "Gagal memuat komunitas.",
+                        onRetry = { communitiesItems.retry() }
+                    )
                 }
             } else if (communitiesItems.itemCount == 0) {
                 item {
-                    Box(modifier = Modifier.fillMaxWidth().padding(50.dp), contentAlignment = Alignment.Center) {
-                        Text("Tidak ada komunitas ditemukan.", color = OnSurfaceVariant, style = BodyLg)
-                    }
+                    AppEmptyState(
+                        title = "Belum Ada Komunitas",
+                        description = "Coba cari dengan kata kunci lain atau pilih kategori berbeda.",
+                        icon = Icons.Default.Group
+                    )
                 }
             } else {
                 items(communitiesItems.itemCount) { index ->

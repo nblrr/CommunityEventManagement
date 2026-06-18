@@ -23,8 +23,8 @@ fun AppButton(
     enabled: Boolean = true,
     leadingIcon: @Composable (() -> Unit)? = null
 ) {
-    val shape = RoundedCornerShape(12.dp)
-    val contentPadding = PaddingValues(horizontal = 24.dp, vertical = 14.dp)
+    val shape = RoundedCornerShape(16.dp)
+    val contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp)
 
     val colors = when (variant) {
         ButtonVariant.PRIMARY -> ButtonDefaults.buttonColors(
@@ -39,50 +39,53 @@ fun AppButton(
             disabledContainerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f),
             disabledContentColor = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.5f)
         )
-        ButtonVariant.OUTLINED, ButtonVariant.TEXT -> ButtonDefaults.buttonColors(
-            containerColor = Color.Transparent,
-            contentColor = if (variant == ButtonVariant.OUTLINED) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
-            disabledContainerColor = Color.Transparent,
-            disabledContentColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.38f)
+        ButtonVariant.OUTLINED -> ButtonDefaults.outlinedButtonColors(
+            contentColor = MaterialTheme.colorScheme.primary,
+            disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.38f)
+        )
+        ButtonVariant.TEXT -> ButtonDefaults.textButtonColors(
+            contentColor = MaterialTheme.colorScheme.primary,
+            disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.38f)
         )
     }
 
     if (variant == ButtonVariant.OUTLINED) {
         OutlinedButton(
             onClick = onClick,
-            modifier = modifier.heightIn(min = 48.dp),
+            modifier = modifier.heightIn(min = 56.dp),
             enabled = enabled && !isLoading,
             shape = shape,
-            colors = colors,
+            colors = colors as ButtonColors,
             border = ButtonDefaults.outlinedButtonBorder.copy(
                 width = 1.5.dp,
                 brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.outline)
             ),
             contentPadding = contentPadding
         ) {
-            ButtonContent(text, isLoading, leadingIcon, colors.contentColor)
+            ButtonContent(text, isLoading, leadingIcon, MaterialTheme.colorScheme.primary)
         }
     } else if (variant == ButtonVariant.TEXT) {
         TextButton(
             onClick = onClick,
-            modifier = modifier.heightIn(min = 48.dp),
+            modifier = modifier.heightIn(min = 56.dp),
             enabled = enabled && !isLoading,
             shape = shape,
-            colors = colors,
+            colors = colors as ButtonColors,
             contentPadding = contentPadding
         ) {
-            ButtonContent(text, isLoading, leadingIcon, colors.contentColor)
+            ButtonContent(text, isLoading, leadingIcon, MaterialTheme.colorScheme.primary)
         }
     } else {
         Button(
             onClick = onClick,
-            modifier = modifier.heightIn(min = 48.dp),
+            modifier = modifier.heightIn(min = 56.dp),
             enabled = enabled && !isLoading,
             shape = shape,
-            colors = colors,
+            colors = colors as ButtonColors,
             contentPadding = contentPadding
         ) {
-            ButtonContent(text, isLoading, leadingIcon, colors.contentColor)
+            val contentColor = if (variant == ButtonVariant.PRIMARY) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondary
+            ButtonContent(text, isLoading, leadingIcon, contentColor)
         }
     }
 }

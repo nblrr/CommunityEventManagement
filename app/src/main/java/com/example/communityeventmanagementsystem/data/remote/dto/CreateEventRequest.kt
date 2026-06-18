@@ -9,6 +9,7 @@ data class CreateEventRequest(
     val description: String,
     @SerializedName("event_date") val eventDate: String,
     @SerializedName("event_time") val eventTime: String,
+    @SerializedName("end_time") val endTime: String?,
     val location: String,
     @SerializedName("max_attendees") val maxAttendees: Int,
     @SerializedName("is_online") val isOnline: Boolean,

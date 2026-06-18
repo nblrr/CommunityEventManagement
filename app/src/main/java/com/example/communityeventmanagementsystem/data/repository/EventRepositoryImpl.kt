@@ -7,6 +7,7 @@ import com.example.communityeventmanagementsystem.core.common.NetworkResult
 import com.example.communityeventmanagementsystem.core.network.ErrorHandler
 import com.example.communityeventmanagementsystem.data.mapper.toDomain
 import com.example.communityeventmanagementsystem.data.remote.api.EventApi
+import com.example.communityeventmanagementsystem.data.remote.api.RateEventRequest
 import com.example.communityeventmanagementsystem.data.remote.paging.EventPagingSource
 import com.example.communityeventmanagementsystem.domain.model.Event
 import com.example.communityeventmanagementsystem.domain.repository.EventRepository
@@ -55,6 +56,15 @@ class EventRepositoryImpl @Inject constructor(
         return try {
             val response = api.getMyEvents(page)
             NetworkResult.Success(response.data.map { it.toDomain() })
+        } catch (e: Exception) {
+            ErrorHandler.handleException(e)
+        }
+    }
+
+    override suspend fun rateEvent(id: Long, rating: Int, comment: String): NetworkResult<Unit> {
+        return try {
+            api.rateEvent(id, RateEventRequest(rating, comment))
+            NetworkResult.Success(Unit)
         } catch (e: Exception) {
             ErrorHandler.handleException(e)
         }

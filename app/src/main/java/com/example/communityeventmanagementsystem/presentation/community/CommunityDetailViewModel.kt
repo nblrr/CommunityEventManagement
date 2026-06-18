@@ -26,7 +26,7 @@ class CommunityDetailViewModel @Inject constructor(
     private val deleteCommunityUseCase: DeleteCommunityUseCase,
     private val sessionManager: SessionManager,
     private val gson: Gson,
-    savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel<CommunityDetailContract.State, CommunityDetailContract.Event, CommunityDetailContract.Effect>() {
 
     init {
@@ -40,6 +40,10 @@ class CommunityDetailViewModel @Inject constructor(
     override fun handleEvent(event: CommunityDetailContract.Event) {
         when (event) {
             is CommunityDetailContract.Event.LoadDetail -> loadDetail(event.id, forceRefresh = false)
+            is CommunityDetailContract.Event.RefreshDetail -> {
+                val id = uiState.value.community?.id ?: savedStateHandle.get<Long>("id")
+                id?.let { loadDetail(it, forceRefresh = true) }
+            }
             is CommunityDetailContract.Event.JoinCommunity -> join()
             is CommunityDetailContract.Event.LeaveCommunity -> leave()
             is CommunityDetailContract.Event.DeleteCommunity -> delete()

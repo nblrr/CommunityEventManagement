@@ -70,18 +70,29 @@ class ForumViewModel @Inject constructor(
     private fun checkMembershipAndStartPolling() {
         viewModelScope.launch {
             setState { copy(isLoading = true, error = null) }
-            when (val myCommResult = getMyCommunitiesUseCase()) {
+            if (communityId == -1L) {
+                setState { copy(isLoading = false) }
+                return@launch
+            }
+            when (val result = getForumMessagesUseCase(communityId)) {
                 is NetworkResult.Success -> {
-                    val isMember = myCommResult.data.any { it.id == communityId }
-                    setState { copy(isMember = isMember) }
-                    if (isMember) {
-                        startPolling()
-                    } else {
-                        setState { copy(isLoading = false, messages = emptyList()) }
+                    val orderedMessages = result.data.reversed()
+                    setState { 
+                        copy(
+                            isMember = true,
+                            messages = orderedMessages,
+                            isLoading = false
+                        )
                     }
+                    setEffect { ForumContract.Effect.ScrollToBottom }
+                    startPolling()
                 }
                 is NetworkResult.Error -> {
-                    setState { copy(isLoading = false, isMember = false, error = myCommResult.message) }
+                    if (result.code == 403) {
+                        setState { copy(isLoading = false, isMember = false, messages = emptyList()) }
+                    } else {
+                        setState { copy(isLoading = false, error = result.message) }
+                    }
                 }
                 is NetworkResult.Loading -> {
                     setState { copy(isLoading = true) }
@@ -95,7 +106,7 @@ class ForumViewModel @Inject constructor(
         pollingJob = viewModelScope.launch {
             while (isActive) {
                 loadMessages()
-                delay(5000) // Poll every 5 seconds
+                delay(5000)
             }
         }
     }
@@ -104,13 +115,17 @@ class ForumViewModel @Inject constructor(
         if (communityId == -1L) return
         when (val result = getForumMessagesUseCase(communityId)) {
             is NetworkResult.Success -> {
-                if (result.data != uiState.value.messages) {
-                    setState { copy(messages = result.data, isLoading = false) }
+                // Backend returns latest messages first (desc), we want to show oldest to newest for chat
+                val orderedMessages = result.data.reversed()
+                if (orderedMessages != uiState.value.messages) {
+                    setState { copy(messages = orderedMessages, isLoading = false) }
                     setEffect { ForumContract.Effect.ScrollToBottom }
                 }
             }
             is NetworkResult.Error -> {
-                if (uiState.value.messages.isEmpty()) {
+                if (result.code == 403) {
+                    setState { copy(isMember = false, messages = emptyList()) }
+                } else if (uiState.value.messages.isEmpty()) {
                     setState { copy(error = result.message, isLoading = false) }
                 }
             }

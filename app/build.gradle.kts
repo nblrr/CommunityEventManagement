@@ -79,6 +79,7 @@ dependencies {
 
     // Image Loading
     implementation(libs.coil.compose)
+    implementation(libs.android.image.cropper)
 
     // Navigation
     implementation(libs.androidx.navigation.compose)

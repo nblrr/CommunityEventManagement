@@ -25,16 +25,17 @@ class MediaRepositoryImpl @Inject constructor(
     override suspend fun uploadImage(uri: Uri, type: String): NetworkResult<UploadResponse> {
         return try {
             val contentResolver = context.contentResolver
-            val inputStream = contentResolver.openInputStream(uri) ?: throw Exception("Failed to open Uri input stream")
             val mimeType = contentResolver.getType(uri) ?: "image/*"
             val fileName = getFileName(context, uri) ?: "image_upload"
 
             val requestFile = object : RequestBody() {
                 override fun contentType() = mimeType.toMediaTypeOrNull()
-                override fun contentLength() = inputStream.available().toLong()
+                override fun contentLength() = getFileSize(uri)
                 override fun writeTo(sink: BufferedSink) {
-                    inputStream.source().use { source ->
-                        sink.writeAll(source)
+                    context.contentResolver.openInputStream(uri)?.use { input ->
+                        input.source().use { source ->
+                            sink.writeAll(source)
+                        }
                     }
                 }
             }
@@ -47,6 +48,12 @@ class MediaRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             ErrorHandler.handleException(e)
         }
+    }
+
+    private fun getFileSize(uri: Uri): Long {
+        return context.contentResolver.openAssetFileDescriptor(uri, "r")?.use {
+            it.length
+        } ?: -1L
     }
 
     private fun getFileName(context: Context, uri: Uri): String? {

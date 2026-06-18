@@ -15,9 +15,9 @@ class ProfileController extends Controller
      */
     public function profile(Request $request)
     {
-        return response()->json(
-            $request->user()
-        );
+        $user = $request->user();
+        $user->append(['communities_count', 'events_count']);
+        return response()->json($user);
     }
 
     /**
@@ -38,7 +38,9 @@ class ProfileController extends Controller
 
         $user->update($validated);
 
-        return response()->json($user->fresh());
+        $freshUser = $user->fresh();
+        $freshUser->append(['communities_count', 'events_count']);
+        return response()->json($freshUser);
     }
 
     /**
@@ -62,6 +64,12 @@ class ProfileController extends Controller
         $filename = Str::uuid() . '.' . $extension;
         $path = Storage::disk('s3')->putFileAs('avatars', $file, $filename);
 
+        if ($path === false) {
+            return response()->json([
+                'message' => 'Gagal mengunggah berkas ke penyimpanan cloud.'
+            ], 500);
+        }
+
         // Construct standard public Supabase Storage URL
         $supabaseUrl = rtrim(env('SUPABASE_URL', 'https://bxdvutvfrbmfcixpuefm.supabase.co'), '/');
         $bucket = env('AWS_BUCKET', 'community-images');
@@ -71,6 +79,8 @@ class ProfileController extends Controller
             'avatar_url' => $publicUrl
         ]);
 
-        return response()->json($user->fresh());
+        $freshUser = $user->fresh();
+        $freshUser->append(['communities_count', 'events_count']);
+        return response()->json($freshUser);
     }
 }

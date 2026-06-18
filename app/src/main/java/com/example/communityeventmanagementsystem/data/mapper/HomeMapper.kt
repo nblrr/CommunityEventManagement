@@ -19,7 +19,8 @@ fun CommunityDto.toDomain() = Community(
     organizerName = organizer?.name,
     organizerId = organizerId,
     isOrganizerTrusted = organizer?.isTrusted ?: false,
-    eventsCount = eventsCount ?: 0
+    eventsCount = eventsCount ?: 0,
+    events = events?.map { it.toDomain() } ?: emptyList()
 )
 fun EventDto.toDomain() = Event(
     id = id,
@@ -28,11 +29,14 @@ fun EventDto.toDomain() = Event(
     eventDate = eventDate,
     attendeeCount = attendeeCount,
     maxAttendees = maxAttendees,
-    status = status,
+    status = status ?: "UPCOMING",
     coverImageUrl = coverImageUrl,
     categoryId = categoryId,
     categoryName = category?.name,
-    location = location ?: "Zoom Meeting"
+    location = location ?: "Zoom Meeting",
+    eventTime = eventTime ?: "12:00",
+    isOnline = isOnline ?: false,
+    communityId = communityId ?: 1L
 )
 
 fun com.example.communityeventmanagementsystem.data.remote.dto.EventDetailResponse.toDomain() = Event(
@@ -42,7 +46,7 @@ fun com.example.communityeventmanagementsystem.data.remote.dto.EventDetailRespon
     eventDate = eventDate,
     attendeeCount = attendeeCount,
     maxAttendees = maxAttendees,
-    status = status,
+    status = status ?: "UPCOMING",
     coverImageUrl = coverImageUrl,
     communityId = communityId,
     categoryId = categoryId,

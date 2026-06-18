@@ -11,4 +11,5 @@ interface EventRepository {
     suspend fun registerToEvent(id: Long): NetworkResult<Unit>
     suspend fun unregisterFromEvent(id: Long): NetworkResult<Unit>
     suspend fun getMyEvents(page: Int): NetworkResult<List<Event>>
+    suspend fun rateEvent(id: Long, rating: Int, comment: String): NetworkResult<Unit>
 }

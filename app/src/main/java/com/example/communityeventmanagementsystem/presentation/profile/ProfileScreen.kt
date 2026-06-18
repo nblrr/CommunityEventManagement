@@ -29,6 +29,7 @@ fun ProfileScreen(
     onNavigateToTrustedApp: () -> Unit = {},
     onNavigateToOrganizerDashboard: () -> Unit = {},
     onNavigateToAdminDashboard: () -> Unit = {},
+    onNavigateToOrganizerRegistration: () -> Unit = {},
     onLogoutSuccess: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
@@ -90,9 +91,7 @@ fun ProfileScreen(
                                 user = user,
                                 onEditProfileClick = onNavigateToEditProfile,
                                 onSavedEventsClick = onNavigateToSavedEvents,
-                                onBecomeOrganizerClick = {
-                                    viewModel.handleEvent(ProfileContract.Event.BecomeOrganizer)
-                                },
+                                onBecomeOrganizerClick = onNavigateToOrganizerRegistration,
                                 onOrganizerDashboardClick = onNavigateToOrganizerDashboard,
                                 onAdminDashboardClick = onNavigateToAdminDashboard,
                                 onTrustedAppClick = onNavigateToTrustedApp,
@@ -133,11 +132,11 @@ fun ProfileInfoSection(user: User) {
                 imageUrl = user.avatarUrl,
                 name = user.name,
                 modifier = Modifier.size(96.dp),
-                textStyle = HeadlineXl
+                textStyle = HeadlineMd
             )
         }
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = Dimens.SpacingXs)) {
-            Text(user.name, style = HeadlineLgMobile, color = OnSurface)
+            Text(user.name, style = HeadlineSm, color = OnSurface)
             if (user.isTrusted) {
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(

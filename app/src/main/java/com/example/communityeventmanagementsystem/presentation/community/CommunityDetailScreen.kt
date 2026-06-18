@@ -1,7 +1,6 @@
 package com.example.communityeventmanagementsystem.presentation.community
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -11,16 +10,15 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -31,11 +29,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.communityeventmanagementsystem.presentation.components.ProfileAvatar
+import com.example.communityeventmanagementsystem.presentation.components.AppCard
 import com.example.communityeventmanagementsystem.ui.theme.*
-
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.communityeventmanagementsystem.domain.model.Community
+import com.example.communityeventmanagementsystem.presentation.home.UpcomingEventItem
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,11 +44,18 @@ fun CommunityDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToForum: (Long) -> Unit,
     onNavigateToCreateEvent: (Long) -> Unit = {},
+    onNavigateToEditCommunity: (Long) -> Unit = {},
+    onNavigateToEventDetail: (Long) -> Unit = {},
     viewModel: CommunityDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    LaunchedEffect(state.isLoading) {
+        if (!state.isLoading) isRefreshing = false
+    }
 
     LaunchedEffect(key1 = Unit) {
         viewModel.effect.collect { effect ->
@@ -92,7 +100,11 @@ fun CommunityDetailScreen(
             CommunityDetailTopBar(
                 isCreator = state.isCreator,
                 onNavigateBack = onNavigateBack,
-                onEditClick = { /* TODO: Implement Edit */ },
+                onEditClick = { 
+                    state.community?.id?.let { id ->
+                        onNavigateToEditCommunity(id)
+                    }
+                },
                 onDeleteClick = { showDeleteConfirmation = true }
             ) 
         },
@@ -125,14 +137,14 @@ fun CommunityDetailScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            if (state.isLoading) {
+            if (state.isLoading && state.community == null) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(color = Primary)
                 }
-            } else if (state.error != null) {
+            } else if (state.error != null && state.community == null) {
                 Box(
                     modifier = Modifier.fillMaxSize().padding(Dimens.ContainerPadding),
                     contentAlignment = Alignment.Center
@@ -146,7 +158,7 @@ fun CommunityDetailScreen(
                         )
                         Spacer(modifier = Modifier.height(Dimens.SpacingMd))
                         Button(
-                            onClick = { viewModel.handleEvent(CommunityDetailContract.Event.LoadDetail(state.community?.id ?: 0L)) },
+                            onClick = { viewModel.handleEvent(CommunityDetailContract.Event.RefreshDetail) },
                             colors = ButtonDefaults.buttonColors(containerColor = Primary)
                         ) {
                             Text("Coba Lagi")
@@ -155,35 +167,46 @@ fun CommunityDetailScreen(
                 }
             } else {
                 state.community?.let { community ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
+                    val pullToRefreshState = rememberPullToRefreshState()
+                    PullToRefreshBox(
+                        isRefreshing = isRefreshing,
+                        onRefresh = {
+                            isRefreshing = true
+                            viewModel.handleEvent(CommunityDetailContract.Event.RefreshDetail)
+                        },
+                        state = pullToRefreshState,
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        CommunityDetailHero(community)
                         Column(
                             modifier = Modifier
-                                .padding(Dimens.ContainerPadding)
-                                .fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(Dimens.SpacingLg)
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState())
                         ) {
-                            CommunityDetailInfoBar(
-                                community = community,
-                                isJoined = state.isJoined,
-                                isJoining = state.isJoining,
-                                onJoinClick = { viewModel.handleEvent(CommunityDetailContract.Event.JoinCommunity) },
-                                onLeaveClick = { viewModel.handleEvent(CommunityDetailContract.Event.LeaveCommunity) }
-                            )
-                            CommunityDetailDescription(community)
-                            CommunityDetailOrganizer(community)
-                            CommunityDetailForumAction(onClick = {
-                                if (state.isJoined) {
-                                    onNavigateToForum(community.id)
-                                } else {
-                                    viewModel.handleEvent(CommunityDetailContract.Event.ShowErrorMessage("Silakan gabung komunitas terlebih dahulu untuk mengakses forum."))
-                                }
-                            })
-                            CommunityDetailEvents(community)
+                            CommunityDetailHero(community)
+                            Column(
+                                modifier = Modifier
+                                    .padding(Dimens.ContainerPadding)
+                                    .fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(Dimens.SpacingLg)
+                            ) {
+                                CommunityDetailInfoBar(
+                                    community = community,
+                                    isJoined = state.isJoined,
+                                    isJoining = state.isJoining,
+                                    onJoinClick = { viewModel.handleEvent(CommunityDetailContract.Event.JoinCommunity) },
+                                    onLeaveClick = { viewModel.handleEvent(CommunityDetailContract.Event.LeaveCommunity) }
+                                )
+                                CommunityDetailDescription(community)
+                                CommunityDetailOrganizer(community)
+                                CommunityDetailForumAction(onClick = {
+                                    if (state.isJoined) {
+                                        onNavigateToForum(community.id)
+                                    } else {
+                                        viewModel.handleEvent(CommunityDetailContract.Event.ShowErrorMessage("Silakan gabung komunitas terlebih dahulu untuk mengakses forum."))
+                                    }
+                                })
+                                CommunityDetailEvents(community = community, onEventClick = onNavigateToEventDetail)
+                            }
                         }
                     }
                 }
@@ -200,13 +223,17 @@ fun CommunityDetailTopBar(
     onEditClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {}
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     TopAppBar(
         title = {
             Text(
                 text = "Communitix",
-                style = HeadlineMd,
+                style = HeadlineSm,
                 color = Primary,
-                fontWeight = FontWeight.Black
+                fontWeight = FontWeight.Black,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         },
         navigationIcon = {
@@ -216,23 +243,36 @@ fun CommunityDetailTopBar(
         },
         actions = {
             if (isCreator) {
-                IconButton(onClick = onEditClick) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = OnSurfaceVariant)
-                }
-                IconButton(onClick = onDeleteClick) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Error)
+                Box {
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = OnSurfaceVariant)
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false },
+                        modifier = Modifier.background(SurfaceContainerLowest)
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Edit Komunitas", style = LabelLg) },
+                            onClick = {
+                                showMenu = false
+                                onEditClick()
+                            },
+                            leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                            modifier = Modifier.background(SurfaceContainerLowest)
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Hapus Komunitas", style = LabelLg, color = Error) },
+                            onClick = {
+                                showMenu = false
+                                onDeleteClick()
+                            },
+                            leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = Error, modifier = Modifier.size(18.dp)) },
+                            modifier = Modifier.background(SurfaceContainerLowest)
+                        )
+                    }
                 }
             }
-            IconButton(onClick = {}) {
-                Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = OnSurfaceVariant)
-            }
-            ProfileAvatar(
-                imageUrl = null, // Using null for now as we don't have current user data here
-                name = "User",
-                modifier = Modifier
-                    .padding(end = Dimens.ContainerPadding)
-                    .size(32.dp)
-            )
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = Surface.copy(alpha = 0.8f))
     )
@@ -276,7 +316,7 @@ fun CommunityDetailHero(community: Community) {
             }
             Text(
                 text = community.name,
-                style = HeadlineLgMobile,
+                style = HeadlineSm,
                 color = Color.White,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -383,50 +423,61 @@ fun CommunityDetailOrganizer(community: Community) {
 
 @Composable
 fun CommunityDetailForumAction(onClick: () -> Unit) {
-    Surface(
-        shape = Shapes.ExtraLarge,
-        color = SurfaceContainerHigh,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
+    AppCard(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick,
+        containerColor = SurfaceContainerHigh,
+        contentPadding = 12.dp
     ) {
         Row(
-            modifier = Modifier.padding(Dimens.SpacingMd),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(PrimaryFixed),
-                    contentAlignment = Alignment.Center
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingMd)) {
+                Surface(
+                    modifier = Modifier.size(40.dp),
+                    shape = CircleShape,
+                    color = PrimaryFixed
                 ) {
-                    Icon(Icons.Default.Forum, contentDescription = null, tint = OnPrimaryFixed)
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.Forum, contentDescription = null, tint = OnPrimaryFixed, modifier = Modifier.size(20.dp))
+                    }
                 }
-                Text("Forum Diskusi", style = HeadlineMd, color = OnSurface)
+                Text("Forum Diskusi", style = TitleLg, color = OnSurface)
             }
-            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Outline)
+            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Outline, modifier = Modifier.size(20.dp))
         }
     }
 }
 
 @Composable
-fun CommunityDetailEvents(community: Community) {
+fun CommunityDetailEvents(community: Community, onEventClick: (Long) -> Unit) {
     Column {
         Text("Kegiatan Mendatang", style = HeadlineMd, color = OnSurface, modifier = Modifier.padding(bottom = Dimens.SpacingMd))
-        Surface(
-            shape = Shapes.ExtraLarge,
-            color = SurfaceContainerLowest,
-            border = androidx.compose.foundation.BorderStroke(1.dp, SurfaceVariant),
-            modifier = Modifier.fillMaxWidth().padding(vertical = Dimens.SpacingSm)
-        ) {
-            Box(
-                modifier = Modifier.fillMaxWidth().padding(Dimens.SpacingLg),
-                contentAlignment = Alignment.Center
+        if (community.events.isEmpty()) {
+            Surface(
+                shape = Shapes.ExtraLarge,
+                color = SurfaceContainerLowest,
+                border = androidx.compose.foundation.BorderStroke(1.dp, SurfaceVariant),
+                modifier = Modifier.fillMaxWidth().padding(vertical = Dimens.SpacingSm)
             ) {
-                Text("Tidak ada kegiatan mendatang.", style = BodyMd, color = OnSurfaceVariant)
+                Box(
+                    modifier = Modifier.fillMaxWidth().padding(Dimens.SpacingLg),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Tidak ada kegiatan mendatang.", style = BodyMd, color = OnSurfaceVariant)
+                }
+            }
+        } else {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(Dimens.SpacingMd)
+            ) {
+                community.events.forEach { event ->
+                    UpcomingEventItem(event = event) {
+                        onEventClick(event.id)
+                    }
+                }
             }
         }
     }

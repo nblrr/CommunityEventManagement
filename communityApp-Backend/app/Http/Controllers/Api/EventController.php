@@ -50,7 +50,7 @@ class EventController extends Controller
     {
         return response()->json(
             $event->load([
-                'community',
+                'community.organizer',
                 'category',
                 'ratings.user',
                 'images'
@@ -132,12 +132,6 @@ class EventController extends Controller
         return response()->json($events);
     }
 
-    /**
-     * Buat event baru.
-     * POST /api/events
-     *
-     * Hanya organizer pemilik community atau admin.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -145,8 +139,9 @@ class EventController extends Controller
             'category_id'     => 'required|integer|exists:categories,id',
             'title'           => 'required|string|max:255',
             'description'     => 'required|string',
-            'event_date'      => 'required|date',
+            'event_date'      => 'required|date|after_or_equal:today',
             'event_time'      => 'required|date_format:H:i',
+            'end_time'        => 'nullable|date_format:H:i',
             'location'        => 'required|string|max:255',
             'is_online'       => 'sometimes|boolean',
             'max_attendees'   => 'required|integer|min:1',
@@ -171,13 +166,14 @@ class EventController extends Controller
             'description'     => $validated['description'],
             'event_date'      => $validated['event_date'],
             'event_time'      => $validated['event_time'],
+            'end_time'        => $validated['end_time'] ?? null,
             'location'        => $validated['location'],
             'is_online'       => $validated['is_online'] ?? false,
             'max_attendees'   => $validated['max_attendees'],
             'cover_image_url' => $validated['cover_image_url'] ?? null,
         ]);
 
-        return response()->json($event, 201);
+        return response()->json($event->fresh(), 201);
     }
 
     /**
@@ -201,11 +197,12 @@ class EventController extends Controller
             'description'     => 'sometimes|string',
             'event_date'      => 'sometimes|date',
             'event_time'      => 'sometimes|date_format:H:i',
+            'end_time'        => 'nullable|date_format:H:i',
             'location'        => 'sometimes|string|max:255',
             'is_online'       => 'sometimes|boolean',
             'max_attendees'   => 'sometimes|integer|min:1',
             'cover_image_url' => 'nullable|string',
-            'status'          => 'sometimes|in:UPCOMING,ONGOING,PAST',
+            'status'          => 'sometimes|in:UPCOMING,ONGOING,COMPLETED',
         ]);
 
         $event->update($validated);
@@ -243,7 +240,16 @@ class EventController extends Controller
      */
     public function register(Event $event)
     {
-        $userId = auth()->id();
+        $user = auth()->user();
+
+        // Use calculated_status if needed or use the model's logic
+        if ($event->calculated_status !== 'UPCOMING') {
+            return response()->json([
+                'message' => 'Anda tidak dapat mendaftar untuk event yang sedang berlangsung atau sudah selesai.'
+            ], 403);
+        }
+
+        $userId = $user->id;
 
         // Check if user is a member of the parent community
         if (!$event->community->members()->where('user_id', $userId)->exists()) {

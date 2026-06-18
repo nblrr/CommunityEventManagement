@@ -112,7 +112,7 @@ fun RegisterScreen(
                         modifier = Modifier.padding(16.dp).size(32.dp)
                     )
                 }
-                Text("Create Account", style = HeadlineLgMobile, color = OnSurface, modifier = Modifier.padding(bottom = Dimens.SpacingXs))
+                Text("Create Account", style = HeadlineSm, color = OnSurface, modifier = Modifier.padding(bottom = Dimens.SpacingXs))
                 Text("Join Communitix and connect with your community.", style = BodyMd, color = OnSurfaceVariant, modifier = Modifier.padding(bottom = Dimens.SpacingXl), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
 
                 // Form

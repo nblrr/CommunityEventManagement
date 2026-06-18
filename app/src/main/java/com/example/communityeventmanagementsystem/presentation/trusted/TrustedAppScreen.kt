@@ -135,7 +135,7 @@ fun TrustedAppHeader() {
     Column {
         Text(
             text = "Apply for Trusted Status",
-            style = HeadlineLgMobile,
+            style = HeadlineSm,
             color = OnSurface,
             modifier = Modifier.padding(bottom = Dimens.SpacingSm)
         )

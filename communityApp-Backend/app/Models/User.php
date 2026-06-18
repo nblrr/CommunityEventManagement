@@ -6,6 +6,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Event;
 
 class User extends Authenticatable
 {
@@ -36,6 +37,28 @@ class User extends Authenticatable
         'is_blocked' => 'boolean',
         'is_trusted' => 'boolean',
     ];
+
+    protected $appends = [
+    ];
+
+    public function getCommunitiesCountAttribute()
+    {
+        if ($this->role === 'ORGANIZER' || $this->role === 'ADMIN') {
+            return $this->organizedCommunities()->count();
+        }
+        return $this->communities()->count();
+    }
+
+    public function getEventsCountAttribute()
+    {
+        if ($this->role === 'ORGANIZER' || $this->role === 'ADMIN') {
+            $communityIds = $this->organizedCommunities()->pluck('id');
+            return Event::whereIn('community_id', $communityIds)->count();
+        }
+        return $this->eventRegistrations()
+            ->whereIn('status', ['REGISTERED', 'ATTENDED'])
+            ->count();
+    }
 
     public function organizedCommunities()
     {

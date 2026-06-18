@@ -28,6 +28,7 @@ class AuthController extends Controller
         ]);
 
         $user = $user->fresh();
+        $user->append(['communities_count', 'events_count']);
         $token = $user->createToken('android')->plainTextToken;
 
         return response()->json([
@@ -70,6 +71,7 @@ class AuthController extends Controller
             ], 403);
         }
 
+        $user->append(['communities_count', 'events_count']);
         $token = $user->createToken('android')->plainTextToken;
 
         return response()->json([
@@ -97,9 +99,9 @@ class AuthController extends Controller
      */
     public function me(Request $request)
     {
-        return response()->json(
-            $request->user()
-        );
+        $user = $request->user();
+        $user->append(['communities_count', 'events_count']);
+        return response()->json($user);
     }
 
     /**
@@ -126,9 +128,11 @@ class AuthController extends Controller
 
         $user->update(['role' => 'ORGANIZER']);
 
+        $freshUser = $user->fresh();
+        $freshUser->append(['communities_count', 'events_count']);
         return response()->json([
             'message' => 'Anda sekarang menjadi organizer.',
-            'user'    => $user->fresh(),
+            'user'    => $freshUser,
         ]);
     }
 }

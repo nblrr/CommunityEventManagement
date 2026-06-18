@@ -7,41 +7,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 
-val BodyMd = TextStyle(
-    fontFamily = FontFamily.SansSerif,
-    fontWeight = FontWeight.Normal,
-    fontSize = 16.sp,
-    lineHeight = 24.sp
-)
-
-val ChatBubble = TextStyle(
-    fontFamily = FontFamily.SansSerif,
-    fontWeight = FontWeight.Normal,
-    fontSize = 15.sp,
-    lineHeight = 22.sp
-)
-
 val HeadlineLg = TextStyle(
     fontFamily = FontFamily.SansSerif,
     fontWeight = FontWeight.Bold,
     fontSize = 32.sp,
     lineHeight = 40.sp,
-    letterSpacing = (-0.02).em
-)
-
-val LabelMd = TextStyle(
-    fontFamily = FontFamily.SansSerif,
-    fontWeight = FontWeight.SemiBold,
-    fontSize = 14.sp,
-    lineHeight = 20.sp,
-    letterSpacing = 0.05.em
-)
-
-val HeadlineXl = TextStyle(
-    fontFamily = FontFamily.SansSerif,
-    fontWeight = FontWeight.ExtraBold,
-    fontSize = 40.sp,
-    lineHeight = 48.sp,
     letterSpacing = (-0.02).em
 )
 
@@ -52,6 +22,27 @@ val HeadlineMd = TextStyle(
     lineHeight = 32.sp
 )
 
+val HeadlineSm = TextStyle(
+    fontFamily = FontFamily.SansSerif,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 20.sp,
+    lineHeight = 28.sp
+)
+
+val TitleLg = TextStyle(
+    fontFamily = FontFamily.SansSerif,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 18.sp,
+    lineHeight = 26.sp
+)
+
+val TitleMd = TextStyle(
+    fontFamily = FontFamily.SansSerif,
+    fontWeight = FontWeight.Medium,
+    fontSize = 16.sp,
+    lineHeight = 24.sp
+)
+
 val BodyLg = TextStyle(
     fontFamily = FontFamily.SansSerif,
     fontWeight = FontWeight.Normal,
@@ -59,12 +50,11 @@ val BodyLg = TextStyle(
     lineHeight = 28.sp
 )
 
-val HeadlineLgMobile = TextStyle(
+val BodyMd = TextStyle(
     fontFamily = FontFamily.SansSerif,
-    fontWeight = FontWeight.Bold,
-    fontSize = 28.sp,
-    lineHeight = 34.sp,
-    letterSpacing = (-0.01).em
+    fontWeight = FontWeight.Normal,
+    fontSize = 16.sp,
+    lineHeight = 24.sp
 )
 
 val BodySm = TextStyle(
@@ -74,12 +64,32 @@ val BodySm = TextStyle(
     lineHeight = 20.sp
 )
 
+val LabelLg = TextStyle(
+    fontFamily = FontFamily.SansSerif,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 14.sp,
+    lineHeight = 20.sp,
+    letterSpacing = 0.05.em
+)
+
+val LabelMd = TextStyle(
+    fontFamily = FontFamily.SansSerif,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 12.sp,
+    lineHeight = 16.sp,
+    letterSpacing = 0.05.em
+)
+
 // Material 3 Typography integration
 val Typography = Typography(
     headlineLarge = HeadlineLg,
     headlineMedium = HeadlineMd,
+    headlineSmall = HeadlineSm,
+    titleLarge = TitleLg,
+    titleMedium = TitleMd,
     bodyLarge = BodyLg,
     bodyMedium = BodyMd,
     bodySmall = BodySm,
+    labelLarge = LabelLg,
     labelMedium = LabelMd
 )

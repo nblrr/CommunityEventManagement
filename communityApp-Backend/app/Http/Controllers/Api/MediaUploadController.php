@@ -45,6 +45,12 @@ class MediaUploadController extends Controller
             // Upload using the s3 disk
             $path = Storage::disk('s3')->putFileAs($folder, $file, $filename);
 
+            if ($path === false) {
+                return response()->json([
+                    'message' => 'Gagal mengunggah berkas ke penyimpanan cloud.'
+                ], 500);
+            }
+
             // Construct standard public Supabase Storage URL manually to ensure CDN route format
             $supabaseUrl = rtrim(env('SUPABASE_URL', 'https://bxdvutvfrbmfcixpuefm.supabase.co'), '/');
             $bucket = env('AWS_BUCKET', 'community-images');

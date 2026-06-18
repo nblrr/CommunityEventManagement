@@ -28,10 +28,15 @@ import com.example.communityeventmanagementsystem.presentation.components.Profil
 import com.example.communityeventmanagementsystem.presentation.components.AppButton
 import com.example.communityeventmanagementsystem.presentation.components.AppError
 import com.example.communityeventmanagementsystem.presentation.components.AppTextField
+import com.example.communityeventmanagementsystem.ui.theme.*
 import java.io.File
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
+import com.canhub.cropper.CropImageView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,6 +91,9 @@ fun EditProfileScreen(
     if (showDatePicker) {
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
+            colors = DatePickerDefaults.colors(
+                containerColor = SurfaceContainerLowest
+            ),
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
@@ -96,16 +104,50 @@ fun EditProfileScreen(
                     }
                     showDatePicker = false
                 }) {
-                    Text("Pilih")
+                    Text("Pilih", color = Primary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDatePicker = false }) {
-                    Text("Batal")
+                    Text("Batal", color = Primary)
                 }
             }
         ) {
-            DatePicker(state = datePickerState)
+            DatePicker(
+                state = datePickerState,
+                colors = DatePickerDefaults.colors(
+                    containerColor = SurfaceContainerLowest,
+                    titleContentColor = OnSurface,
+                    headlineContentColor = OnSurface,
+                    weekdayContentColor = OnSurfaceVariant,
+                    subheadContentColor = OnSurfaceVariant,
+                    navigationContentColor = OnSurface,
+                    yearContentColor = OnSurface,
+                    disabledYearContentColor = OnSurfaceVariant.copy(alpha = 0.38f),
+                    selectedYearContentColor = OnPrimary,
+                    selectedYearContainerColor = Primary,
+                    dayContentColor = OnSurface,
+                    disabledDayContentColor = OnSurfaceVariant.copy(alpha = 0.38f),
+                    selectedDayContentColor = OnPrimary,
+                    selectedDayContainerColor = Primary,
+                    todayContentColor = Primary,
+                    todayDateBorderColor = Primary
+                )
+            )
+        }
+    }
+
+    // Crop Image Launcher
+    val cropImageLauncher = rememberLauncherForActivityResult(
+        contract = CropImageContract()
+    ) { result ->
+        if (result.isSuccessful) {
+            result.uriContent?.let { croppedUri ->
+                val file = getFileFromUri(context, croppedUri)
+                if (file != null) {
+                    viewModel.setEvent(ProfileContract.Event.UploadAvatar(file))
+                }
+            }
         }
     }
 
@@ -114,10 +156,18 @@ fun EditProfileScreen(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         uri?.let {
-            val file = getFileFromUri(context, it)
-            if (file != null) {
-                viewModel.setEvent(ProfileContract.Event.UploadAvatar(file))
-            }
+            cropImageLauncher.launch(
+                CropImageContractOptions(
+                    uri = it,
+                    cropImageOptions = CropImageOptions(
+                        cropShape = CropImageView.CropShape.OVAL,
+                        guidelines = CropImageView.Guidelines.ON,
+                        aspectRatioX = 1,
+                        aspectRatioY = 1,
+                        fixAspectRatio = true
+                    )
+                )
+            )
         }
     }
 

@@ -17,7 +17,8 @@ data class Community(
     val organizerName: String? = null,
     val organizerId: Long = 0L,
     val isOrganizerTrusted: Boolean = false,
-    val eventsCount: Int = 0
+    val eventsCount: Int = 0,
+    val events: List<Event> = emptyList()
 )
 
 data class Event(

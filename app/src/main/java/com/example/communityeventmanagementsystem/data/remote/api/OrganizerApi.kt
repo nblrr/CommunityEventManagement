@@ -27,7 +27,7 @@ interface OrganizerApi {
     suspend fun createEvent(@Body event: CreateEventRequest): EventDto
 
     @PUT("events/{id}")
-    suspend fun updateEvent(@Path("id") id: Long, @Body event: EventDto): EventDto
+    suspend fun updateEvent(@Path("id") id: Long, @Body event: CreateEventRequest): EventDto
 
     @DELETE("events/{id}")
     suspend fun deleteEvent(@Path("id") id: Long)

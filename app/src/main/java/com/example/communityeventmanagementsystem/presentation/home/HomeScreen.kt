@@ -117,7 +117,7 @@ fun HomeScreen(
                         Column(modifier = Modifier.padding(horizontal = Dimens.ContainerPadding)) {
                             Text(
                                 text = if (state.userName != null) "Hi, ${state.userName}!" else "Discover Events",
-                                style = HeadlineLgMobile,
+                                style = HeadlineSm,
                                 color = OnSurface
                             )
                             Text("Find what connects you to the community.", style = BodyLg, color = OnSurfaceVariant, modifier = Modifier.padding(bottom = Dimens.SpacingLg))
@@ -344,7 +344,7 @@ fun RecommendedLargeCard(event: Event, onClick: () -> Unit) {
                         Text(event.location, style = LabelMd, color = InverseOnSurface)
                     }
                 }
-                Text(event.title, style = HeadlineLgMobile, color = SurfaceContainerLowest, modifier = Modifier.padding(bottom = 8.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(event.title, style = HeadlineSm, color = SurfaceContainerLowest, modifier = Modifier.padding(bottom = 8.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
     }

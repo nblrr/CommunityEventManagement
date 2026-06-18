@@ -26,6 +26,8 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import com.example.communityeventmanagementsystem.presentation.components.SkeletonEventCard
+import com.example.communityeventmanagementsystem.presentation.components.AppError
+import com.example.communityeventmanagementsystem.presentation.components.AppEmptyState
 import com.example.communityeventmanagementsystem.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,31 +58,25 @@ fun EventListScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "Communitix",
-                            style = HeadlineMd,
-                            color = Primary,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.offset(x = (-24).dp)
-                        )
-                    }
+                    Text(
+                        text = "Communitix",
+                        style = HeadlineSm,
+                        color = Primary,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 },
                 navigationIcon = {
-                    if (state.categoryId != null && state.categoryId != -1L) {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Primary)
-                        }
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Primary)
                     }
                 },
-                actions = {
-                    IconButton(onClick = {}) {
-                        Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = OnSurfaceVariant)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Surface.copy(alpha = 0.8f))
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Surface.copy(alpha = 0.8f)
+                )
             )
         },
         containerColor = Background
@@ -142,15 +138,18 @@ fun EventListScreen(
                 }
             } else if (eventsItems.loadState.refresh is LoadState.Error) {
                 item {
-                    Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                        Text("Gagal memuat event.", color = Error, style = BodyLg)
-                    }
+                    AppError(
+                        message = "Gagal memuat event.",
+                        onRetry = { eventsItems.retry() }
+                    )
                 }
             } else if (eventsItems.itemCount == 0) {
                 item {
-                    Box(modifier = Modifier.fillMaxWidth().padding(50.dp), contentAlignment = Alignment.Center) {
-                        Text("Tidak ada event ditemukan.", color = OnSurfaceVariant, style = BodyLg)
-                    }
+                    AppEmptyState(
+                        title = "Belum Ada Event",
+                        description = "Coba cari dengan kata kunci lain atau pilih kategori berbeda.",
+                        icon = Icons.Default.Event
+                    )
                 }
             } else {
                 items(eventsItems.itemCount) { index ->

@@ -9,5 +9,6 @@ fun ForumMessageDto.toDomain() = ForumMessage(
     senderId = senderId,
     message = message,
     senderName = sender.name,
+    senderAvatarUrl = sender.avatarUrl,
     createdAt = createdAt
 )

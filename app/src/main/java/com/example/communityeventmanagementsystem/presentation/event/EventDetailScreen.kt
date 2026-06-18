@@ -10,9 +10,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -21,8 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -39,6 +35,7 @@ fun EventDetailScreen(
     viewModel: EventDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var showRatingDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
@@ -60,12 +57,22 @@ fun EventDetailScreen(
                     isCommunityMember = state.isCommunityMember,
                     onRegisterClick = { viewModel.handleEvent(EventDetailContract.Event.Register) },
                     onUnregisterClick = { viewModel.handleEvent(EventDetailContract.Event.Unregister) },
-                    onJoinCommunityClick = { viewModel.handleEvent(EventDetailContract.Event.JoinCommunity) }
+                    onJoinCommunityClick = { viewModel.handleEvent(EventDetailContract.Event.JoinCommunity) },
+                    onRateClick = { showRatingDialog = true }
                 )
             }
         },
         containerColor = Background
     ) { paddingValues ->
+        if (showRatingDialog) {
+            RatingDialog(
+                onDismiss = { showRatingDialog = false },
+                onSubmit = { rating, comment ->
+                    viewModel.handleEvent(EventDetailContract.Event.RateEvent(rating, comment))
+                    showRatingDialog = false
+                }
+            )
+        }
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -190,7 +197,7 @@ fun EventHeader(event: DomainEvent) {
         }
         Text(
             text = event.title,
-            style = HeadlineLgMobile,
+            style = HeadlineSm,
             color = OnSurface,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
@@ -367,16 +374,12 @@ fun EventDetailBottomBar(
     isCommunityMember: Boolean,
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit,
-    onJoinCommunityClick: () -> Unit
+    onJoinCommunityClick: () -> Unit,
+    onRateClick: () -> Unit = {}
 ) {
-    val isPastEvent = try {
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val eventDate = LocalDate.parse(event.eventDate, formatter)
-        eventDate.isBefore(LocalDate.now())
-    } catch (e: Exception) {
-        false
-    }
-
+    val isPastEvent = event.status == "COMPLETED"
+    val isOngoing = event.status == "ONGOING"
+ 
     Surface(
         color = SurfaceContainerLowest.copy(alpha = 0.95f),
         shadowElevation = 8.dp,
@@ -390,15 +393,15 @@ fun EventDetailBottomBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                if (event.price > 0) {
-                    Text("Rp ${event.price}", style = HeadlineMd.copy(fontWeight = FontWeight.Bold), color = Primary)
-                } else {
-                    Text("Gratis", style = HeadlineMd.copy(fontWeight = FontWeight.Bold), color = Primary)
-                }
+                Text("Gratis", style = HeadlineMd.copy(fontWeight = FontWeight.Bold), color = Primary)
             }
             Button(
                 onClick = { 
-                    if (isCommunityMember) {
+                    if (isPastEvent) {
+                        onRateClick()
+                    } else if (isOngoing) {
+                        // Disabled, do nothing
+                    } else if (isCommunityMember) {
                         if (isRegistered) onUnregisterClick() else onRegisterClick()
                     } else {
                         onJoinCommunityClick()
@@ -410,14 +413,16 @@ fun EventDetailBottomBar(
                     .shadow(4.dp, Shapes.Full),
                 shape = Shapes.Full,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isRegistered || isPastEvent) SurfaceVariant else Primary,
-                    contentColor = if (isRegistered || isPastEvent) OnSurfaceVariant else OnPrimary
+                    containerColor = if (isRegistered && !isPastEvent && !isOngoing) SurfaceVariant else Primary,
+                    contentColor = if (isRegistered && !isPastEvent && !isOngoing) OnSurfaceVariant else OnPrimary
                 ),
-                enabled = !isRegistering && !isPastEvent
+                enabled = !isRegistering && (!isPastEvent || (isRegistered && isPastEvent)) && !isOngoing
             ) {
                 Text(
                     text = if (isPastEvent) {
-                        "Event Telah Selesai"
+                        if (isRegistered) "Beri Rating" else "Event Telah Selesai"
+                    } else if (isOngoing) {
+                        "Sedang Berlangsung"
                     } else if (!isCommunityMember) {
                         "Gabung Komunitas"
                     } else if (isRegistered) {

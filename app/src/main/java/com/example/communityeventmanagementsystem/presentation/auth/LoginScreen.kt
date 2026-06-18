@@ -37,10 +37,10 @@ fun LoginScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
-
+    
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     fun validateEmail(value: String) {
         emailError = when {
@@ -207,7 +207,7 @@ fun LoginScreen(
                                 validatePassword(password)
                                 
                                 if (emailError == null && passwordError == null) {
-                                    viewModel.setEvent(LoginContract.Event.OnLoginClicked(email, password))
+                                    viewModel.handleEvent(LoginContract.Event.OnLoginClicked(email, password))
                                 }
                             },
                             modifier = Modifier

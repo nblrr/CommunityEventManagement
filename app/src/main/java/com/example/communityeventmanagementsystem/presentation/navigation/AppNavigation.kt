@@ -34,6 +34,7 @@ import com.example.communityeventmanagementsystem.presentation.trusted.TrustedAp
 import com.example.communityeventmanagementsystem.presentation.community.CreateCommunityScreen
 import com.example.communityeventmanagementsystem.presentation.event.CreateEventScreen
 import com.example.communityeventmanagementsystem.presentation.event.SavedEventsScreen
+import com.example.communityeventmanagementsystem.presentation.profile.OrganizerRegistrationScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -152,6 +153,12 @@ fun AppNavigation(
                     onNavigateToForum = { id -> navController.navigate(Screen.CommunityForum(id).route) },
                     onNavigateToCreateEvent = { commId -> 
                         navController.navigate(Screen.CreateEvent.route + "?communityId=$commId")
+                    },
+                    onNavigateToEditCommunity = { commId ->
+                        navController.navigate(Screen.CreateCommunity.route + "?communityId=$commId")
+                    },
+                    onNavigateToEventDetail = { eventId ->
+                        navController.navigate(Screen.EventDetail(eventId).route)
                     }
                 )
             }
@@ -184,9 +191,10 @@ fun AppNavigation(
                 ProfileScreen(
                     onNavigateToEditProfile = { navController.navigate(Screen.EditProfile.route) },
                     onNavigateToSavedEvents = { navController.navigate(Screen.SavedEvents.route) },
-                    onNavigateToTrustedApp = { navController.navigate(Screen.TrustedApplication.route) },
+                    onNavigateToTrustedApp = { navController.navigate(Screen.TrustedOrganizerApplication.route) },
                     onNavigateToOrganizerDashboard = { navController.navigate(Screen.OrganizerDashboard.route) },
                     onNavigateToAdminDashboard = { navController.navigate(Screen.AdminDashboard.route) },
+                    onNavigateToOrganizerRegistration = { navController.navigate(Screen.OrganizerRegistration.route) },
                     onLogoutSuccess = {
                         navController.navigate(Screen.Login.route) {
                             popUpTo(0) { inclusive = true }
@@ -195,10 +203,6 @@ fun AppNavigation(
                 )
             }
             composable(Screen.EditProfile.route) {
-                // Since EditProfile is currently receiving viewModel and onNavigateBack in its original definition, 
-                // wait, EditProfileScreen was updated by ME to take (viewModel, onNavigateBack). 
-                // Wait! If EditProfileScreen takes arguments, I need to pass them or update EditProfileScreen.
-                // Let me just pass the hiltViewModel for EditProfileScreen to prevent build failures.
                 val parentEntry = remember(it) {
                     navController.getBackStackEntry(Screen.Profile.route)
                 }
@@ -208,10 +212,26 @@ fun AppNavigation(
                     onNavigateBack = { navController.navigateUp() }
                 )
             }
+            composable(Screen.TrustedOrganizerApplication.route) {
+                TrustedAppScreen(
+                    viewModel = hiltViewModel(),
+                    onNavigateBack = { navController.navigateUp() }
+                )
+            }
             composable(Screen.TrustedApplication.route) {
                 TrustedAppScreen(
                     viewModel = hiltViewModel(),
                     onNavigateBack = { navController.navigateUp() }
+                )
+            }
+            composable(Screen.OrganizerRegistration.route) {
+                OrganizerRegistrationScreen(
+                    onNavigateBack = { navController.navigateUp() },
+                    onNavigateToDashboard = {
+                        navController.navigate(Screen.OrganizerDashboard.route) {
+                            popUpTo(Screen.Profile.route)
+                        }
+                    }
                 )
             }
             composable(Screen.OrganizerDashboard.route) {
@@ -233,6 +253,19 @@ fun AppNavigation(
                 SavedEventsScreen(
                     onNavigateBack = { navController.navigateUp() },
                     onNavigateToEventDetail = { id -> navController.navigate(Screen.EventDetail(id).route) }
+                )
+            }
+            composable(
+                route = Screen.CreateCommunity.route + "?communityId={communityId}",
+                arguments = listOf(navArgument("communityId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                })
+            ) { backStackEntry ->
+                val communityId = backStackEntry.arguments?.getLong("communityId")?.takeIf { it != -1L }
+                CreateCommunityScreen(
+                    onNavigateBack = { navController.navigateUp() },
+                    communityId = communityId
                 )
             }
             composable(Screen.CreateCommunity.route) {

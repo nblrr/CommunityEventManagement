@@ -1,7 +1,6 @@
 package com.example.communityeventmanagementsystem.presentation.forum
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,16 +16,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
 import com.example.communityeventmanagementsystem.presentation.components.ProfileAvatar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -136,7 +132,7 @@ fun ForumScreen(
                                     IncomingMessage(
                                         name = message.senderName ?: "User",
                                         nameColor = Primary,
-                                        avatarUrl = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&h=80",
+                                        avatarUrl = message.senderAvatarUrl,
                                         message = message.message,
                                         time = message.createdAt.substringAfter("T").take(5)
                                     )
@@ -179,14 +175,14 @@ fun ForumTopBar(messageCount: Int, onNavigateBack: () -> Unit) {
 }
 
 @Composable
-fun IncomingMessage(name: String, nameColor: Color, avatarUrl: String, message: String, time: String) {
+fun IncomingMessage(name: String, nameColor: Color, avatarUrl: String?, message: String, time: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.Top
     ) {
         ProfileAvatar(
-            imageUrl = null, // Backend doesn't provide avatarUrl in ForumMessage model yet
+            imageUrl = avatarUrl,
             name = name,
             modifier = Modifier
                 .padding(end = Dimens.SpacingSm, top = Dimens.SpacingXs)

@@ -97,16 +97,16 @@ fun AdminDashboardScreen(
             if (state.showRejectDialog) {
                 AlertDialog(
                     onDismissRequest = { viewModel.handleEvent(AdminContract.Event.OnDismissRejectDialog) },
-                    title = { Text("Reject Application", color = OnSurface) },
+                    title = { Text("Reject Application", style = TitleLg, color = OnSurface) },
                     containerColor = SurfaceContainerLowest,
                     text = {
-                        Column {
-                            Text("Provide feedback notes for rejection:", color = OnSurfaceVariant)
-                            Spacer(modifier = Modifier.height(8.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(Dimens.SpacingSm)) {
+                            Text("Provide feedback notes for rejection:", style = BodyMd, color = OnSurfaceVariant)
                             OutlinedTextField(
                                 value = state.rejectNotes,
                                 onValueChange = { viewModel.handleEvent(AdminContract.Event.OnRejectNotesChanged(it)) },
                                 modifier = Modifier.fillMaxWidth(),
+                                shape = Shapes.Large,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedContainerColor = SurfaceBright,
                                     unfocusedContainerColor = SurfaceBright,
@@ -119,14 +119,15 @@ fun AdminDashboardScreen(
                     confirmButton = {
                         Button(
                             onClick = { viewModel.handleEvent(AdminContract.Event.OnConfirmReject) },
-                            colors = ButtonDefaults.buttonColors(containerColor = Error)
+                            colors = ButtonDefaults.buttonColors(containerColor = Error),
+                            shape = Shapes.Full
                         ) {
-                            Text("Reject")
+                            Text("Reject", style = LabelLg)
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { viewModel.handleEvent(AdminContract.Event.OnDismissRejectDialog) }) {
-                            Text("Cancel", color = Primary)
+                            Text("Cancel", style = LabelLg, color = Primary)
                         }
                     }
                 )
@@ -168,7 +169,7 @@ fun AdminDashboardHeader() {
         )
         Text(
             text = "Trusted Organizer Applications",
-            style = HeadlineLgMobile,
+            style = HeadlineSm,
             color = OnSurface
         )
     }

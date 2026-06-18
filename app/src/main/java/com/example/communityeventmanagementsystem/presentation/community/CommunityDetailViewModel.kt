@@ -13,6 +13,7 @@ import com.example.communityeventmanagementsystem.core.session.SessionManager
 import com.google.gson.Gson
 import com.example.communityeventmanagementsystem.domain.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -55,9 +56,13 @@ class CommunityDetailViewModel @Inject constructor(
         if (!forceRefresh && uiState.value.community?.id == id && !uiState.value.isLoading) return
         viewModelScope.launch {
             setState { copy(isLoading = true, error = null) }
-            val detailResult = getCommunityDetailUseCase(id)
-            val myCommResult = getMyCommunitiesUseCase()
+
+            val detailDeferred = async { getCommunityDetailUseCase(id) }
+            val myCommDeferred = async { getMyCommunitiesUseCase() }
             val userDataJson = sessionManager.userData.firstOrNull()
+            
+            val detailResult = detailDeferred.await()
+            val myCommResult = myCommDeferred.await()
             val currentUser = userDataJson?.let { gson.fromJson(it, User::class.java) }
 
             if (detailResult is NetworkResult.Success) {
@@ -98,8 +103,6 @@ class CommunityDetailViewModel @Inject constructor(
                 is NetworkResult.Success -> {
                     setState { copy(isJoining = false) }
                     setEffect { CommunityDetailContract.Effect.ShowMessage("Berhasil bergabung dengan komunitas!") }
-                    // Update the confirmed data without full reload if possible, 
-                    // or just keep the optimistic state and clear the loading flag.
                 }
                 is NetworkResult.Error -> {
                     setState { 

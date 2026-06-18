@@ -32,6 +32,7 @@ class ForumViewModel @Inject constructor(
             communityId = id
             checkMembershipAndLoad()
         }
+        
         viewModelScope.launch {
             sessionManager.userData.collect { json ->
                 if (json != null) {
@@ -134,7 +135,7 @@ class ForumViewModel @Inject constructor(
             communityId = communityId,
             senderId = uiState.value.currentUserId,
             message = message,
-            senderName = "Anda", // Will be replaced by real name from session if available
+            senderName = "Anda",
             senderAvatarUrl = null,
             createdAt = java.time.OffsetDateTime.now().toString()
         )

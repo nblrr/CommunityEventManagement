@@ -36,9 +36,7 @@ fun ProfileScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        if (state.user == null) {
-            viewModel.handleEvent(ProfileContract.Event.LoadProfile)
-        }
+        viewModel.handleEvent(ProfileContract.Event.LoadProfile)
     }
 
     LaunchedEffect(key1 = Unit) {

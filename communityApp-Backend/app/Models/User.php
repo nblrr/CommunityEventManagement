@@ -63,21 +63,27 @@ class User extends Authenticatable
 
     public function getCommunitiesCountAttribute()
     {
+        $joinedIds = $this->communities()->pluck('communities.id')->toArray();
         if ($this->isOrganizer()) {
-            return $this->organizedCommunities()->count();
+            $organizedIds = $this->organizedCommunities()->pluck('id')->toArray();
+            return count(array_unique(array_merge($joinedIds, $organizedIds)));
         }
-        return $this->communities()->count();
+        return count($joinedIds);
     }
 
     public function getEventsCountAttribute()
     {
+        $registeredIds = $this->eventRegistrations()
+            ->whereIn('status', ['REGISTERED', 'ATTENDED'])
+            ->pluck('event_id')
+            ->toArray();
+
         if ($this->isOrganizer()) {
             $communityIds = $this->organizedCommunities()->pluck('id');
-            return Event::whereIn('community_id', $communityIds)->count();
+            $organizedEventIds = Event::whereIn('community_id', $communityIds)->pluck('id')->toArray();
+            return count(array_unique(array_merge($registeredIds, $organizedEventIds)));
         }
-        return $this->eventRegistrations()
-            ->whereIn('status', ['REGISTERED', 'ATTENDED'])
-            ->count();
+        return count($registeredIds);
     }
 
     public function organizedCommunities()

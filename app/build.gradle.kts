@@ -22,7 +22,7 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"http://10.101.51.103:8000/api/\"")
+            buildConfigField("String", "BASE_URL", "\"https://unmanned-edging-museum.ngrok-free.dev/api/\"")
             buildConfigField("Boolean", "DEBUG_FLAG", "true")
         }
         release {
@@ -31,7 +31,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "BASE_URL", "\"https://api.yourdomain.com/api/\"")
+            buildConfigField("String", "BASE_URL", "\"https://unmanned-edging-museum.ngrok-free.dev/api/\"")
             buildConfigField("Boolean", "DEBUG_FLAG", "false")
         }
     }

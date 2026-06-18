@@ -56,14 +56,8 @@ fun EventListScreen(
         }
     }
 
-    LaunchedEffect(key1 = Unit) {
-        viewModel.effect.collect { effect ->
-            when (effect) {
-                is EventListContract.Effect.NavigateToEventDetail -> {
-                    onNavigateToEventDetail(effect.eventId)
-                }
-            }
-        }
+    val displayCategories = remember(state.categories) {
+        listOf(com.example.communityeventmanagementsystem.domain.model.Category(id = -1L, name = "Semua", icon = null)) + state.categories
     }
 
     Scaffold(
@@ -151,6 +145,35 @@ fun EventListScreen(
                             colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = OnPrimary)
                         ) {
                             Icon(Icons.Default.Tune, contentDescription = "Filter")
+                        }
+                    }
+                }
+
+                item {
+                    androidx.compose.foundation.lazy.LazyRow(
+                        contentPadding = PaddingValues(horizontal = Dimens.ContainerPadding),
+                        horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingSm),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(displayCategories.size) { index ->
+                            val category = displayCategories[index]
+                            val isSelected = (state.categoryId == category.id) || (category.id == -1L && (state.categoryId == null))
+                            Surface(
+                                color = if (isSelected) Primary else SurfaceContainer,
+                                shape = Shapes.Full,
+                                border = if (!isSelected) androidx.compose.foundation.BorderStroke(1.dp, OutlineVariant) else null,
+                                modifier = Modifier.clickable {
+                                    val newCatId = if (category.id == -1L) null else category.id
+                                    viewModel.handleEvent(EventListContract.Event.LoadEvents(categoryId = newCatId, status = state.status, sortBy = state.sortBy))
+                                }
+                            ) {
+                                Text(
+                                    text = category.name,
+                                    style = LabelMd,
+                                    color = if (isSelected) OnPrimary else OnSurface,
+                                    modifier = Modifier.padding(horizontal = Dimens.SpacingMd, vertical = Dimens.SpacingSm)
+                                )
+                            }
                         }
                     }
                 }

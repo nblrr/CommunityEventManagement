@@ -143,8 +143,9 @@ fun CreateEventScreen(
 
     LaunchedEffect(state.categories) {
         if (state.categories.isNotEmpty() && selectedCategory.isEmpty()) {
-            selectedCategory = state.categories.first().name
-            categoryId = state.categories.first().id
+            val firstCategory = state.categories.first()
+            selectedCategory = firstCategory.name
+            categoryId = firstCategory.id
         }
     }
 

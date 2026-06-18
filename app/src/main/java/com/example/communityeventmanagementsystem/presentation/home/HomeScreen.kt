@@ -42,6 +42,7 @@ fun HomeScreen(
     onNavigateToCreateCommunity: () -> Unit = {},
     onNavigateToCreateEvent: () -> Unit = {},
     onNavigateToSearchAndFilter: () -> Unit = {},
+    onNavigateToCommunityList: () -> Unit = {},
     onNavigateToLogin: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -200,7 +201,7 @@ fun HomeScreen(
                                         "Lihat Semua",
                                         style = LabelMd,
                                         color = Primary,
-                                        modifier = Modifier.clickable { onNavigateToCategory(-1L) }
+                                        modifier = Modifier.clickable { onNavigateToCommunityList() }
                                     )
                                 }
                                 LazyRow(

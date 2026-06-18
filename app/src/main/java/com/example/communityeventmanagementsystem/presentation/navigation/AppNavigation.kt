@@ -117,6 +117,7 @@ fun AppNavigation(
                     onNavigateToCreateCommunity = { navController.navigate(Screen.CreateCommunity.route) },
                     onNavigateToCreateEvent = { navController.navigate(Screen.CreateEvent.route) },
                     onNavigateToSearchAndFilter = { navController.navigate(Screen.EventList.createRoute(-1L)) },
+                    onNavigateToCommunityList = { navController.navigate(Screen.CommunityList.createRoute(-1L)) },
                     onNavigateToLogin = {
                         navController.navigate(Screen.Login.route) {
                             popUpTo(0) { inclusive = true }

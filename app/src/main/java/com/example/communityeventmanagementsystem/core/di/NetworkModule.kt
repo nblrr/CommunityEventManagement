@@ -68,9 +68,10 @@ object NetworkModule {
             .addInterceptor(loggingInterceptor)
             .addInterceptor(authInterceptor)
             .addInterceptor { chain ->
-                var request = chain.request()
-                // Force cache for certain public endpoints if needed, 
-                // but usually we respect Cache-Control from server.
+                val original = chain.request()
+                val request = original.newBuilder()
+                    .header("ngrok-skip-browser-warning", "true")
+                    .build()
                 chain.proceed(request)
             }
             .connectTimeout(60, TimeUnit.SECONDS)

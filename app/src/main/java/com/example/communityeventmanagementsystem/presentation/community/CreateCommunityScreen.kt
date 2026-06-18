@@ -76,21 +76,17 @@ fun CreateCommunityScreen(
             description = community.description ?: ""
             categoryId = community.categoryId
             currentImageUrl = community.coverImageUrl
-            
-            val category = state.categories.find { it.id == community.categoryId }
-            if (category != null) {
-                selectedCategory = category.name
-            }
         }
     }
 
-    LaunchedEffect(state.categories) {
+    LaunchedEffect(state.categories, state.community) {
         if (state.categories.isNotEmpty()) {
             val community = state.community
             if (community != null) {
                 val category = state.categories.find { it.id == community.categoryId }
                 if (category != null) {
                     selectedCategory = category.name
+                    categoryId = category.id
                 }
             } else if (selectedCategory.isEmpty()) {
                 selectedCategory = state.categories.first().name

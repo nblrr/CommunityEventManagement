@@ -27,7 +27,7 @@ class EventImageController extends Controller
         $user = $request->user();
 
         // Check if user is organizer of the event's community or admin
-        if ($user->role !== 'ADMIN' && $event->community->organizer_id !== $user->id) {
+        if (!$user->isAdmin() && $event->community->organizer_id !== $user->id) {
             return response()->json([
                 'message' => 'Anda tidak memiliki izin untuk mengupload gambar untuk event ini.'
             ], 403);

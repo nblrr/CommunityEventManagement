@@ -9,5 +9,13 @@ data class DashboardStatsDto(
     @SerializedName("total_organizers") val totalOrganizers: Int,
     @SerializedName("trusted_organizers") val trustedOrganizers: Int,
     @SerializedName("blocked_users") val blockedUsers: Int,
-    @SerializedName("pending_trusted_applications") val pendingTrustedApplications: Int
+    @SerializedName("pending_trusted_applications") val pendingTrustedApplications: Int,
+    @SerializedName("total_registrations") val totalRegistrations: Int
+)
+
+data class CreateUserRequest(
+    val name: String,
+    val email: String,
+    val role: String,
+    val password: String
 )

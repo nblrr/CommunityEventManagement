@@ -10,7 +10,7 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user()?->role !== 'ADMIN') {
+        if (!$request->user()?->isAdmin()) {
             return response()->json([
                 'message' => 'Akses ditolak. Hanya admin yang diizinkan.'
             ], 403);

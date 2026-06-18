@@ -15,7 +15,7 @@ class ForumController extends Controller
 
         // Check if user is member, organizer or admin
         $isMember = $community->members()->where('user_id', $user->id)->exists();
-        if ($user->role !== 'ADMIN' && $community->organizer_id !== $user->id && !$isMember) {
+        if (!$user->isAdmin() && $community->organizer_id !== $user->id && !$isMember) {
             return response()->json([
                 'message' => 'Anda harus bergabung dengan community ini untuk melihat forum.'
             ], 403);
@@ -35,7 +35,7 @@ class ForumController extends Controller
 
         // Check if user is member, organizer or admin
         $isMember = $community->members()->where('user_id', $user->id)->exists();
-        if ($user->role !== 'ADMIN' && $community->organizer_id !== $user->id && !$isMember) {
+        if (!$user->isAdmin() && $community->organizer_id !== $user->id && !$isMember) {
             return response()->json([
                 'message' => 'Anda harus bergabung dengan community ini untuk mengirim pesan.'
             ], 403);
@@ -58,7 +58,7 @@ class ForumController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->role !== 'ADMIN' && $message->sender_id !== $user->id) {
+        if (!$user->isAdmin() && $message->sender_id !== $user->id) {
             return response()->json([
                 'message' => 'Anda tidak memiliki izin untuk menghapus pesan ini.'
             ], 403);

@@ -22,7 +22,7 @@ return new class extends Migration
             $table->date('birth_date')->nullable();
             $table->string('avatar_url')->nullable();
             $table->timestamp('email_verified_at')->nullable();
-            $table->enum('role', ['ADMIN','USER', 'ORGANIZER'])->default('USER');
+            $table->enum('role', ['SUPER_ADMIN', 'ADMIN','USER', 'ORGANIZER'])->default('USER');
             $table->boolean('is_blocked')->default(false);
             $table->boolean('is_trusted')->default(false);
             $table->rememberToken();

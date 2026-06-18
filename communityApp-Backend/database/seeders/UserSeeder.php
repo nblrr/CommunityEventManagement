@@ -30,7 +30,7 @@ class UserSeeder extends Seeder
             'gender' => 'MALE',
             'bio' => 'Administrator utama platform Community Event Management System.',
             'avatar_url' => 'https://api.dicebear.com/7.x/adventurer/svg?seed=admin',
-            'role' => 'ADMIN',
+            'role' => 'SUPER_ADMIN',
             'is_blocked' => false,
             'is_trusted' => true,
             'email_verified_at' => now(),

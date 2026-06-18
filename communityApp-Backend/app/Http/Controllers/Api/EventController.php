@@ -166,7 +166,7 @@ class EventController extends Controller
         // Cek apakah user adalah organizer community tersebut atau admin
         $community = \App\Models\Community::findOrFail($validated['community_id']);
 
-        if ($user->role !== 'ADMIN' && $community->organizer_id !== $user->id) {
+        if (!$user->isAdmin() && $community->organizer_id !== $user->id) {
             return response()->json([
                 'message' => 'Anda harus menjadi organizer community ini untuk membuat event.'
             ], 403);
@@ -199,7 +199,7 @@ class EventController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'ADMIN' && $event->community->organizer_id !== $user->id) {
+        if (!$user->isAdmin() && $event->community->organizer_id !== $user->id) {
             return response()->json([
                 'message' => 'Anda tidak memiliki izin untuk mengubah event ini.'
             ], 403);
@@ -233,7 +233,7 @@ class EventController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'ADMIN' && $event->community->organizer_id !== $user->id) {
+        if (!$user->isAdmin() && $event->community->organizer_id !== $user->id) {
             return response()->json([
                 'message' => 'Anda tidak memiliki izin untuk menghapus event ini.'
             ], 403);
@@ -393,7 +393,7 @@ class EventController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'ADMIN' && $event->community->organizer_id !== $user->id) {
+        if (!$user->isAdmin() && $event->community->organizer_id !== $user->id) {
             return response()->json([
                 'message' => 'Anda tidak memiliki izin untuk melihat peserta event ini.'
             ], 403);

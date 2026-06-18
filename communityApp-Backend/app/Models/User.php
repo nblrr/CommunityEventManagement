@@ -12,6 +12,26 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+    public const ROLE_SUPER_ADMIN = 'SUPER_ADMIN';
+    public const ROLE_ADMIN = 'ADMIN';
+    public const ROLE_ORGANIZER = 'ORGANIZER';
+    public const ROLE_USER = 'USER';
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === self::ROLE_SUPER_ADMIN;
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === self::ROLE_ADMIN || $this->role === self::ROLE_SUPER_ADMIN;
+    }
+
+    public function isOrganizer(): bool
+    {
+        return $this->role === self::ROLE_ORGANIZER || $this->role === self::ROLE_ADMIN || $this->role === self::ROLE_SUPER_ADMIN;
+    }
+
     protected $fillable = [
         'name',
         'email',
@@ -43,7 +63,7 @@ class User extends Authenticatable
 
     public function getCommunitiesCountAttribute()
     {
-        if ($this->role === 'ORGANIZER' || $this->role === 'ADMIN') {
+        if ($this->isOrganizer()) {
             return $this->organizedCommunities()->count();
         }
         return $this->communities()->count();
@@ -51,7 +71,7 @@ class User extends Authenticatable
 
     public function getEventsCountAttribute()
     {
-        if ($this->role === 'ORGANIZER' || $this->role === 'ADMIN') {
+        if ($this->isOrganizer()) {
             $communityIds = $this->organizedCommunities()->pluck('id');
             return Event::whereIn('community_id', $communityIds)->count();
         }

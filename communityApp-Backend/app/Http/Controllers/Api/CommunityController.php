@@ -116,7 +116,7 @@ class CommunityController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'ADMIN' && $community->organizer_id !== $user->id) {
+        if (!$user->isAdmin() && $community->organizer_id !== $user->id) {
             return response()->json([
                 'message' => 'Anda tidak memiliki izin untuk mengubah community ini.'
             ], 403);
@@ -145,7 +145,7 @@ class CommunityController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'ADMIN' && $community->organizer_id !== $user->id) {
+        if (!$user->isAdmin() && $community->organizer_id !== $user->id) {
             return response()->json([
                 'message' => 'Anda tidak memiliki izin untuk menghapus community ini.'
             ], 403);

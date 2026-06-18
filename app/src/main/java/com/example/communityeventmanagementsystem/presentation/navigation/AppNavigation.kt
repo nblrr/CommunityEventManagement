@@ -250,7 +250,9 @@ fun AppNavigation(
             composable(Screen.AdminDashboard.route) {
                 AdminDashboardScreen(
                     viewModel = hiltViewModel(),
-                    onNavigateBack = { navController.navigateUp() }
+                    onNavigateBack = { navController.navigateUp() },
+                    onNavigateToCommunityDetail = { id -> navController.navigate(Screen.CommunityDetail(id).route) },
+                    onNavigateToEventDetail = { id -> navController.navigate(Screen.EventDetail(id).route) }
                 )
             }
             composable(Screen.SavedEvents.route) {

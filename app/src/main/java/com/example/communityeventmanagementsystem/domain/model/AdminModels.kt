@@ -7,5 +7,6 @@ data class DashboardStats(
     val totalOrganizers: Int,
     val trustedOrganizers: Int,
     val blockedUsers: Int,
-    val pendingTrustedApplications: Int
+    val pendingTrustedApplications: Int,
+    val totalRegistrations: Int
 )

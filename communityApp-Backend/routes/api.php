@@ -26,7 +26,7 @@ Route::post('/login', [AuthController::class, 'login']);
 // PROTECTED ROUTES (auth:sanctum)
 // ============================================================
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'block.check'])->group(function () {
 
     // -------------------- AUTH --------------------
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -114,6 +114,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // User Management
         Route::get('/users', [AdminController::class, 'users']);
+        Route::post('/users', [AdminController::class, 'createUser']);
+        Route::delete('/users/{user}', [AdminController::class, 'deleteUser']);
+        Route::post('/users/{user}/role', [AdminController::class, 'updateRole']);
+        Route::post('/users/{user}/revoke-trusted', [AdminController::class, 'revokeTrusted']);
         Route::post('/users/{user}/block', [AdminController::class, 'blockUser']);
         Route::post('/users/{user}/unblock', [AdminController::class, 'unblockUser']);
 

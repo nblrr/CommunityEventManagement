@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'organizer' => \App\Http\Middleware\OrganizerMiddleware::class,
+            'block.check' => \App\Http\Middleware\BlockCheckMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

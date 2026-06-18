@@ -120,7 +120,7 @@ class AuthController extends Controller
             ], 409);
         }
 
-        if ($user->role === 'ADMIN') {
+        if ($user->isAdmin()) {
             return response()->json([
                 'message' => 'Admin tidak perlu menjadi organizer.'
             ], 409);

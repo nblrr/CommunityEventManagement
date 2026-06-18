@@ -31,6 +31,19 @@ class CommunityController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
+        if ($request->has('sort_by') && $request->sort_by != '') {
+            $sortBy = $request->sort_by;
+            if ($sortBy === 'terbaru') {
+                $query->orderBy('created_at', 'desc');
+            } elseif ($sortBy === 'terlama') {
+                $query->orderBy('created_at', 'asc');
+            } elseif ($sortBy === 'peserta_terbanyak') {
+                $query->orderBy('member_count', 'desc');
+            }
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
         $communities = $query->paginate(10);
 
         return response()->json($communities);

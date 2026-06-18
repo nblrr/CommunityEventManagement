@@ -9,6 +9,7 @@ import com.example.communityeventmanagementsystem.domain.usecase.event.GetMyRegi
 import com.example.communityeventmanagementsystem.domain.usecase.event.RegisterToEventUseCase
 import com.example.communityeventmanagementsystem.domain.usecase.event.UnregisterFromEventUseCase
 import com.example.communityeventmanagementsystem.domain.usecase.event.RateEventUseCase
+import com.example.communityeventmanagementsystem.domain.usecase.event.GetEventParticipantsUseCase
 import com.example.communityeventmanagementsystem.domain.usecase.community.JoinCommunityUseCase
 import com.example.communityeventmanagementsystem.domain.usecase.home.GetMyCommunitiesUseCase
 import com.example.communityeventmanagementsystem.core.session.SessionManager
@@ -25,13 +26,31 @@ class EventDetailViewModel @Inject constructor(
     private val rateEventUseCase: RateEventUseCase,
     private val joinCommunityUseCase: JoinCommunityUseCase,
     private val getMyCommunitiesUseCase: GetMyCommunitiesUseCase,
+    private val getEventParticipantsUseCase: GetEventParticipantsUseCase,
     private val sessionManager: SessionManager,
-    savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel<EventDetailContract.State, EventDetailContract.Event, EventDetailContract.Effect>() {
+
+    private var currentUserId: Long = -1L
 
     override fun createInitialState(): EventDetailContract.State = EventDetailContract.State()
 
     init {
+        viewModelScope.launch {
+            sessionManager.userData.collect { json ->
+                if (json != null) {
+                    try {
+                        val user = com.google.gson.Gson().fromJson(json, com.example.communityeventmanagementsystem.data.remote.dto.UserDto::class.java)
+                        currentUserId = user.id
+                        uiState.value.event?.let { event ->
+                            checkOrganizerAndLoadParticipants(event)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
         savedStateHandle.get<Long>("id")?.let { id ->
             loadDetail(id, forceRefresh = false)
         }
@@ -74,10 +93,39 @@ class EventDetailViewModel @Inject constructor(
                 } else {
                     false
                 }
-                setState { copy(isLoading = false, event = detailResult.data, isRegistered = isReg, isCommunityMember = isMember, error = null, errorCode = null) }
+                setState { 
+                    copy(
+                        isLoading = false, 
+                        event = detailResult.data, 
+                        isRegistered = isReg, 
+                        isCommunityMember = isMember, 
+                        error = null, 
+                        errorCode = null
+                    ) 
+                }
+                checkOrganizerAndLoadParticipants(detailResult.data)
             } else if (detailResult is NetworkResult.Error) {
                 setState { copy(isLoading = false, error = detailResult.message, errorCode = detailResult.code) }
             }
+        }
+    }
+
+    private fun checkOrganizerAndLoadParticipants(event: com.example.communityeventmanagementsystem.domain.model.Event) {
+        val isOrg = (currentUserId != -1L && event.organizerId == currentUserId)
+        setState { copy(isOrganizer = isOrg) }
+        if (isOrg) {
+            viewModelScope.launch {
+                when (val result = getEventParticipantsUseCase(event.id)) {
+                    is NetworkResult.Success -> {
+                        setState { copy(participants = result.data) }
+                    }
+                    else -> {
+                        setState { copy(participants = emptyList()) }
+                    }
+                }
+            }
+        } else {
+            setState { copy(participants = emptyList()) }
         }
     }
 

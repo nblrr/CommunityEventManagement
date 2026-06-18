@@ -10,8 +10,13 @@ interface EventApi {
     suspend fun getEvents(
         @Query("page") page: Int,
         @Query("category_id") categoryId: Long? = null,
-        @Query("search") search: String? = null
+        @Query("search") search: String? = null,
+        @Query("status") status: String? = null,
+        @Query("sort_by") sortBy: String? = null
     ): EventListResponse
+
+    @GET("events/{id}/participants")
+    suspend fun getEventParticipants(@Path("id") id: Long): List<UserDto>
 
     @GET("events/{id}")
     suspend fun getEventDetail(@Path("id") id: Long): com.example.communityeventmanagementsystem.data.remote.dto.EventDetailResponse

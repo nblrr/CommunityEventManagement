@@ -24,8 +24,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.communityeventmanagementsystem.presentation.components.ProfileAvatar
 import com.example.communityeventmanagementsystem.presentation.components.AppError
+import com.example.communityeventmanagementsystem.presentation.components.AppEmptyState
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import com.example.communityeventmanagementsystem.domain.model.Event as DomainEvent
 import com.example.communityeventmanagementsystem.ui.theme.*
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,18 +40,32 @@ fun EventDetailScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showRatingDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    var isRefreshing by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(state.isLoading) {
+        if (!state.isLoading) {
+            isRefreshing = false
+        }
+    }
+
+    LaunchedEffect(key1 = Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
                 is EventDetailContract.Effect.NavigateToLogin -> onNavigateToLogin()
-                else -> {}
+                is EventDetailContract.Effect.ShowMessage -> {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(effect.message)
+                    }
+                }
             }
         }
     }
 
     Scaffold(
         topBar = { EventDetailTopBar(onNavigateBack) },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             state.event?.let { event ->
                 EventDetailBottomBar(
@@ -73,50 +91,72 @@ fun EventDetailScreen(
                 }
             )
         }
-        Box(
+
+        val pullToRefreshState = rememberPullToRefreshState()
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = {
+                isRefreshing = true
+                state.event?.id?.let { id ->
+                    viewModel.handleEvent(EventDetailContract.Event.LoadDetail(id))
+                }
+            },
+            state = pullToRefreshState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            if (state.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = Primary)
-                }
-            } else if (state.error != null) {
-                AppError(
-                    message = state.error ?: "Terjadi kesalahan loading detail event",
-                    errorCode = state.errorCode,
-                    onRetry = {
-                        if (state.errorCode == 401) {
-                            viewModel.handleEvent(EventDetailContract.Event.Logout)
-                        } else {
-                            viewModel.handleEvent(EventDetailContract.Event.LoadDetail(state.event?.id ?: 0L))
-                        }
-                    }
-                )
-            } else {
-                state.event?.let { event ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (state.isLoading && state.event == null) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        EventHeroImage(event)
+                        CircularProgressIndicator(color = Primary)
+                    }
+                } else if (state.error != null && state.event == null) {
+                    AppError(
+                        message = state.error ?: "Terjadi kesalahan loading detail event",
+                        errorCode = state.errorCode,
+                        onRetry = {
+                            if (state.errorCode == 401) {
+                                viewModel.handleEvent(EventDetailContract.Event.Logout)
+                            } else {
+                                state.event?.id?.let { id ->
+                                    viewModel.handleEvent(EventDetailContract.Event.LoadDetail(id))
+                                }
+                            }
+                        }
+                    )
+                } else {
+                    state.event?.let { event ->
                         Column(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = Dimens.ContainerPadding, vertical = Dimens.SpacingLg),
-                            verticalArrangement = Arrangement.spacedBy(Dimens.SpacingLg)
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState())
                         ) {
-                            EventHeader(event)
-                            OrganizerSection(event)
-                            RatingsSection(event)
-                            EventInfoGrid(event)
-                            AboutEventSection(event)
-                            Spacer(modifier = Modifier.height(Dimens.SpacingXl))
+                            EventHeroImage(event)
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = Dimens.ContainerPadding, vertical = Dimens.SpacingLg),
+                                verticalArrangement = Arrangement.spacedBy(Dimens.SpacingLg)
+                            ) {
+                                EventHeader(event)
+                                OrganizerSection(event)
+                                RatingsSection(event)
+                                EventInfoGrid(event)
+                                AboutEventSection(event)
+
+                                if (state.isOrganizer) {
+                                    Spacer(modifier = Modifier.height(Dimens.SpacingLg))
+                                    HorizontalDivider(color = OutlineVariant.copy(alpha = 0.3f))
+                                    Spacer(modifier = Modifier.height(Dimens.SpacingLg))
+                                    OrganizerParticipantsSection(state.participants)
+                                }
+
+                                Spacer(modifier = Modifier.height(Dimens.SpacingXl))
+                            }
                         }
                     }
                 }
@@ -363,6 +403,69 @@ fun AboutEventSection(event: DomainEvent) {
             style = BodyMd,
             color = OnSurfaceVariant
         )
+    }
+}
+
+@Composable
+fun OrganizerParticipantsSection(participants: List<com.example.communityeventmanagementsystem.domain.model.User>) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Daftar Peserta (${participants.size})",
+            style = HeadlineMd,
+            color = OnSurface,
+            modifier = Modifier.padding(bottom = Dimens.SpacingMd)
+        )
+        if (participants.isEmpty()) {
+            AppEmptyState(
+                title = "Belum ada peserta",
+                description = "Belum ada anggota komunitas yang mendaftar ke event ini.",
+                icon = Icons.Default.Groups,
+                modifier = Modifier.fillMaxWidth().padding(vertical = Dimens.SpacingLg)
+            )
+        } else {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(Dimens.SpacingSm),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                participants.forEach { user ->
+                    ParticipantItem(user)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ParticipantItem(user: com.example.communityeventmanagementsystem.domain.model.User) {
+    Surface(
+        shape = Shapes.Medium,
+        color = SurfaceContainerLow,
+        border = androidx.compose.foundation.BorderStroke(1.dp, OutlineVariant.copy(alpha = 0.3f)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(Dimens.SpacingMd),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ProfileAvatar(
+                imageUrl = user.avatarUrl,
+                name = user.name,
+                modifier = Modifier.size(36.dp)
+            )
+            Spacer(modifier = Modifier.width(Dimens.SpacingMd))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = user.name,
+                    style = LabelMd,
+                    color = OnSurface
+                )
+                Text(
+                    text = user.email,
+                    style = BodySm,
+                    color = OnSurfaceVariant
+                )
+            }
+        }
     }
 }
 

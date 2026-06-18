@@ -8,7 +8,8 @@ interface CommunityApi {
     suspend fun getCommunities(
         @Query("page") page: Int,
         @Query("category_id") categoryId: Long? = null,
-        @Query("search") search: String? = null
+        @Query("search") search: String? = null,
+        @Query("sort_by") sortBy: String? = null
     ): CommunityListResponse
 
     @GET("communities/{id}")

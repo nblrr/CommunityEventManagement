@@ -6,33 +6,30 @@ import com.example.communityeventmanagementsystem.core.session.SessionManager
 import com.example.communityeventmanagementsystem.core.ui.BaseViewModel
 import com.example.communityeventmanagementsystem.domain.usecase.forum.GetForumMessagesUseCase
 import com.example.communityeventmanagementsystem.domain.usecase.forum.SendForumMessageUseCase
+import com.example.communityeventmanagementsystem.domain.usecase.forum.DeleteForumMessageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 import com.example.communityeventmanagementsystem.domain.usecase.home.GetMyCommunitiesUseCase
-
 import androidx.lifecycle.SavedStateHandle
 
 @HiltViewModel
 class ForumViewModel @Inject constructor(
     private val getForumMessagesUseCase: GetForumMessagesUseCase,
     private val sendForumMessageUseCase: SendForumMessageUseCase,
+    private val deleteForumMessageUseCase: DeleteForumMessageUseCase,
     private val sessionManager: SessionManager,
     private val getMyCommunitiesUseCase: GetMyCommunitiesUseCase,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel<ForumContract.State, ForumContract.Event, ForumContract.Effect>() {
 
-    private var pollingJob: Job? = null
     private var communityId: Long = -1L
 
     init {
         savedStateHandle.get<Long>("id")?.let { id ->
             communityId = id
-            checkMembershipAndStartPolling()
+            checkMembershipAndLoad()
         }
         viewModelScope.launch {
             sessionManager.userData.collect { json ->
@@ -53,9 +50,8 @@ class ForumViewModel @Inject constructor(
     override fun handleEvent(event: ForumContract.Event) {
         when (event) {
             is ForumContract.Event.LoadMessages -> {
-                if (communityId == event.communityId && pollingJob?.isActive == true) return
                 communityId = event.communityId
-                checkMembershipAndStartPolling()
+                checkMembershipAndLoad()
             }
             is ForumContract.Event.OnMessageChanged -> setState { copy(currentMessage = event.message) }
             is ForumContract.Event.OnSendClicked -> sendMessage()
@@ -64,10 +60,11 @@ class ForumViewModel @Inject constructor(
                     loadMessages()
                 }
             }
+            is ForumContract.Event.DeleteMessage -> deleteMessage(event.messageId)
         }
     }
 
-    private fun checkMembershipAndStartPolling() {
+    private fun checkMembershipAndLoad() {
         viewModelScope.launch {
             setState { copy(isLoading = true, error = null) }
             if (communityId == -1L) {
@@ -85,7 +82,6 @@ class ForumViewModel @Inject constructor(
                         )
                     }
                     setEffect { ForumContract.Effect.ScrollToBottom }
-                    startPolling()
                 }
                 is NetworkResult.Error -> {
                     if (result.code == 403) {
@@ -97,16 +93,6 @@ class ForumViewModel @Inject constructor(
                 is NetworkResult.Loading -> {
                     setState { copy(isLoading = true) }
                 }
-            }
-        }
-    }
-
-    private fun startPolling() {
-        pollingJob?.cancel()
-        pollingJob = viewModelScope.launch {
-            while (isActive) {
-                loadMessages()
-                delay(5000)
             }
         }
     }
@@ -146,17 +132,32 @@ class ForumViewModel @Inject constructor(
             when (val result = sendForumMessageUseCase(communityId, message)) {
                 is NetworkResult.Success -> {
                     loadMessages()
+                    setEffect { ForumContract.Effect.ShowMessage("Postingan berhasil dibuat") }
                 }
                 is NetworkResult.Error -> {
-                    setState { copy(error = result.message) }
+                    // Restore message on failure so the user doesn't lose their typing
+                    setState { copy(currentMessage = message, error = result.message) }
+                    setEffect { ForumContract.Effect.ShowMessage(result.message ?: "Gagal mengirim pesan") }
                 }
                 is NetworkResult.Loading -> {}
             }
         }
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        pollingJob?.cancel()
+    private fun deleteMessage(messageId: Long) {
+        viewModelScope.launch {
+            setState { copy(isLoading = true) }
+            when (val result = deleteForumMessageUseCase(messageId)) {
+                is NetworkResult.Success -> {
+                    loadMessages()
+                    setEffect { ForumContract.Effect.ShowMessage("Postingan berhasil dihapus") }
+                }
+                is NetworkResult.Error -> {
+                    setState { copy(isLoading = false, error = result.message) }
+                    setEffect { ForumContract.Effect.ShowMessage(result.message ?: "Gagal menghapus pesan") }
+                }
+                is NetworkResult.Loading -> {}
+            }
+        }
     }
 }

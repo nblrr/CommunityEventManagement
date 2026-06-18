@@ -28,6 +28,10 @@ import coil.compose.AsyncImage
 import com.example.communityeventmanagementsystem.presentation.components.SkeletonEventCard
 import com.example.communityeventmanagementsystem.presentation.components.AppError
 import com.example.communityeventmanagementsystem.presentation.components.AppEmptyState
+import com.example.communityeventmanagementsystem.core.network.ErrorHandler
+import com.example.communityeventmanagementsystem.core.common.NetworkResult
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import com.example.communityeventmanagementsystem.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,11 +43,13 @@ fun EventListScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val eventsItems = state.events.collectAsLazyPagingItems()
-    var searchQuery by remember { mutableStateOf("") }
     var showFilterSheet by remember { mutableStateOf(false) }
+    var isRefreshing by remember { mutableStateOf(false) }
 
-    LaunchedEffect(key1 = state.categoryId) {
-        viewModel.handleEvent(EventListContract.Event.LoadEvents(state.categoryId))
+    LaunchedEffect(eventsItems.loadState.refresh) {
+        if (eventsItems.loadState.refresh !is LoadState.Loading) {
+            isRefreshing = false
+        }
     }
 
     LaunchedEffect(key1 = Unit) {
@@ -81,103 +87,120 @@ fun EventListScreen(
         },
         containerColor = Background
     ) { paddingValues ->
-        LazyColumn(
+        val pullToRefreshState = rememberPullToRefreshState()
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = {
+                isRefreshing = true
+                eventsItems.refresh()
+            },
+            state = pullToRefreshState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(vertical = Dimens.SpacingLg),
-            verticalArrangement = Arrangement.spacedBy(Dimens.SpacingLg)
+                .padding(paddingValues)
         ) {
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = Dimens.ContainerPadding),
-                    horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingSm)
-                ) {
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = { 
-                            searchQuery = it 
-                            viewModel.handleEvent(EventListContract.Event.SearchEvents(it))
-                        },
-                        placeholder = { Text("Search events...", style = BodyMd, color = OutlineVariant) },
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = OutlineVariant) },
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(vertical = Dimens.SpacingLg),
+                verticalArrangement = Arrangement.spacedBy(Dimens.SpacingLg)
+            ) {
+                item {
+                    Row(
                         modifier = Modifier
-                            .weight(1f)
-                            .shadow(1.dp, Shapes.Large),
-                        shape = Shapes.Large,
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = SurfaceContainerLowest,
-                            focusedContainerColor = SurfaceContainerLowest,
-                            unfocusedBorderColor = OutlineVariant,
-                            focusedBorderColor = Primary
-                        )
-                    )
-                    Button(
-                        onClick = { showFilterSheet = true },
-                        modifier = Modifier
-                            .size(56.dp)
-                            .shadow(4.dp, Shapes.Large),
-                        shape = Shapes.Large,
-                        contentPadding = PaddingValues(0.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = OnPrimary)
+                            .fillMaxWidth()
+                            .padding(horizontal = Dimens.ContainerPadding),
+                        horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingSm)
                     ) {
-                        Icon(Icons.Default.Tune, contentDescription = "Filter")
-                    }
-                }
-            }
-
-            if (eventsItems.loadState.refresh is LoadState.Loading) {
-                items(5) {
-                    Box(modifier = Modifier.padding(horizontal = Dimens.ContainerPadding)) {
-                        SkeletonEventCard()
-                    }
-                }
-            } else if (eventsItems.loadState.refresh is LoadState.Error) {
-                item {
-                    AppError(
-                        message = "Gagal memuat event.",
-                        onRetry = { eventsItems.retry() }
-                    )
-                }
-            } else if (eventsItems.itemCount == 0) {
-                item {
-                    AppEmptyState(
-                        title = "Belum Ada Event",
-                        description = "Coba cari dengan kata kunci lain atau pilih kategori berbeda.",
-                        icon = Icons.Default.Event
-                    )
-                }
-            } else {
-                items(eventsItems.itemCount) { index ->
-                    val event = eventsItems[index]
-                    if (event != null) {
-                        Box(modifier = Modifier.padding(horizontal = Dimens.ContainerPadding)) {
-                            VerticalEventCard(
-                                title = event.title,
-                                category = event.categoryName ?: "KATEGORI",
-                                location = event.location,
-                                date = "${event.eventDate} • ${event.eventTime}",
-                                joined = "${event.attendeeCount}/${event.maxAttendees} Joined",
-                                categoryColor = PrimaryFixed,
-                                onCategoryColor = Primary,
-                                imageUrl = event.coverImageUrl ?: "https://lh3.googleusercontent.com/aida-public/AB6AXuAe0IQOaUJxhip8Otnj11hlrgGCEl2Valw5CsnwUoP7NtEyTgKTL8Blph8C-KuB_I0O6ZuXZtMkU0QeXtkd2gbK9KZgHIFFNtg-tn2aqWXsa_cew8A5W_bbdiKH5TBCswehLUpkZHHYK095qohP5SZ3-GsZ6DcLRyov22nHSzxZ4L57vEeieTdM89ptOHssu5_AhuqaukdXUxWYXh763d70ETioowrR1fX2RXs9dE7bh1DQoKBHHBM1qqcHfiBb5IvkWAKlPNXlFTUP",
-                                onClick = {
-                                    viewModel.handleEvent(EventListContract.Event.OnEventClicked(event.id))
-                                }
+                        OutlinedTextField(
+                            value = state.searchQuery,
+                            onValueChange = { 
+                                viewModel.handleEvent(EventListContract.Event.SearchEvents(it))
+                            },
+                            placeholder = { Text("Search events...", style = BodyMd, color = OutlineVariant) },
+                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = OutlineVariant) },
+                            modifier = Modifier
+                                .weight(1f)
+                                .shadow(1.dp, Shapes.Large),
+                            shape = Shapes.Large,
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                unfocusedContainerColor = SurfaceContainerLowest,
+                                focusedContainerColor = SurfaceContainerLowest,
+                                unfocusedBorderColor = OutlineVariant,
+                                focusedBorderColor = Primary
                             )
+                        )
+                        Button(
+                            onClick = { showFilterSheet = true },
+                            modifier = Modifier
+                                .size(56.dp)
+                                .shadow(4.dp, Shapes.Large),
+                            shape = Shapes.Large,
+                            contentPadding = PaddingValues(0.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = OnPrimary)
+                        ) {
+                            Icon(Icons.Default.Tune, contentDescription = "Filter")
                         }
                     }
                 }
-            }
 
-            if (eventsItems.loadState.append is LoadState.Loading) {
-                item {
-                    Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = Primary)
+                if (eventsItems.loadState.refresh is LoadState.Loading) {
+                    items(5) {
+                        Box(modifier = Modifier.padding(horizontal = Dimens.ContainerPadding)) {
+                            SkeletonEventCard()
+                        }
+                    }
+                } else if (eventsItems.loadState.refresh is LoadState.Error) {
+                    val error = (eventsItems.loadState.refresh as LoadState.Error).error
+                    val friendlyMessage = when (val res = ErrorHandler.handleException<Unit>(if (error is Exception) error else Exception(error))) {
+                        is NetworkResult.Error -> res.message ?: "Gagal memuat event."
+                        else -> "Gagal memuat event."
+                    }
+                    item {
+                        AppError(
+                            message = friendlyMessage,
+                            onRetry = { eventsItems.retry() }
+                        )
+                    }
+                } else if (eventsItems.itemCount == 0) {
+                    item {
+                        val titleText = if (state.searchQuery.isNotEmpty()) "Tidak ada hasil ditemukan" else "Belum ada event"
+                        AppEmptyState(
+                            title = titleText,
+                            description = "Coba cari dengan kata kunci lain atau pilih kategori berbeda.",
+                            icon = Icons.Default.Event,
+                            modifier = Modifier.fillMaxWidth().padding(top = 48.dp)
+                        )
+                    }
+                } else {
+                    items(eventsItems.itemCount) { index ->
+                        val event = eventsItems[index]
+                        if (event != null) {
+                            Box(modifier = Modifier.padding(horizontal = Dimens.ContainerPadding)) {
+                                VerticalEventCard(
+                                    title = event.title,
+                                    category = event.categoryName ?: "KATEGORI",
+                                    location = event.location,
+                                    date = "${event.eventDate} • ${event.eventTime}",
+                                    joined = "${event.attendeeCount}/${event.maxAttendees} Joined",
+                                    categoryColor = PrimaryFixed,
+                                    onCategoryColor = Primary,
+                                    imageUrl = event.coverImageUrl ?: "https://lh3.googleusercontent.com/aida-public/AB6AXuAe0IQOaUJxhip8Otnj11hlrgGCEl2Valw5CsnwUoP7NtEyTgKTL8Blph8C-KuB_I0O6ZuXZtMkU0QeXtkd2gbK9KZgHIFFNtg-tn2aqWXsa_cew8A5W_bbdiKH5TBCswehLUpkZHHYK095qohP5SZ3-GsZ6DcLRyov22nHSzxZ4L57vEeieTdM89ptOHssu5_AhuqaukdXUxWYXh763d70ETioowrR1fX2RXs9dE7bh1DQoKBHHBM1qqcHfiBb5IvkWAKlPNXlFTUP",
+                                    onClick = {
+                                        viewModel.handleEvent(EventListContract.Event.OnEventClicked(event.id))
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (eventsItems.loadState.append is LoadState.Loading) {
+                    item {
+                        Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = Primary)
+                        }
                     }
                 }
             }
@@ -191,9 +214,11 @@ fun EventListScreen(
         ) {
             FilterSheetContent(
                 selectedCategoryId = state.categoryId,
+                selectedStatus = state.status,
+                selectedSortBy = state.sortBy,
                 categoriesList = state.categories,
-                onSelectCategory = { catId ->
-                    viewModel.handleEvent(EventListContract.Event.LoadEvents(catId))
+                onApplyFilters = { categoryId, status, sortBy ->
+                    viewModel.handleEvent(EventListContract.Event.LoadEvents(categoryId, status, sortBy))
                     showFilterSheet = false
                 },
                 onDismiss = { showFilterSheet = false }
@@ -290,12 +315,35 @@ fun VerticalEventCard(
 @Composable
 fun FilterSheetContent(
     selectedCategoryId: Long?,
+    selectedStatus: String?,
+    selectedSortBy: String?,
     categoriesList: List<com.example.communityeventmanagementsystem.domain.model.Category>,
-    onSelectCategory: (Long?) -> Unit,
+    onApplyFilters: (Long?, String?, String?) -> Unit,
     onDismiss: () -> Unit
 ) {
+    var tempCategoryId by remember { mutableStateOf(selectedCategoryId) }
+    var tempStatus by remember { mutableStateOf(selectedStatus) }
+    var tempSortBy by remember { mutableStateOf(selectedSortBy) }
+
     val categories = remember(categoriesList) {
         listOf("All" to null) + categoriesList.map { it.name to it.id }
+    }
+
+    val statuses = remember {
+        listOf(
+            "All" to null,
+            "Upcoming" to "UPCOMING",
+            "Ongoing" to "ONGOING",
+            "Completed" to "COMPLETED"
+        )
+    }
+
+    val sortOptions = remember {
+        listOf(
+            "Terbaru" to "terbaru",
+            "Terlama" to "terlama",
+            "Peserta Terbanyak" to "peserta_terbanyak"
+        )
     }
 
     Column(
@@ -311,7 +359,9 @@ fun FilterSheetContent(
         ) {
             Text("Filters", style = HeadlineMd, color = OnSurface)
             Text("Reset", style = LabelMd, color = Primary, modifier = Modifier.clickable { 
-                onSelectCategory(null)
+                tempCategoryId = null
+                tempStatus = null
+                tempSortBy = null
             })
         }
 
@@ -322,16 +372,46 @@ fun FilterSheetContent(
             ) {
                 items(categories.size) { index ->
                     val (name, id) = categories[index]
-                    val isSelected = (selectedCategoryId == id) || (id == null && (selectedCategoryId == null || selectedCategoryId == -1L))
+                    val isSelected = (tempCategoryId == id) || (id == null && (tempCategoryId == null || tempCategoryId == -1L))
                     FilterChipCustom(name, isSelected) {
-                        onSelectCategory(id)
+                        tempCategoryId = id
+                    }
+                }
+            }
+        }
+
+        FilterSection(title = "Status") {
+            androidx.compose.foundation.lazy.LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(statuses.size) { index ->
+                    val (name, statusVal) = statuses[index]
+                    val isSelected = tempStatus == statusVal
+                    FilterChipCustom(name, isSelected) {
+                        tempStatus = statusVal
+                    }
+                }
+            }
+        }
+
+        FilterSection(title = "Sort By") {
+            androidx.compose.foundation.lazy.LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(sortOptions.size) { index ->
+                    val (name, sortVal) = sortOptions[index]
+                    val isSelected = tempSortBy == sortVal
+                    FilterChipCustom(name, isSelected) {
+                        tempSortBy = sortVal
                     }
                 }
             }
         }
 
         Button(
-            onClick = onDismiss,
+            onClick = { onApplyFilters(tempCategoryId, tempStatus, tempSortBy) },
             modifier = Modifier.fillMaxWidth().height(56.dp).padding(top = Dimens.SpacingMd),
             shape = Shapes.Large,
             colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = OnPrimary)

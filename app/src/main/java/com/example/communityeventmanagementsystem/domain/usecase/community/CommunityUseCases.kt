@@ -8,8 +8,12 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class GetCommunitiesUseCase @Inject constructor(private val repository: CommunityRepository) {
-    operator fun invoke(categoryId: Long? = null, search: String? = null): Flow<PagingData<Community>> =
-        repository.getCommunities(categoryId, search)
+    operator fun invoke(
+        categoryId: Long? = null,
+        search: String? = null,
+        sortBy: String? = null
+    ): Flow<PagingData<Community>> =
+        repository.getCommunities(categoryId, search, sortBy)
 }
 
 class GetCommunityDetailUseCase @Inject constructor(private val repository: CommunityRepository) {

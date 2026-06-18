@@ -14,3 +14,8 @@ class SendForumMessageUseCase @Inject constructor(private val repository: ForumR
     suspend operator fun invoke(communityId: Long, message: String): NetworkResult<ForumMessage> =
         repository.sendMessage(communityId, message)
 }
+
+class DeleteForumMessageUseCase @Inject constructor(private val repository: ForumRepository) {
+    suspend operator fun invoke(messageId: Long): NetworkResult<Unit> =
+        repository.deleteMessage(messageId)
+}

@@ -8,6 +8,7 @@ import com.example.communityeventmanagementsystem.core.ui.BaseViewModel
 import com.example.communityeventmanagementsystem.domain.usecase.community.GetCommunitiesUseCase
 import com.example.communityeventmanagementsystem.domain.usecase.home.GetCategoriesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,11 +19,13 @@ class CommunityListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel<CommunityListContract.State, CommunityListContract.Event, CommunityListContract.Effect>() {
 
+    private var searchJob: kotlinx.coroutines.Job? = null
+
     init {
         val catId = savedStateHandle.get<Long>("categoryId")
         val categoryId = if (catId != null && catId != -1L) catId else null
         loadCategories()
-        loadCommunities(categoryId, "")
+        loadCommunities(categoryId, "", null)
     }
 
     override fun createInitialState(): CommunityListContract.State = CommunityListContract.State()
@@ -31,9 +34,16 @@ class CommunityListViewModel @Inject constructor(
         when (event) {
             is CommunityListContract.Event.LoadCommunities -> {
                 val cleanCategoryId = if (event.categoryId == -1L) null else event.categoryId
-                loadCommunities(cleanCategoryId, uiState.value.searchQuery)
+                loadCommunities(cleanCategoryId, uiState.value.searchQuery, event.sortBy)
             }
-            is CommunityListContract.Event.SearchCommunities -> loadCommunities(uiState.value.categoryId, event.query)
+            is CommunityListContract.Event.SearchCommunities -> {
+                searchJob?.cancel()
+                setState { copy(searchQuery = event.query) }
+                searchJob = viewModelScope.launch {
+                    delay(500)
+                    loadCommunities(uiState.value.categoryId, event.query, uiState.value.sortBy)
+                }
+            }
             is CommunityListContract.Event.OnCommunityClicked -> setEffect { CommunityListContract.Effect.NavigateToCommunityDetail(event.communityId) }
         }
     }
@@ -49,13 +59,24 @@ class CommunityListViewModel @Inject constructor(
         }
     }
 
-    private fun loadCommunities(categoryId: Long?, query: String) {
-        if (uiState.value.isInitialized && uiState.value.categoryId == categoryId && uiState.value.searchQuery == query) {
+    private fun loadCommunities(categoryId: Long?, query: String, sortBy: String?) {
+        if (uiState.value.isInitialized && 
+            uiState.value.categoryId == categoryId && 
+            uiState.value.searchQuery == query &&
+            uiState.value.sortBy == sortBy) {
             return
         }
-        val communitiesFlow = getCommunitiesUseCase(categoryId, query)
+        val communitiesFlow = getCommunitiesUseCase(categoryId, query, sortBy)
             .cachedIn(viewModelScope)
         
-        setState { copy(categoryId = categoryId, searchQuery = query, communities = communitiesFlow, isInitialized = true) }
+        setState { 
+            copy(
+                categoryId = categoryId, 
+                searchQuery = query, 
+                sortBy = sortBy,
+                communities = communitiesFlow, 
+                isInitialized = true
+            ) 
+        }
     }
 }

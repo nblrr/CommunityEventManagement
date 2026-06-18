@@ -53,4 +53,21 @@ class ForumController extends Controller
 
         return response()->json($message->load('sender'), 201);
     }
+
+    public function destroy(ForumMessage $message)
+    {
+        $user = auth()->user();
+
+        if ($user->role !== 'ADMIN' && $message->sender_id !== $user->id) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki izin untuk menghapus pesan ini.'
+            ], 403);
+        }
+
+        $message->delete();
+
+        return response()->json([
+            'message' => 'Pesan berhasil dihapus'
+        ]);
+    }
 }

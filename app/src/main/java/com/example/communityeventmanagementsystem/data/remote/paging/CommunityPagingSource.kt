@@ -9,7 +9,8 @@ import com.example.communityeventmanagementsystem.data.mapper.toDomain
 class CommunityPagingSource(
     private val api: CommunityApi,
     private val categoryId: Long? = null,
-    private val search: String? = null
+    private val search: String? = null,
+    private val sortBy: String? = null
 ) : PagingSource<Int, Community>() {
 
     override fun getRefreshKey(state: PagingState<Int, Community>): Int? {
@@ -22,7 +23,7 @@ class CommunityPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Community> {
         val page = params.key ?: 1
         return try {
-            val response = api.getCommunities(page, categoryId, search)
+            val response = api.getCommunities(page, categoryId, search, sortBy)
             LoadResult.Page(
                 data = response.data.map { it.toDomain() },
                 prevKey = if (page == 1) null else page - 1,

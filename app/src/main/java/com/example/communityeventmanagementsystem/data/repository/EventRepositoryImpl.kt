@@ -18,10 +18,15 @@ class EventRepositoryImpl @Inject constructor(
     private val api: EventApi
 ) : EventRepository {
 
-    override fun getEvents(categoryId: Long?, search: String?): Flow<PagingData<Event>> {
+    override fun getEvents(
+        categoryId: Long?,
+        search: String?,
+        status: String?,
+        sortBy: String?
+    ): Flow<PagingData<Event>> {
         return Pager(
             config = PagingConfig(pageSize = 10, enablePlaceholders = false),
-            pagingSourceFactory = { EventPagingSource(api, categoryId, search) }
+            pagingSourceFactory = { EventPagingSource(api, categoryId, search, status, sortBy) }
         ).flow
     }
 
@@ -65,6 +70,15 @@ class EventRepositoryImpl @Inject constructor(
         return try {
             api.rateEvent(id, RateEventRequest(rating, comment))
             NetworkResult.Success(Unit)
+        } catch (e: Exception) {
+            ErrorHandler.handleException(e)
+        }
+    }
+
+    override suspend fun getEventParticipants(id: Long): NetworkResult<List<com.example.communityeventmanagementsystem.domain.model.User>> {
+        return try {
+            val response = api.getEventParticipants(id)
+            NetworkResult.Success(response.map { it.toDomain() })
         } catch (e: Exception) {
             ErrorHandler.handleException(e)
         }

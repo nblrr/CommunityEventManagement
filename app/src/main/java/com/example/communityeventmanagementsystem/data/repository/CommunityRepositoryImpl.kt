@@ -17,10 +17,14 @@ class CommunityRepositoryImpl @Inject constructor(
     private val api: CommunityApi
 ) : CommunityRepository {
 
-    override fun getCommunities(categoryId: Long?, search: String?): Flow<PagingData<Community>> {
+    override fun getCommunities(
+        categoryId: Long?,
+        search: String?,
+        sortBy: String?
+    ): Flow<PagingData<Community>> {
         return Pager(
             config = PagingConfig(pageSize = 10, enablePlaceholders = false),
-            pagingSourceFactory = { CommunityPagingSource(api, categoryId, search) }
+            pagingSourceFactory = { CommunityPagingSource(api, categoryId, search, sortBy) }
         ).flow
     }
 

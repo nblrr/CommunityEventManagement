@@ -12,7 +12,9 @@ class EventDetailContract {
         val isRegistered: Boolean = false,
         val isCommunityMember: Boolean = false,
         val isSubmittingRating: Boolean = false,
-        val hasRated: Boolean = false
+        val hasRated: Boolean = false,
+        val isOrganizer: Boolean = false,
+        val participants: List<com.example.communityeventmanagementsystem.domain.model.User> = emptyList()
     )
 
     sealed class Event {

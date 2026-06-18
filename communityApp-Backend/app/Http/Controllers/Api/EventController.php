@@ -37,6 +37,19 @@ class EventController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->has('sort_by') && $request->sort_by != '') {
+            $sortBy = $request->sort_by;
+            if ($sortBy === 'terbaru') {
+                $query->orderBy('event_date', 'desc')->orderBy('event_time', 'desc');
+            } elseif ($sortBy === 'terlama') {
+                $query->orderBy('event_date', 'asc')->orderBy('event_time', 'asc');
+            } elseif ($sortBy === 'peserta_terbanyak') {
+                $query->orderBy('attendee_count', 'desc');
+            }
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
         $events = $query->paginate(10);
 
         return response()->json($events);
@@ -277,7 +290,7 @@ class EventController extends Controller
 
             if ($event->max_attendees > 0 && $count >= $event->max_attendees) {
                 return response()->json([
-                    'message' => 'Event penuh'
+                    'message' => 'Kuota peserta telah penuh'
                 ], 400);
             }
 
@@ -301,7 +314,7 @@ class EventController extends Controller
 
         if ($event->max_attendees > 0 && $count >= $event->max_attendees) {
             return response()->json([
-                'message' => 'Event penuh'
+                'message' => 'Kuota peserta telah penuh'
             ], 400);
         }
 
@@ -361,9 +374,6 @@ class EventController extends Controller
         ]);
     }
 
-    /**
-     * GET /api/organizer/events
-     */
     public function organizerEvents(Request $request)
     {
         $user = $request->user();
@@ -374,5 +384,41 @@ class EventController extends Controller
             ->paginate(10);
 
         return response()->json($events);
+    }
+
+    /**
+     * GET /api/events/{event}/participants
+     */
+    public function participants(Request $request, Event $event)
+    {
+        $user = $request->user();
+
+        if ($user->role !== 'ADMIN' && $event->community->organizer_id !== $user->id) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki izin untuk melihat peserta event ini.'
+            ], 403);
+        }
+
+        $participants = EventRegistration::where('event_id', $event->id)
+            ->whereIn('status', ['REGISTERED', 'ATTENDED'])
+            ->with('user')
+            ->get()
+            ->map(function($registration) {
+                return [
+                    'id' => $registration->user->id,
+                    'name' => $registration->user->name,
+                    'email' => $registration->user->email,
+                    'role' => $registration->user->role,
+                    'is_blocked' => (bool)$registration->user->is_blocked,
+                    'is_trusted' => (bool)$registration->user->is_trusted,
+                    'avatar_url' => $registration->user->avatar_url,
+                    'phone_number' => $registration->user->phone_number,
+                    'gender' => $registration->user->gender,
+                    'bio' => $registration->user->bio,
+                    'birth_date' => $registration->user->birth_date,
+                ];
+            });
+
+        return response()->json($participants);
     }
 }

@@ -9,13 +9,19 @@ class EventListContract {
     data class State(
         val categoryId: Long? = null,
         val searchQuery: String = "",
+        val status: String? = null,
+        val sortBy: String? = null,
         val events: Flow<PagingData<DomainEvent>> = emptyFlow(),
         val categories: List<com.example.communityeventmanagementsystem.domain.model.Category> = emptyList(),
         val isInitialized: Boolean = false
     )
 
     sealed class Event {
-        data class LoadEvents(val categoryId: Long? = null) : Event()
+        data class LoadEvents(
+            val categoryId: Long? = null,
+            val status: String? = null,
+            val sortBy: String? = null
+        ) : Event()
         data class SearchEvents(val query: String) : Event()
         data class OnEventClicked(val eventId: Long) : Event()
     }

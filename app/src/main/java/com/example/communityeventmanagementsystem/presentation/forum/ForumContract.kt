@@ -17,9 +17,11 @@ class ForumContract {
         data class OnMessageChanged(val message: String) : Event()
         object OnSendClicked : Event()
         object OnRefresh : Event()
+        data class DeleteMessage(val messageId: Long) : Event()
     }
 
     sealed class Effect {
         object ScrollToBottom : Effect()
+        data class ShowMessage(val message: String) : Effect()
     }
 }

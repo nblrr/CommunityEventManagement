@@ -17,4 +17,9 @@ interface ForumApi {
         @Path("communityId") communityId: Long,
         @Body request: SendMessageRequest
     ): ForumMessageDto
+
+    @DELETE("forum-messages/{messageId}")
+    suspend fun deleteMessage(
+        @Path("messageId") messageId: Long
+    )
 }

@@ -1,6 +1,8 @@
 package com.example.communityeventmanagementsystem.presentation.forum
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -9,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Mood
@@ -26,7 +29,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.communityeventmanagementsystem.presentation.components.ProfileAvatar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import com.example.communityeventmanagementsystem.presentation.components.AppEmptyState
 import com.example.communityeventmanagementsystem.ui.theme.*
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +42,9 @@ fun ForumScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     var isRefreshing by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    var messageToDeleteId by remember { mutableStateOf<Long?>(null) }
 
     LaunchedEffect(state.isLoading) {
         if (!state.isLoading) isRefreshing = false
@@ -50,6 +58,11 @@ fun ForumScreen(
                         listState.animateScrollToItem(state.messages.size - 1)
                     }
                 }
+                is ForumContract.Effect.ShowMessage -> {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(effect.message)
+                    }
+                }
             }
         }
     }
@@ -57,6 +70,7 @@ fun ForumScreen(
     Scaffold(
         topBar = { ForumTopBar(state.messages.size, onNavigateBack) },
         containerColor = Background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             if (state.isMember) {
                 ForumChatInput(
@@ -100,6 +114,24 @@ fun ForumScreen(
                         textAlign = TextAlign.Center
                     )
                 }
+            } else if (state.messages.isEmpty()) {
+                val pullToRefreshState = rememberPullToRefreshState()
+                PullToRefreshBox(
+                    isRefreshing = isRefreshing,
+                    onRefresh = {
+                        isRefreshing = true
+                        viewModel.handleEvent(ForumContract.Event.OnRefresh)
+                    },
+                    state = pullToRefreshState,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    AppEmptyState(
+                        title = "Belum ada diskusi",
+                        description = "Mulai percakapan dengan mengirim pesan pertama.",
+                        icon = Icons.AutoMirrored.Filled.Chat,
+                        modifier = Modifier.fillMaxWidth().padding(top = 48.dp)
+                    )
+                }
             } else {
                 Box(modifier = Modifier.fillMaxSize()) {
                     val pullToRefreshState = rememberPullToRefreshState()
@@ -126,7 +158,10 @@ fun ForumScreen(
                                     OutgoingMessage(
                                         message = message.message,
                                         time = message.createdAt.substringAfter("T").take(5),
-                                        isRead = true
+                                        isRead = true,
+                                        onLongClick = {
+                                            messageToDeleteId = message.id
+                                        }
                                     )
                                 } else {
                                     IncomingMessage(
@@ -143,6 +178,31 @@ fun ForumScreen(
                 }
             }
         }
+    }
+
+    if (messageToDeleteId != null) {
+        AlertDialog(
+            onDismissRequest = { messageToDeleteId = null },
+            title = { Text("Hapus Pesan") },
+            text = { Text("Apakah Anda yakin ingin menghapus pesan ini?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        messageToDeleteId?.let { id ->
+                            viewModel.handleEvent(ForumContract.Event.DeleteMessage(id))
+                        }
+                        messageToDeleteId = null
+                    }
+                ) {
+                    Text("Hapus", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { messageToDeleteId = null }) {
+                    Text("Batal")
+                }
+            }
+        )
     }
 }
 
@@ -202,8 +262,9 @@ fun IncomingMessage(name: String, nameColor: Color, avatarUrl: String?, message:
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun OutgoingMessage(message: String, time: String, isRead: Boolean) {
+fun OutgoingMessage(message: String, time: String, isRead: Boolean, onLongClick: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End,
@@ -213,7 +274,11 @@ fun OutgoingMessage(message: String, time: String, isRead: Boolean) {
             Surface(
                 shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 16.dp),
                 color = Primary,
-                shadowElevation = 1.dp
+                shadowElevation = 1.dp,
+                modifier = Modifier.combinedClickable(
+                    onLongClick = onLongClick,
+                    onClick = {}
+                )
             ) {
                 Text(text = message, style = BodyMd.copy(fontSize = 15.sp), color = OnPrimary, modifier = Modifier.padding(Dimens.SpacingMd))
             }

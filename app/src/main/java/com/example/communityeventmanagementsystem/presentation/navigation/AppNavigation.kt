@@ -1,6 +1,9 @@
 package com.example.communityeventmanagementsystem.presentation.navigation
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -36,7 +39,7 @@ import com.example.communityeventmanagementsystem.presentation.event.CreateEvent
 import com.example.communityeventmanagementsystem.presentation.event.SavedEventsScreen
 import com.example.communityeventmanagementsystem.presentation.profile.OrganizerRegistrationScreen
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun AppNavigation(
     viewModel: MainViewModel = hiltViewModel()
@@ -52,13 +55,14 @@ fun AppNavigation(
         if (isLoggedIn == true) Screen.Home.route else Screen.Login.route
     }
 
-    val showBottomBar = currentRoute in listOf(
+    val isKeyboardVisible = WindowInsets.isImeVisible
+    val showBottomBar = (currentRoute in listOf(
         Screen.Home.route,
         Screen.CommunityList.route,
         Screen.EventList.route,
         Screen.Notifications.route,
         Screen.Profile.route
-    ) || currentRoute?.startsWith("community_list") == true || currentRoute?.startsWith("event_list") == true
+    ) || currentRoute?.startsWith("community_list") == true || currentRoute?.startsWith("event_list") == true) && !isKeyboardVisible
 
     Scaffold(
         bottomBar = {

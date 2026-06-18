@@ -9,7 +9,9 @@ import com.example.communityeventmanagementsystem.data.mapper.toDomain
 class EventPagingSource(
     private val api: EventApi,
     private val categoryId: Long? = null,
-    private val search: String? = null
+    private val search: String? = null,
+    private val status: String? = null,
+    private val sortBy: String? = null
 ) : PagingSource<Int, Event>() {
 
     override fun getRefreshKey(state: PagingState<Int, Event>): Int? {
@@ -22,7 +24,7 @@ class EventPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Event> {
         val page = params.key ?: 1
         return try {
-            val response = api.getEvents(page, categoryId, search)
+            val response = api.getEvents(page, categoryId, search, status, sortBy)
             LoadResult.Page(
                 data = response.data.map { it.toDomain() },
                 prevKey = if (page == 1) null else page - 1,

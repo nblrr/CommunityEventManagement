@@ -30,4 +30,13 @@ class ForumRepositoryImpl @Inject constructor(
             ErrorHandler.handleException(e)
         }
     }
+
+    override suspend fun deleteMessage(messageId: Long): NetworkResult<Unit> {
+        return try {
+            api.deleteMessage(messageId)
+            NetworkResult.Success(Unit)
+        } catch (e: Exception) {
+            ErrorHandler.handleException(e)
+        }
+    }
 }

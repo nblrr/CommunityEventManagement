@@ -74,6 +74,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Event CRUD (organizer/admin only untuk create)
     Route::middleware('organizer')->group(function () {
         Route::post('/events', [EventController::class, 'store']);
+        Route::get('/events/{event}/participants', [EventController::class, 'participants']);
     });
 
     // Update & Delete — authorization check ada di controller
@@ -92,6 +93,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // -------------------- FORUM --------------------
     Route::get('/communities/{community}/messages', [ForumController::class, 'index']);
     Route::post('/communities/{community}/messages', [ForumController::class, 'store']);
+    Route::delete('/forum-messages/{message}', [ForumController::class, 'destroy']);
 
     // -------------------- NOTIFICATIONS --------------------
     Route::get('/notifications', [NotificationController::class, 'index']);

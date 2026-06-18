@@ -6,4 +6,5 @@ import com.example.communityeventmanagementsystem.domain.model.ForumMessage
 interface ForumRepository {
     suspend fun getMessages(communityId: Long): NetworkResult<List<ForumMessage>>
     suspend fun sendMessage(communityId: Long, message: String): NetworkResult<ForumMessage>
+    suspend fun deleteMessage(messageId: Long): NetworkResult<Unit>
 }

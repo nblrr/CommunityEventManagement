@@ -10,6 +10,7 @@ use App\Models\TrustedApplication;
 use App\Models\EventRegistration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cache;
 
 class AdminController extends Controller
 {
@@ -19,16 +20,20 @@ class AdminController extends Controller
      */
     public function dashboard()
     {
-        return response()->json([
-            'total_users'        => User::count(),
-            'total_communities'  => Community::count(),
-            'total_events'       => Event::count(),
-            'total_organizers'   => User::where('role', 'ORGANIZER')->count(),
-            'trusted_organizers' => User::where('is_trusted', true)->count(),
-            'blocked_users'      => User::where('is_blocked', true)->count(),
-            'pending_trusted_applications' => TrustedApplication::where('status', 'PENDING')->count(),
-            'total_registrations' => EventRegistration::count(),
-        ]);
+        $stats = Cache::remember('admin_dashboard_stats', 300, function () {
+            return [
+                'total_users'        => User::count(),
+                'total_communities'  => Community::count(),
+                'total_events'       => Event::count(),
+                'total_organizers'   => User::where('role', 'ORGANIZER')->count(),
+                'trusted_organizers' => User::where('is_trusted', true)->count(),
+                'blocked_users'      => User::where('is_blocked', true)->count(),
+                'pending_trusted_applications' => TrustedApplication::where('status', 'PENDING')->count(),
+                'total_registrations' => EventRegistration::count(),
+            ];
+        });
+
+        return response()->json($stats);
     }
 
     /**

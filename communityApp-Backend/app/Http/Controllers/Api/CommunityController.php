@@ -71,14 +71,21 @@ class CommunityController extends Controller
      */
     public function show(Community $community)
     {
-        return response()->json(
-            $community->load([
-                'organizer',
-                'category',
-                'members',
-                'events'
-            ])
-        );
+        $community->load([
+            'organizer',
+            'category',
+            'events' => function($query) {
+                $query->limit(10);
+            }
+        ]);
+
+        $userId = auth('sanctum')->id();
+        $isMember = $userId ? $community->members()->where('user_id', $userId)->exists() : false;
+
+        $data = $community->toArray();
+        $data['is_member'] = $isMember;
+
+        return response()->json($data);
     }
 
     /**
@@ -175,6 +182,8 @@ class CommunityController extends Controller
         $community->members()->attach($userId);
         $community->increment('member_count');
 
+        \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats');
+
         return response()->json([
             'message' => 'Joined',
             'community' => $community->fresh()
@@ -197,6 +206,8 @@ class CommunityController extends Controller
 
         $community->members()->detach($userId);
         $community->decrement('member_count');
+
+        \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats');
 
         return response()->json([
             'message' => 'Left',

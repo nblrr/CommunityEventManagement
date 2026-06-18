@@ -1,5 +1,6 @@
 package com.example.communityeventmanagementsystem.data.mapper
 
+import com.example.communityeventmanagementsystem.core.common.DateTimeUtils
 import com.example.communityeventmanagementsystem.data.remote.dto.CategoryDto
 import com.example.communityeventmanagementsystem.data.remote.dto.CommunityDto
 import com.example.communityeventmanagementsystem.data.remote.dto.EventDto
@@ -29,7 +30,7 @@ fun EventDto.toDomain() = Event(
     eventDate = eventDate,
     attendeeCount = attendeeCount,
     maxAttendees = maxAttendees,
-    status = status ?: "UPCOMING",
+    status = DateTimeUtils.computeEventStatus(eventDate, eventTime, null, status ?: "UPCOMING"),
     coverImageUrl = coverImageUrl,
     categoryId = categoryId,
     categoryName = category?.name,
@@ -46,7 +47,7 @@ fun com.example.communityeventmanagementsystem.data.remote.dto.EventDetailRespon
     eventDate = eventDate,
     attendeeCount = attendeeCount,
     maxAttendees = maxAttendees,
-    status = status ?: "UPCOMING",
+    status = DateTimeUtils.computeEventStatus(eventDate, eventTime, endTime, status ?: "UPCOMING"),
     coverImageUrl = coverImageUrl,
     communityId = communityId,
     categoryId = categoryId,

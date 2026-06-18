@@ -34,7 +34,33 @@ class EventController extends Controller
         }
 
         if ($request->has('status') && $request->status != '') {
-            $query->where('status', $request->status);
+            $now = now();
+            $statusFilter = strtoupper($request->status);
+            if ($statusFilter === 'UPCOMING') {
+                $query->where(function($q) use ($now) {
+                    $q->where('event_date', '>', $now->toDateString())
+                      ->orWhere(function($q2) use ($now) {
+                          $q2->where('event_date', '=', $now->toDateString())
+                              ->where('event_time', '>', $now->format('H:i:s'));
+                      });
+                });
+            } elseif ($statusFilter === 'COMPLETED') {
+                $query->where(function($q) use ($now) {
+                    $q->where('event_date', '<', $now->toDateString())
+                      ->orWhere(function($q2) use ($now) {
+                          $q2->where('event_date', '=', $now->toDateString())
+                              ->whereNotNull('end_time')
+                              ->where('end_time', '<', $now->format('H:i:s'));
+                      });
+                });
+            } elseif ($statusFilter === 'ONGOING') {
+                $query->where('event_date', '=', $now->toDateString())
+                      ->where('event_time', '<=', $now->format('H:i:s'))
+                      ->where(function($q) use ($now) {
+                          $q->whereNull('end_time')
+                            ->orWhere('end_time', '>=', $now->format('H:i:s'));
+                      });
+            }
         }
 
         if ($request->has('sort_by') && $request->sort_by != '') {
@@ -93,10 +119,19 @@ class EventController extends Controller
      */
     public function upcomingEvents(Request $request)
     {
-        $events = Event::where('status', 'UPCOMING')
-            ->orWhere('event_date', '>=', now()->toDateString())
+        $now = now();
+
+        $events = Event::where(function($query) use ($now) {
+                // Event hasn't started yet (event_date is in the future, OR event_date is today and event_time hasn't passed)
+                $query->where('event_date', '>', $now->toDateString())
+                      ->orWhere(function($q) use ($now) {
+                          $q->where('event_date', '=', $now->toDateString())
+                            ->where('event_time', '>', $now->format('H:i:s'));
+                      });
+            })
             ->with(['community', 'category'])
             ->orderBy('event_date', 'asc')
+            ->orderBy('event_time', 'asc')
             ->limit(10)
             ->get();
 
@@ -117,8 +152,14 @@ class EventController extends Controller
 
         $communityIds = $user->communities()->pluck('communities.id');
 
-        $query = Event::where('status', 'UPCOMING')
-            ->where('event_date', '>=', now()->toDateString());
+        $now = now();
+        $query = Event::where(function($q) use ($now) {
+                $q->where('event_date', '>', $now->toDateString())
+                  ->orWhere(function($q2) use ($now) {
+                      $q2->where('event_date', '=', $now->toDateString())
+                          ->where('event_time', '>', $now->format('H:i:s'));
+                  });
+            });
 
         if ($categoryIds->isNotEmpty() || $communityIds->isNotEmpty()) {
             $query->where(function($q) use ($categoryIds, $communityIds) {

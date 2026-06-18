@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -98,28 +99,28 @@ fun AdminDashboardScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            TabRow(
+            PrimaryTabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = SurfaceContainerLowest,
                 contentColor = Primary,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                divider = { HorizontalDivider(color = OutlineVariant) }
             ) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
                         selected = selectedTab == index,
                         onClick = { selectedTab = index },
-                        text = { Text(title, style = LabelLg) },
-                        icon = {
-                            Icon(
-                                imageVector = when (index) {
-                                    0 -> Icons.Default.Dashboard
-                                    1 -> Icons.Default.People
-                                    2 -> Icons.Default.Groups
-                                    else -> Icons.Default.Event
-                                },
-                                contentDescription = null
+                        modifier = Modifier.height(48.dp),
+                        text = {
+                            Text(
+                                text = title,
+                                style = LabelLg,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
-                        }
+                        },
+                        selectedContentColor = Primary,
+                        unselectedContentColor = OnSurfaceVariant
                     )
                 }
             }
@@ -282,7 +283,7 @@ fun DashboardTabContent(
                         }
                         Box(modifier = Modifier.weight(1f)) {
                             AdminDashboardStatCard(
-                                title = "Trusted Organizers",
+                                title = "Trusted",
                                 value = state.stats?.trustedOrganizers?.toString() ?: "0",
                                 icon = Icons.Filled.Verified,
                                 iconBgColor = SecondaryContainer,
@@ -296,7 +297,7 @@ fun DashboardTabContent(
                     ) {
                         Box(modifier = Modifier.weight(1f)) {
                             AdminDashboardStatCard(
-                                title = "Blocked Users",
+                                title = "Blocked",
                                 value = state.stats?.blockedUsers?.toString() ?: "0",
                                 icon = Icons.Filled.Block,
                                 iconBgColor = Color(0xFFFDD8D8),
@@ -305,7 +306,7 @@ fun DashboardTabContent(
                         }
                         Box(modifier = Modifier.weight(1f)) {
                             AdminDashboardStatCard(
-                                title = "Pending Apps",
+                                title = "Pending",
                                 value = state.stats?.pendingTrustedApplications?.toString() ?: "0",
                                 icon = Icons.Filled.PendingActions,
                                 iconBgColor = Color(0xFFFFF0C2),
@@ -1189,14 +1190,16 @@ fun AdminDashboardStatCard(
         shadowElevation = 2.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
-            modifier = Modifier.padding(Dimens.SpacingLg),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingMd)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Dimens.SpacingMd, vertical = Dimens.SpacingMd),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(Dimens.SpacingSm)
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(40.dp)
                     .clip(CircleShape)
                     .background(iconBgColor),
                 contentAlignment = Alignment.Center
@@ -1204,21 +1207,24 @@ fun AdminDashboardStatCard(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = iconTintColor
+                    tint = iconTintColor,
+                    modifier = Modifier.size(20.dp)
                 )
             }
-            Column {
-                Text(
-                    text = title,
-                    style = BodySm,
-                    color = OnSurfaceVariant
-                )
-                Text(
-                    text = value,
-                    style = HeadlineMd,
-                    color = OnSurface
-                )
-            }
+            Text(
+                text = value,
+                style = HeadlineMd,
+                color = OnSurface,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = title,
+                style = LabelMd,
+                color = OnSurfaceVariant,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
@@ -1242,74 +1248,105 @@ fun AdminDashboardAppCard(
     ) {
         Column(
             modifier = Modifier.padding(Dimens.SpacingMd),
-            verticalArrangement = Arrangement.spacedBy(Dimens.SpacingMd)
+            verticalArrangement = Arrangement.spacedBy(Dimens.SpacingSm)
         ) {
+            // Header: Avatar + Name + Status badge
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingSm)
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingMd)) {
-                    AsyncImage(
-                        model = avatarUrl.ifEmpty { "https://via.placeholder.com/150" },
-                        contentDescription = "Avatar",
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(CircleShape)
-                            .border(2.dp, SurfaceContainerHigh, CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(text = name, style = HeadlineMd.copy(fontSize = 18.sp), color = OnSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Groups, contentDescription = null, modifier = Modifier.size(14.dp), tint = OnSurfaceVariant)
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(text = community, style = BodySm, color = OnSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        }
-                    }
-                }
-                Surface(
-                    color = Color(0xFFFFF0C2).copy(alpha = 0.5f),
-                    shape = Shapes.Large,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFF0C2))
+                // Initial avatar instead of network image
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(PrimaryFixed),
+                    contentAlignment = Alignment.Center
                 ) {
+                    Text(
+                        text = name.take(1).uppercase(),
+                        style = TitleLg,
+                        color = Primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = name,
+                        style = TitleMd,
+                        color = OnSurface,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     Row(
-                        modifier = Modifier.padding(horizontal = Dimens.SpacingSm, vertical = Dimens.SpacingXs),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Icon(Icons.Default.Schedule, contentDescription = null, modifier = Modifier.size(14.dp), tint = Color(0xFF8C6D00))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = status.uppercase(), style = LabelMd.copy(fontSize = 10.sp), color = Color(0xFF8C6D00))
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = null,
+                            modifier = Modifier.size(12.dp),
+                            tint = OnSurfaceVariant
+                        )
+                        Text(
+                            text = community,
+                            style = BodySm,
+                            color = OnSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
                 }
             }
+
+            // Reason and experience section
             Surface(
                 color = SurfaceContainerLowest,
                 shape = Shapes.Large,
-                border = androidx.compose.foundation.BorderStroke(1.dp, SurfaceVariant)
+                border = androidx.compose.foundation.BorderStroke(1.dp, OutlineVariant)
             ) {
-                Column(modifier = Modifier.padding(12.dp)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(Dimens.SpacingSm)
+                ) {
                     Text(
-                        text = "Reason: \"$description\"",
+                        text = "Reason:",
+                        style = LabelMd,
+                        color = OnSurface,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "\"$description\"",
                         style = BodySm,
                         color = OnSurfaceVariant,
-                        maxLines = 5,
+                        maxLines = 4,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(Dimens.SpacingSm))
                     Text(
-                        text = "Experience: \"$experience\"",
+                        text = "Experience:",
+                        style = LabelMd,
+                        color = OnSurface,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "\"$experience\"",
                         style = BodySm,
                         color = OnSurfaceVariant,
-                        maxLines = 5,
+                        maxLines = 4,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
             }
+
+            // Action buttons
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = Dimens.SpacingSm),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -1317,8 +1354,8 @@ fun AdminDashboardAppCard(
                     onClick = onReject,
                     colors = ButtonDefaults.textButtonColors(contentColor = Error)
                 ) {
-                    Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(Dimens.SpacingSm))
+                    Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text("Reject", style = LabelMd)
                 }
                 Spacer(modifier = Modifier.width(Dimens.SpacingSm))
@@ -1327,8 +1364,8 @@ fun AdminDashboardAppCard(
                     colors = ButtonDefaults.buttonColors(containerColor = Secondary, contentColor = OnSecondary),
                     shape = Shapes.Large
                 ) {
-                    Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(Dimens.SpacingSm))
+                    Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text("Approve", style = LabelMd)
                 }
             }

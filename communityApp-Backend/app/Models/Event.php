@@ -34,6 +34,16 @@ class Event extends Model
         'rating'
     ];
 
+    /**
+     * Override the 'status' attribute getter so that whenever the model
+     * is serialized to JSON (or accessed via $event->status), it returns
+     * the time-based calculated status instead of the raw DB column.
+     */
+    public function getStatusAttribute($value)
+    {
+        return $this->getCalculatedStatusAttribute();
+    }
+
     public function getCalculatedStatusAttribute()
     {
         $now = now();
